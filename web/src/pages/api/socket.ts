@@ -2,7 +2,7 @@ import type { Server as HTTPServer } from "http";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Socket as NetSocket } from "net";
 import { Server as IOServer } from "socket.io";
-// import { SerialPort } from "serialport";
+import { SerialPort } from "serialport";
 
 interface SocketServer extends HTTPServer {
   io?: IOServer | undefined;
@@ -24,14 +24,23 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
     console.log("Socket is initializing");
     const io = new IOServer(res.socket.server);
     res.socket.server.io = io;
-    // void SerialPort.list().then(function (ports) {
-    //   ports.forEach(function (port) {
-    //     console.log("Portttt: ", port);
-    //   });
-    // });
-
+    // function to print all the ports
+    /*void SerialPort.list().then(function (ports) {
+       ports.forEach(function (port) {
+         console.log("Portttt: ", port);
+       });
+     });*/
+    const serialPort = new SerialPort({
+      path: "/dev/tty.usbmodem11301",
+      baudRate: 9600,
+    });
     io.on("connection", (socket) => {
       socket.on("blink", (msg) => {
+        serialPort.write(msg, (err) => {
+          if (err) {
+            return console.log("Error on write: ", err?.message);
+          }
+        });
         if (msg === "open") {
           console.log("OPEN");
         } else if (msg === "close") {
