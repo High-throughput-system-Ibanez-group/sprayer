@@ -11,7 +11,7 @@ const io = new Server(server);
 const port = process.env.PORT;
 
 const serialPort = new SerialPort({
-	path: '/dev/tty.usbmodem111201',
+	path: '/dev/tty.usbmodem1301',
 	baudRate: 9600,
 })
 let val = false
