@@ -36,7 +36,7 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
     });
     io.on("connection", (socket) => {
       socket.on("blink", (msg) => {
-        serialPort.write(msg, (err) => {
+        serialPort.write(`${msg}\n`, (err) => {
           if (err) {
             return console.log("Error on write: ", err?.message);
           }
