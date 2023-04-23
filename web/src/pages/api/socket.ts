@@ -31,21 +31,17 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
        });
      });*/
     const serialPort = new SerialPort({
-      path: "/dev/tty.usbmodem11301",
+      path: "/dev/tty.usbmodem1301",
       baudRate: 9600,
     });
     io.on("connection", (socket) => {
-      socket.on("blink", (msg) => {
-        serialPort.write(`${msg}\n`, (err) => {
+      socket.on("command", (command: string) => {
+        serialPort.write(`${command}\n`, (err) => {
           if (err) {
             return console.log("Error on write: ", err?.message);
           }
         });
-        if (msg === "open") {
-          console.log("OPEN");
-        } else if (msg === "close") {
-          console.log("CLOSE");
-        }
+        console.log("Command: ", command);
       });
     });
   }
