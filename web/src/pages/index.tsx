@@ -1,19 +1,22 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 
 let socket: Socket;
 
-type MoveOptions = "X" | "Y" | "Z" | undefined;
+type Axis = "x" | "y" | "z";
+type MoveOptions = Axis | undefined;
 
 const Home: NextPage = () => {
   const [selectedOption, setSelectedOption] = useState<MoveOptions>();
-
+  const refInputX = useRef<HTMLInputElement>(null);
+  const refInputY = useRef<HTMLInputElement>(null);
+  const refInputZ = useRef<HTMLInputElement>(null);
   const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const MoveOption = event.target.value as MoveOptions;
     const isMoveOption =
-      MoveOption === "X" || MoveOption === "Y" || MoveOption === "Z";
+      MoveOption === "x" || MoveOption === "y" || MoveOption === "z";
     if (isMoveOption) {
       setSelectedOption(MoveOption);
     }
@@ -27,17 +30,17 @@ const Home: NextPage = () => {
     console.log("Move button clicked");
 
     switch (selectedOption) {
-      case "X":
-        console.log("Move X");
+      case "x":
+        console.log("Move x");
         socket.emit("command", "test:x");
         break;
-      case "Y":
+      case "y":
         socket.emit("command", "test:y");
-        console.log("Move Y");
+        console.log("Move y");
         break;
-      case "Z":
+      case "z":
         socket.emit("command", "test:z");
-        console.log("Move Z");
+        console.log("Move z");
         break;
       default:
         console.log("No option selected");
@@ -47,6 +50,27 @@ const Home: NextPage = () => {
   const handleZeroingClick = () => {
     console.log("ZeroingClick button clicked");
     socket.emit("command", "zeroing");
+  };
+
+  const handleStepperSubmit = (stepperAxis: Axis) => {
+    console.log("Stepper button clicked");
+    let value;
+    switch (stepperAxis) {
+      case "x":
+        value = refInputX.current?.value;
+        break;
+      case "y":
+        value = refInputY.current?.value;
+        break;
+      case "z":
+        value = refInputZ.current?.value;
+        break;
+      default:
+        console.log("No option selected");
+    }
+    if (value) {
+      socket.emit("command", `stepper_${stepperAxis}:${value}`);
+    }
   };
 
   const startSocket = async () => {
@@ -77,6 +101,71 @@ const Home: NextPage = () => {
           {/* Content */}
           <div className="flex flex-grow items-center justify-center">
             <div className="w-full max-w-lg p-4">
+              <div className="flex-col">
+                <div className="flex items-center space-x-4">
+                  <label htmlFor="number-input" className="font-medium">
+                    Enter a number for the x:
+                  </label>
+                  <input
+                    type="number"
+                    id="number-input"
+                    className="w-32 rounded-md border border-gray-300 px-3 py-2"
+                    ref={refInputX}
+                  />
+                  <button
+                    type="button"
+                    className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+                    onClick={() => {
+                      handleStepperSubmit("x");
+                    }}
+                  >
+                    Submit x
+                  </button>
+                </div>
+                <div className="h-4" />
+                <div className="flex items-center space-x-4">
+                  <label htmlFor="number-input" className="font-medium">
+                    Enter a number for the y:
+                  </label>
+                  <input
+                    type="number"
+                    id="number-input"
+                    className="w-32 rounded-md border border-gray-300 px-3 py-2"
+                    ref={refInputY}
+                  />
+                  <button
+                    type="button"
+                    className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+                    onClick={() => {
+                      handleStepperSubmit("y");
+                    }}
+                  >
+                    Submit y
+                  </button>
+                </div>
+                <div className="h-4" />
+                <div className="flex items-center space-x-4">
+                  <label htmlFor="number-input" className="font-medium">
+                    Enter a number for the z:
+                  </label>
+                  <input
+                    type="number"
+                    id="number-input"
+                    className="w-32 rounded-md border border-gray-300 px-3 py-2"
+                    ref={refInputZ}
+                  />
+                  <button
+                    type="button"
+                    className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+                    onClick={() => {
+                      handleStepperSubmit("z");
+                    }}
+                  >
+                    Submit z
+                  </button>
+                </div>
+                <div className="h-4" />
+              </div>
               <button
                 className="inline-flex cursor-pointer items-center rounded bg-orange-400 py-2 px-4 font-bold text-gray-800 hover:bg-orange-200"
                 onClick={handleZeroingClick}
@@ -95,9 +184,9 @@ const Home: NextPage = () => {
                   className="block w-full appearance-none rounded border border-gray-200 bg-gray-200 py-2 px-4 pr-8 leading-tight text-gray-700 focus:border-gray-500 focus:bg-white focus:outline-none"
                 >
                   <option value="">Select an option</option>
-                  <option value="X">X</option>
-                  <option value="Y">Y</option>
-                  <option value="Z">Z</option>
+                  <option value="x">x</option>
+                  <option value="y">y</option>
+                  <option value="z">z</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   <svg

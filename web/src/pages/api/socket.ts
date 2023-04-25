@@ -31,7 +31,7 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
        });
      });*/
     const serialPort = new SerialPort({
-      path: "/dev/tty.usbmodem1301",
+      path: "/dev/tty.usbmodem11301",
       baudRate: 9600,
     });
     io.on("connection", (socket) => {

@@ -13,6 +13,9 @@
 #define STEPPER_Z_POW 12
 #define STEPPER_Z_END 13
 
+#define FULL_REV_MM 54
+#define MICROSTEPPING 400
+
 struct stepper
 {
   int stp;
@@ -83,10 +86,17 @@ void rotate_steps(stepper stepper, int steps)
     delayMicroseconds(4000);
   }
 
-  digitalWrite(stepper.pow, HIGH);
+  // digitalWrite(stepper.pow, HIGH);
 }
 
-int get_command_int_arg(String command)
+void rotate_mm(stepper stepper, int mm)
+{
+  int steps = (int)round(mm / 0.135); // 27 / 0.135 => 200
+
+  rotate_steps(stepper, steps);
+}
+
+int get_command_arg(String command)
 {
   int separator_index = command.indexOf(":");
   String arg = command.substring(separator_index + 1);
@@ -146,21 +156,24 @@ void loop()
   {
     String command = Serial.readStringUntil('\n');
 
-    if (command == "test:x")
-    {
-      rotate_steps(stepper_x, 100);
-    }
-    else if (command == "test:y")
-    {
-      rotate_steps(stepper_y, 100);
-    }
-    else if (command == "test:z")
-    {
-      rotate_steps(stepper_z, 100);
-    }
-    else if (command == "zeroing")
+    if (command == "zeroing")
     {
       stepper_zeroing();
+    }
+    else if (command.startsWith("stepper_x"))
+    {
+      rotate_mm(stepper_x, 54 * 2);
+    }
+    else if (command.startsWith("stepper_y"))
+    {
+      // int dmm = get_command_arg(command);
+      // rotate_mm(stepper_y, 100);
+      rotate_mm(stepper_y, 54 * 2);
+    }
+    else if (command.startsWith("stepper_z"))
+    {
+      // int dmm = get_command_arg(command);
+      rotate_mm(stepper_z, 54 * 2);
     }
   }
 
