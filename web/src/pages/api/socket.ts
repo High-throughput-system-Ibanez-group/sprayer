@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Socket as NetSocket } from "net";
 import { Server as IOServer } from "socket.io";
 import { SerialPort } from "serialport";
+import { ReadlineParser } from "@serialport/parser-readline";
 
 interface SocketServer extends HTTPServer {
   io?: IOServer | undefined;
@@ -16,7 +17,14 @@ interface NextApiResponseWithSocket extends NextApiResponse {
   socket: SocketWithIO;
 }
 
-const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
+const serialPort = new SerialPort({
+  path: "/dev/tty.usbmodem11301",
+  baudRate: 9600,
+});
+
+const readlineParser = new ReadlineParser({ delimiter: "\r\n" });
+
+const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (res.socket.server.io) {
     console.log("Socket is already running");
@@ -30,15 +38,28 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
          console.log("Portttt: ", port);
        });
      });*/
-    const serialPort = new SerialPort({
-      path: "/dev/tty.usbmodem11301",
-      baudRate: 9600,
+
+    const parser = serialPort.pipe(readlineParser);
+
+    parser.on("open", function () {
+      console.log("connection is opened");
     });
+
+    parser.on("data", function (data) {
+      console.log("data from board: ", data);
+    });
+
+    parser.on("error", (err) => console.log("err creating the parser.. ", err));
+
+    serialPort.on("error", (err) =>
+      console.log("err with board connection..", err)
+    );
+
     io.on("connection", (socket) => {
       socket.on("command", (command: string) => {
         serialPort.write(`${command}\n`, (err) => {
           if (err) {
-            return console.log("Error on write: ", err?.message);
+            return console.log("err on write.. ", err?.message);
           }
         });
         console.log("Command: ", command);

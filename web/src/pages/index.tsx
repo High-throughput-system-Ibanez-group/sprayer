@@ -1,55 +1,24 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
 
 let socket: Socket;
 
 type Axis = "x" | "y" | "z";
-type MoveOptions = Axis | undefined;
 
 const Home: NextPage = () => {
-  const [selectedOption, setSelectedOption] = useState<MoveOptions>();
   const refInputX = useRef<HTMLInputElement>(null);
   const refInputY = useRef<HTMLInputElement>(null);
   const refInputZ = useRef<HTMLInputElement>(null);
-  const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const MoveOption = event.target.value as MoveOptions;
-    const isMoveOption =
-      MoveOption === "x" || MoveOption === "y" || MoveOption === "z";
-    if (isMoveOption) {
-      setSelectedOption(MoveOption);
-    }
-  };
 
   useEffect(() => {
     void startSocket();
   }, []);
 
-  const handleMoveClick = () => {
-    console.log("Move button clicked");
-
-    switch (selectedOption) {
-      case "x":
-        console.log("Move x");
-        socket.emit("command", "test:x");
-        break;
-      case "y":
-        socket.emit("command", "test:y");
-        console.log("Move y");
-        break;
-      case "z":
-        socket.emit("command", "test:z");
-        console.log("Move z");
-        break;
-      default:
-        console.log("No option selected");
-    }
-  };
-
-  const handleZeroingClick = () => {
+  const handleZeroingClick = (type: "start" | "end") => {
     console.log("ZeroingClick button clicked");
-    socket.emit("command", "zeroing");
+    socket.emit("command", `zeroing_${type}`);
   };
 
   const handleStepperSubmit = (stepperAxis: Axis) => {
@@ -82,6 +51,11 @@ const Home: NextPage = () => {
     });
   };
 
+  const onClickTest = () => {
+    console.log("Test button clicked");
+    socket.emit("command", "test");
+  };
+
   return (
     <>
       <Head>
@@ -101,6 +75,37 @@ const Home: NextPage = () => {
           {/* Content */}
           <div className="flex flex-grow items-center justify-center">
             <div className="w-full max-w-lg p-4">
+              <div className="flex flex-row items-center space-x-4">
+                {/* Test button */}
+                <button
+                  type="button"
+                  className="cursor-pointer items-center rounded bg-green-400 py-2 px-4 font-bold text-gray-800 hover:bg-green-200"
+                  onClick={onClickTest}
+                >
+                  Send test
+                </button>
+                {/* Zeroing Start */}
+                <button
+                  className="cursor-pointer items-center rounded bg-orange-400 py-2 px-4 font-bold text-gray-800 hover:bg-orange-200"
+                  onClick={() => {
+                    handleZeroingClick("start");
+                  }}
+                >
+                  zeroing start
+                </button>{" "}
+                {/* Zeroing End */}
+                <button
+                  className="cursor-pointer items-center rounded bg-orange-400 py-2 px-4 font-bold text-gray-800 hover:bg-orange-200"
+                  onClick={() => {
+                    handleZeroingClick("end");
+                  }}
+                >
+                  zeroing end
+                </button>
+              </div>
+
+              <div className="h-4" />
+              {/* Test axis */}
               <div className="flex-col">
                 <div className="flex items-center space-x-4">
                   <label htmlFor="number-input" className="font-medium">
@@ -164,51 +169,7 @@ const Home: NextPage = () => {
                     Submit z
                   </button>
                 </div>
-                <div className="h-4" />
               </div>
-              <button
-                className="inline-flex cursor-pointer items-center rounded bg-orange-400 py-2 px-4 font-bold text-gray-800 hover:bg-orange-200"
-                onClick={handleZeroingClick}
-              >
-                zeroing
-              </button>
-              <div className="h-4" />
-              <label className="mb-2 block font-bold" htmlFor="option-select">
-                Select an option:
-              </label>
-              <div className="relative">
-                <select
-                  id="option-select"
-                  value={selectedOption}
-                  onChange={handleOptionChange}
-                  className="block w-full appearance-none rounded border border-gray-200 bg-gray-200 py-2 px-4 pr-8 leading-tight text-gray-700 focus:border-gray-500 focus:bg-white focus:outline-none"
-                >
-                  <option value="">Select an option</option>
-                  <option value="x">x</option>
-                  <option value="y">y</option>
-                  <option value="z">z</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg
-                    className="h-4 w-4 fill-current"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M6.293 7.293a1 1 0 011.414 0L10 9.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <button
-                className="mt-4 cursor-pointer rounded bg-blue-500 py-2 px-4 font-bold text-white hover:bg-blue-700"
-                onClick={handleMoveClick}
-                disabled={!selectedOption}
-              >
-                Move
-              </button>
             </div>
           </div>
         </div>
