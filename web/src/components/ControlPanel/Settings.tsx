@@ -9,6 +9,7 @@ export const Settings = observer(() => {
     console.log("Test button clicked");
     socket?.emit("command", "test");
   };
+
   return (
     <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Settings</div>
