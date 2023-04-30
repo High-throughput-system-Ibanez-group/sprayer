@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "cd web && npm run dev"
+    "start": "cd app && npm run dev"
   }
 }
