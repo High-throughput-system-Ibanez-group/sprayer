@@ -1,117 +1,69 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { AreaElement } from "~/components/AreaConfig/AreaElement";
+import { api } from "~/utils/api";
+import { type Area } from "~/utils/types";
 
 const AreaConfig = () => {
-  const [areas, setAreas] = React.useState([1]);
+  const { data: fetchedAreas, isLoading } = api.areas.getAll.useQuery();
+  const [areas, setAreas] = React.useState<Area[]>([]);
+
+  useEffect(() => {
+    fetchedAreas && setAreas(fetchedAreas);
+  }, [fetchedAreas]);
+
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-8">
       <table className="max-[600px] border-collapse">
         <thead>
           <tr className="text-gray-700">
-            <th className="py-2 px-4"></th>
-            <th className="py-2 px-4" colSpan={3}>
+            <th className="px-4 py-2"></th>
+            <th className="px-4 py-2" colSpan={3}>
               Starting Point
             </th>
-            <th className="py-2 px-4"></th>
-            <th className="py-2 px-4" colSpan={3}>
+            <th className="px-4 py-2"></th>
+            <th className="px-4 py-2" colSpan={3}>
               Ending Point
             </th>
-            <th className="py-2 px-4"></th>
-            <th className="py-2 px-4"></th>
+            <th className="px-4 py-2"></th>
+            <th className="px-4 py-2"></th>
           </tr>
           <tr className="text-gray-700">
-            <th className="py-2 px-4"></th>
-            <th className="py-2 px-4">X</th>
+            <th className="px-4 py-2"></th>
+            <th className="px-4 py-2">X</th>
             <th className="pX-4 py-2">Y</th>
-            <th className="py-2 px-4">Z</th>
-            <th className="py-2 px-4"></th>
-            <th className="py-2 px-4">X</th>
-            <th className="py-2 px-4">Y</th>
-            <th className="py-2 px-4">Z</th>
-            <th className="py-2 px-4"></th>
-            <th className="py-2 px-4"></th>
+            <th className="px-4 py-2">Z</th>
+            <th className="px-4 py-2"></th>
+            <th className="px-4 py-2">X</th>
+            <th className="px-4 py-2">Y</th>
+            <th className="px-4 py-2">Z</th>
+            <th className="px-4 py-2"></th>
+            <th className="px-4 py-2"></th>
           </tr>
         </thead>
         <tbody>
-          {areas.map((_, idx) => (
-            <tr className="bg-white" key={idx}>
-              <td className="py-2 px-4">Area {idx + 1}</td>
-              <td className="py-2 px-4 text-center">
-                <input
-                  type="number"
-                  id="number-input"
-                  className="w-24 rounded-md border border-gray-300 px-3 py-2"
-                />
-              </td>
-              <td className="py-2 px-4 text-center">
-                <input
-                  type="number"
-                  id="number-input"
-                  className="w-24 rounded-md border border-gray-300 px-3 py-2"
-                />
-              </td>
-              <td className="py-2 px-4 text-center">
-                <input
-                  type="number"
-                  id="number-input"
-                  className="w-24 rounded-md border border-gray-300 px-3 py-2"
-                />
-              </td>
-              <td className="py-2 px-4 text-center"></td>
-              <td className="py-2 px-4 text-center">
-                <input
-                  type="number"
-                  id="number-input"
-                  className="w-24 rounded-md border border-gray-300 px-3 py-2"
-                />
-              </td>
-              <td className="py-2 px-4 text-center">
-                <input
-                  type="number"
-                  id="number-input"
-                  className="w-24 rounded-md border border-gray-300 px-3 py-2"
-                />
-              </td>
-              <td className="py-2 px-4 text-center">
-                <input
-                  type="number"
-                  id="number-input"
-                  className="w-24 rounded-md border border-gray-300 px-3 py-2"
-                />
-              </td>
-              <td className="py-2 px-4 text-center">
-                <button
-                  type="button"
-                  className="w-24 rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
-                  onClick={() => {
-                    //TODO: save
-                  }}
-                >
-                  Save
-                </button>
-              </td>
-              <td className="py-2 px-4 text-center">
-                <button
-                  type="button"
-                  className="w-24 rounded-md bg-red-500 py-2 px-4 font-medium text-white hover:bg-red-600"
-                  onClick={() => {
-                    //TODO: delete area
-                    setAreas(areas.filter((_, i) => i !== idx));
-                  }}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
+          {areas?.map((area, idx) => (
+            <AreaElement key={area.id || idx + 10000} area={area} idx={idx} />
           ))}
         </tbody>
       </table>
       <div className="h-12" />
       <button
         type="button"
-        className="w-32 rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+        className="w-32 rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
         onClick={() => {
-          //TODO: add new area
-          setAreas([...areas, areas.length + 1]);
+          setAreas([
+            ...areas,
+            {
+              x1: 0,
+              y1: 0,
+              z1: 0,
+              x2: 0,
+              y2: 0,
+              z2: 0,
+            },
+          ]);
         }}
       >
         Add area +
