@@ -7,7 +7,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
       <Nav />
-      <Component {...pageProps} />;
+      <Component {...pageProps} />
     </>
   );
 };
