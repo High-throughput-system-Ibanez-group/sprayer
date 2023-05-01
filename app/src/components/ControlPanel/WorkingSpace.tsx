@@ -58,6 +58,7 @@ export const WorkingSpace = observer(() => {
               id="number-input"
               className="w-32 rounded-md border border-gray-300 px-3 py-2"
               ref={refInputX}
+              readOnly
             />
             <div className="absolute -top-8 left-0 flex w-full justify-center">
               (mm)
@@ -66,7 +67,7 @@ export const WorkingSpace = observer(() => {
 
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               handleStepperSubmit("x");
             }}
@@ -84,10 +85,11 @@ export const WorkingSpace = observer(() => {
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
             ref={refInputY}
+            readOnly
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               handleStepperSubmit("y");
             }}
@@ -105,10 +107,11 @@ export const WorkingSpace = observer(() => {
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
             ref={refInputZ}
+            readOnly
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               handleStepperSubmit("z");
             }}
@@ -119,7 +122,7 @@ export const WorkingSpace = observer(() => {
         <div className="h-6" />
         <button
           type="button"
-          className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={updateAll}
         >
           Update all
