@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
 import { type Area } from "~/utils/types";
 
-export const AreaElement = ({ area, idx }: { area: Area; idx: number }) => {
+export const AreaElement = ({
+  area,
+  idx,
+  removeArea,
+}: {
+  area: Area;
+  idx: number;
+  removeArea: (idx: number) => void;
+}) => {
   const utils = api.useContext();
   const saveArea = api.areas.save.useMutation();
   const deleteArea = api.areas.delete.useMutation();
@@ -64,7 +72,11 @@ export const AreaElement = ({ area, idx }: { area: Area; idx: number }) => {
   const onDelete = async () => {
     try {
       setLoading(true);
-      if (!area || !area.id) return;
+      if (!area) return;
+      if (!area.id) {
+        removeArea(idx);
+        return;
+      }
       await deleteArea.mutateAsync(area.id);
       await utils.areas.getAll.invalidate();
     } catch (err) {

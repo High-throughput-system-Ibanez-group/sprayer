@@ -11,6 +11,12 @@ const AreaConfig = () => {
     fetchedAreas && setAreas(fetchedAreas);
   }, [fetchedAreas]);
 
+  const removeArea = (idx: number) => {
+    const newAreas = [...areas];
+    newAreas.splice(idx, 1);
+    setAreas(newAreas);
+  };
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -44,7 +50,12 @@ const AreaConfig = () => {
         </thead>
         <tbody>
           {areas?.map((area, idx) => (
-            <AreaElement key={area.id || idx + 10000} area={area} idx={idx} />
+            <AreaElement
+              key={area.id || idx + 10000}
+              area={area}
+              idx={idx}
+              removeArea={removeArea}
+            />
           ))}
         </tbody>
       </table>
