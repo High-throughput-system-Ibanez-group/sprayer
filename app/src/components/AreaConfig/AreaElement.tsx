@@ -5,6 +5,7 @@ import { type Area } from "~/utils/types";
 export const AreaElement = ({ area, idx }: { area: Area; idx: number }) => {
   const utils = api.useContext();
   const saveArea = api.areas.save.useMutation();
+  const deleteArea = api.areas.delete.useMutation();
   const [loading, setLoading] = useState(false);
   const number = idx + 1;
 
@@ -53,10 +54,23 @@ export const AreaElement = ({ area, idx }: { area: Area; idx: number }) => {
         });
         await utils.areas.getAll.invalidate();
       } catch (err) {
-        console.log(err);
+        console.log("err saving area..", err);
       } finally {
         setLoading(false);
       }
+    }
+  };
+
+  const onDelete = async () => {
+    try {
+      setLoading(true);
+      if (!area || !area.id) return;
+      await deleteArea.mutateAsync(area.id);
+      await utils.areas.getAll.invalidate();
+    } catch (err) {
+      console.log("err deleting area..", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -129,7 +143,7 @@ export const AreaElement = ({ area, idx }: { area: Area; idx: number }) => {
           type="button"
           className="w-24 rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
           onClick={() => {
-            //setAreas(areas.filter((_, i) => i !== idx));
+            void onDelete();
           }}
         >
           Delete
