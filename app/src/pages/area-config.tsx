@@ -62,7 +62,7 @@ const AreaConfig = () => {
       <div className="h-12" />
       <button
         type="button"
-        className="w-32 rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+        className="w-40 rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
         onClick={() => {
           setAreas([
             ...areas,
