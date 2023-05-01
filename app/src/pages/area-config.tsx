@@ -78,7 +78,7 @@ const AreaConfig = () => {
         }}
         disabled={isLoading || areas.length >= 9}
       >
-        Add area +
+        Add sample +
       </button>
     </div>
   );

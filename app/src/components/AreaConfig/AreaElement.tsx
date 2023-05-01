@@ -88,7 +88,7 @@ export const AreaElement = ({
 
   return (
     <tr className="bg-white">
-      <td className="px-4 py-2">Area {number}</td>
+      <td className="px-4 py-2">Sample {number}</td>
       <td className="px-4 py-2 text-center">
         <input
           type="number"
