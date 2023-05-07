@@ -27,6 +27,15 @@ const Nav = () => {
           Area Configuration
         </div>
       </Link>
+      <Link href="/pattern-config">
+        <div
+          className={`mx-4 cursor-pointer rounded-lg px-4 py-2 hover:bg-slate-500 ${
+            router.pathname === "/pattern-config" ? "underline" : ""
+          }`}
+        >
+          Pattern Configuration
+        </div>
+      </Link>
     </nav>
   );
 };

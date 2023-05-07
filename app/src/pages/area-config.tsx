@@ -20,7 +20,7 @@ const AreaConfig = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-8">
+    <div className="flex h-full flex-1 flex-col items-center justify-start p-8">
       <table className="max-[600px] border-collapse">
         <thead>
           <tr className="text-gray-700">
