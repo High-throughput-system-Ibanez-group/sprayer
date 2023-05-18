@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { appStore } from "~/store/app";
+import { appStore } from "~/stores/app";
 
 export const Zeroing = observer(() => {
   const app = appStore();
@@ -15,7 +15,7 @@ export const Zeroing = observer(() => {
       <div className="mb-2 text-xl font-bold">Zeroing</div>
       <div className="flex flex-row py-6">
         <button
-          className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
             handleZeroingClick("start");
           }}
@@ -24,7 +24,7 @@ export const Zeroing = observer(() => {
         </button>
         <div className="w-4" />
         <button
-          className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
             handleZeroingClick("end");
           }}

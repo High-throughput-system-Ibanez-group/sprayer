@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useRef } from "react";
-import { appStore } from "~/store/app";
+import { appStore } from "~/stores/app";
 
 export const Settings = observer(() => {
   const app = appStore();
@@ -27,12 +27,12 @@ export const Settings = observer(() => {
   };
 
   return (
-    <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
+    <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Settings</div>
       <div className="flex flex-1 flex-col py-6">
         <button
           type="button"
-          className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={onClickTest}
         >
           Send test
@@ -50,7 +50,7 @@ export const Settings = observer(() => {
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               handleMicro();
             }}
@@ -71,7 +71,7 @@ export const Settings = observer(() => {
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               handleNs();
             }}

@@ -8,7 +8,7 @@ export type Coordinates = {
 };
 
 export type Area = {
-  id?: number;
+  id: number;
   x1: number;
   y1: number;
   z1: number;

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useRef } from "react";
-import { appStore } from "~/store/app";
+import { appStore } from "~/stores/app";
 import { type Axis } from "~/utils/types";
 
 export const Moves = observer(() => {
@@ -92,7 +92,7 @@ export const Moves = observer(() => {
           </div>
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("x", true);
             }}
@@ -112,7 +112,7 @@ export const Moves = observer(() => {
           </div>
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("x");
             }}
@@ -139,7 +139,7 @@ export const Moves = observer(() => {
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("y", true);
             }}
@@ -154,7 +154,7 @@ export const Moves = observer(() => {
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("y");
             }}
@@ -181,7 +181,7 @@ export const Moves = observer(() => {
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("z", true);
               //TODO: move x
@@ -197,7 +197,7 @@ export const Moves = observer(() => {
           />
           <button
             type="button"
-            className="rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("z");
             }}
@@ -208,7 +208,7 @@ export const Moves = observer(() => {
         <div className="h-6" />
         <button
           type="button"
-          className="ml-[260px] w-24 rounded-md bg-blue-500 py-2 px-4 font-medium text-white hover:bg-blue-600"
+          className="ml-[260px] w-24 rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
             //TODO: on movew
             onMove();

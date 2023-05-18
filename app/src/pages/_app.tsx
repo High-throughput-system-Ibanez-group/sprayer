@@ -7,12 +7,10 @@ import { api } from "~/utils/api";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <div className="flex h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col">
       <Nav />
-      <div className="h-full flex-1 overflow-scroll">
-        <Component {...pageProps} />
-        <Footer />
-      </div>
+      <Component {...pageProps} />
+      <Footer />
     </div>
   );
 };

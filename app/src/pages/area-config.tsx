@@ -4,18 +4,19 @@ import { api } from "~/utils/api";
 import { type Area } from "~/utils/types";
 
 const AreaConfig = () => {
-  const { data: fetchedAreas, isLoading } = api.areas.getAll.useQuery();
   const [areas, setAreas] = React.useState<Area[]>([]);
+  const { data: fetchedAreas, isLoading } = api.areas.getAll.useQuery();
+  const utils = api.useContext();
+
+  const { mutate: saveArea } = api.areas.save.useMutation({
+    onSuccess: async () => {
+      await utils.areas.getAll.invalidate();
+    },
+  });
 
   useEffect(() => {
     fetchedAreas && setAreas(fetchedAreas);
   }, [fetchedAreas]);
-
-  const removeArea = (idx: number) => {
-    const newAreas = [...areas];
-    newAreas.splice(idx, 1);
-    setAreas(newAreas);
-  };
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -50,12 +51,7 @@ const AreaConfig = () => {
         </thead>
         <tbody>
           {areas?.map((area, idx) => (
-            <AreaElement
-              key={area.id || idx + 10000}
-              area={area}
-              idx={idx}
-              removeArea={removeArea}
-            />
+            <AreaElement key={area.id || idx + 10000} area={area} idx={idx} />
           ))}
         </tbody>
       </table>
@@ -64,17 +60,7 @@ const AreaConfig = () => {
         type="button"
         className="w-40 rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
         onClick={() => {
-          setAreas([
-            ...areas,
-            {
-              x1: 0,
-              y1: 0,
-              z1: 0,
-              x2: 0,
-              y2: 0,
-              z2: 0,
-            },
-          ]);
+          saveArea({ x1: 0, y1: 0, z1: 0, x2: 0, y2: 0, z2: 0 });
         }}
         disabled={isLoading || areas.length >= 9}
       >

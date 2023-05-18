@@ -43,4 +43,39 @@ export const areasRouter = createTRPCRouter({
   getAll: publicProcedure.query(
     async ({ ctx }) => await ctx.prisma.area.findMany()
   ),
+  getAreaPattern: publicProcedure
+    .input(z.number())
+    .query(async ({ ctx, input }) => {
+      return await ctx.prisma.pattern.findFirst({
+        where: {
+          areaId: input,
+        },
+      });
+    }),
+  savePattern: publicProcedure
+    .input(
+      z.object({
+        areaId: z.number(),
+        patternId: z.number().optional(),
+        points: z.array(z.array(z.number())),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.patternId) {
+        return await ctx.prisma.pattern.update({
+          where: {
+            id: input.patternId,
+          },
+          data: {
+            points: input.points.join("-"),
+          },
+        });
+      }
+      return await ctx.prisma.pattern.create({
+        data: {
+          areaId: input.areaId,
+          points: input.points.join("-"),
+        },
+      });
+    }),
 });

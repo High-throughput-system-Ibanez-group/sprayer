@@ -1,5 +1,5 @@
-import { makeAutoObservable } from "mobx";
-import createSingleton from "~/store/utils/createSingleton";
+import { makeAutoObservable, runInAction } from "mobx";
+import createSingleton from "~/stores/utils/createSingleton";
 import { io, type Socket } from "socket.io-client";
 
 class AppStore {
@@ -12,10 +12,11 @@ class AppStore {
 
   startSocket = async () => {
     await fetch("/api/socket");
-    this.socket = io();
-
-    this.socket.on("connect", () => {
-      console.log("connected");
+    runInAction(() => {
+      this.socket = io();
+      this.socket.on("connect", () => {
+        console.log("connected");
+      });
     });
   };
 }

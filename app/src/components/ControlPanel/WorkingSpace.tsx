@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useRef } from "react";
-import { appStore } from "~/store/app";
+import { appStore } from "~/stores/app";
 import { type Axis } from "~/utils/types";
 
 export const WorkingSpace = observer(() => {

@@ -22,4 +22,15 @@ model Area {
     z2        Float
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    pattern   Pattern?
+}
+
+model Pattern {
+    id     Int    @id @default(autoincrement())
+    points String
+    area   Area   @relation(fields: [areaId], references: [id])
+    areaId Int
+
+    @@unique([areaId])
+    @@index([areaId])
 }
