@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
+import { Settings } from "./Settings";
 
 interface GridCanvas {
   canvasWidth: number;
@@ -170,6 +171,8 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-start p-8">
+      <Settings />
+      <div className="h-8" />
       <div className="flex flex-col rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
         <div className="flex flex-1 flex-col py-4">
           <div className="flex items-center space-x-4">
