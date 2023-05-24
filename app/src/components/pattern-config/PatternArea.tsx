@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
-import { Settings } from "./Settings";
+import { Settings } from "./SyringeSettings";
 
 interface GridCanvas {
   canvasWidth: number;
@@ -173,42 +173,53 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
     <div className="flex flex-1 flex-col items-center justify-start p-8">
       <Settings />
       <div className="h-8" />
-      <div className="flex flex-col rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
-        <div className="flex flex-1 flex-col py-4">
-          <div className="flex items-center space-x-4">
-            <label htmlFor="number-input" className="w-44 font-medium">
-              Horizontal distance:
-            </label>
-            <input
-              type="number"
-              id="number-input"
-              className="w-32 rounded-md border border-gray-300 px-3 py-2"
-              value={horizontalDistance}
-              onChange={(e) => setHorizontalDistance(Number(e.target.value))}
-            />
-          </div>
-          <div className="h-4" />
-          <div className="flex items-center space-x-4">
-            <label htmlFor="number-input" className="w-44 font-medium">
-              Vertical distance:
-            </label>
-            <input
-              type="number"
-              id="number-input"
-              className="w-32 rounded-md border border-gray-300 px-3 py-2"
-              value={verticalDistance}
-              onChange={(e) => setVerticalDistance(Number(e.target.value))}
-            />
-          </div>
-          <div className="h-4" />
-          <button
-            type="button"
-            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-            onClick={onGenerate}
-          >
-            Generate
-          </button>
+      <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
+        <div className="mb-2 text-xl font-bold">Pattern Settings</div>
+        <div className="h-4" />
+        <div className="flex items-center space-x-4">
+          <label htmlFor="number-input" className="w-44 font-medium">
+            Number of loops:
+          </label>
+          <input
+            type="number"
+            id="number-input"
+            className="w-32 rounded-md border border-gray-300 px-3 py-2"
+          />
         </div>
+        <div className="h-4" />
+        <div className="flex items-center space-x-4">
+          <label htmlFor="number-input" className="w-44 font-medium">
+            Horizontal distance:
+          </label>
+          <input
+            type="number"
+            id="number-input"
+            className="w-32 rounded-md border border-gray-300 px-3 py-2"
+            value={horizontalDistance}
+            onChange={(e) => setHorizontalDistance(Number(e.target.value))}
+          />
+        </div>
+        <div className="h-4" />
+        <div className="flex items-center space-x-4">
+          <label htmlFor="number-input" className="w-44 font-medium">
+            Vertical distance:
+          </label>
+          <input
+            type="number"
+            id="number-input"
+            className="w-32 rounded-md border border-gray-300 px-3 py-2"
+            value={verticalDistance}
+            onChange={(e) => setVerticalDistance(Number(e.target.value))}
+          />
+        </div>
+        <div className="h-4" />
+        <button
+          type="button"
+          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          onClick={onGenerate}
+        >
+          Generate
+        </button>
       </div>
       <>
         <h1 className="p-4">Pattern</h1>

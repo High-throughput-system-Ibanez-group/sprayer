@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite";
 export const Settings = observer(() => {
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
-      <div className="mb-2 text-xl font-bold">Settings</div>
+      <div className="mb-2 text-xl font-bold">Syringe Settings</div>
       <div className="flex flex-1 flex-col py-6">
         <button
           type="button"
@@ -32,17 +32,6 @@ export const Settings = observer(() => {
         >
           Inject
         </button>
-        <div className="h-4" />
-        <div className="flex items-center space-x-4">
-          <label htmlFor="number-input" className="w-[162px] font-medium">
-            Number of loops:
-          </label>
-          <input
-            type="number"
-            id="number-input"
-            className="w-32 rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
         <div className="h-4" />
         <div className="flex flex-1 items-center space-x-4">
           <label htmlFor="number-input" className="w-[162px] font-medium">
