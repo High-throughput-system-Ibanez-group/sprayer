@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { AreaElement } from "~/components/AreaConfig/AreaElement";
+import { AreaElement } from "~/components/area-config/AreaElement";
 import { api } from "~/utils/api";
 import { type Area } from "~/utils/types";
 

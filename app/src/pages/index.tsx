@@ -1,9 +1,9 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { Moves } from "~/components/ControlPanel/Moves";
-import { Settings } from "~/components/ControlPanel/Settings";
-import { WorkingSpace } from "~/components/ControlPanel/WorkingSpace";
-import { Zeroing } from "~/components/ControlPanel/Zeroing";
+import { Moves } from "~/components/control-panel/Moves";
+import { Settings } from "~/components/control-panel/Settings";
+import { WorkingSpace } from "~/components/control-panel/WorkingSpace";
+import { Zeroing } from "~/components/control-panel/Zeroing";
 
 const Home: NextPage = () => {
   return (
