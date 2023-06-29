@@ -37,6 +37,11 @@ struct stepper
   int pow;
   int limit_start;
   int limit_end;
+  int pending_steps;
+  bool active;
+  bool first_active;
+  bool toggle;
+  unsigned long timetamp_to_next_step;
 };
 
 stepper stepper_x;
@@ -50,6 +55,11 @@ void setup()
   stepper_x.pow = STEPPER_X_POW;
   stepper_x.limit_start = STEPPER_X_LIMIT_START;
   stepper_x.limit_end = STEPPER_X_LIMIT_END;
+  stepper_x.pending_steps = 0;
+  stepper_x.active = false;
+  stepper_x.first_active = false;
+  stepper_x.toggle = true;
+  stepper_x.timetamp_to_next_step = 0;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -270,7 +280,10 @@ void loop()
     }
     else if (command.startsWith("stepper_x"))
     {
-      rotate_steps(stepper_x, 200, false);
+      // rotate_steps(stepper_x, 200, false);
+      stepper_x.active = true;
+      stepper_x.first_active = true;
+      stepper_x.pending_steps = 200;
     }
     else if (command.startsWith("stepper_y"))
     {
@@ -279,6 +292,54 @@ void loop()
     else if (command.startsWith("stepper_z"))
     {
       rotate_steps(stepper_z, 200, true);
+    }
+  }
+
+  if (stepper_x.first_active)
+  {
+
+    if (stepper_x.pending_steps >= 0)
+    {
+      digitalWrite(stepper.dir, HIGH);
+    }
+    else
+    {
+      digitalWrite(stepper.dir, LOW);
+    }
+
+    digitalWrite(stepper.pow, LOW);
+
+    stepper_x.firtst_active = false;
+  }
+
+  if (stepper_x.active && stepper_x.timetamp_to_next_step < millis())
+  {
+    stepper_x.timetamp_to_next_step = millis() + STEP_SLEEP;
+
+    if (stepper_x.toggle)
+    {
+      digitalWrite(stepper.stp, HIGH);
+    }
+    else
+    {
+      digitalWrite(stepper.stp, LOW);
+    }
+
+    stepper_x.toggle ^= stepper_x.toggle;
+
+    if (stepper_x.pending_steps > 0)
+    {
+
+      stepper_x.pending_steps -= 1;
+    }
+    else
+    {
+      stepper_x.pending_steps += 1;
+    }
+
+    if (stepper_x.pending_steps == 0)
+    {
+      stepper_x.active = false;
     }
   }
 
