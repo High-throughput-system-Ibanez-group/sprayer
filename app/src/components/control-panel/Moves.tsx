@@ -23,17 +23,17 @@ export const Moves = observer(() => {
     if (refXPos.current?.value) {
       // TODO: Pos move
       // TODO: Check command
-      socket?.emit("command", `move_x:${refXPos.current?.value}`);
+      socket?.emit("command", `mm_x:${refXPos.current?.value}`);
       // set to 0
       refXPos.current.value = "0";
     }
     if (refYPos.current?.value) {
-      socket?.emit("command", `move_y:${refYPos.current?.value}`);
+      socket?.emit("command", `mm_y:${refYPos.current?.value}`);
       // set to 0
       refYPos.current.value = "0";
     }
     if (refZPos.current?.value) {
-      socket?.emit("command", `move_z:${refZPos.current?.value}`);
+      socket?.emit("command", `mm_z:${refZPos.current?.value}`);
       // set to 0
       refZPos.current.value = "0";
     }
