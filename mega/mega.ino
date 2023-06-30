@@ -143,8 +143,8 @@ void rotate_concurrent_mm(stepper stepper, int mm, bool keep_engaged, int axis) 
 {
   const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
   stepper.pending_steps = steps;
-  stepper_x.active = true;
-  stepper_x.first_active = true;
+  stepper.active = true;
+  stepper.first_active = true;
 }
 
 int rotate_until_end(stepper stepper)
@@ -326,8 +326,8 @@ void read_serial_command()
     }
     else if (command.startsWith("mm_x"))
     {
-      rotate_steps(stepper_x, 200, false);
-      // rotate_concurrent_mm(stepper_x, get_command_arg(command), false, 0);
+      // rotate_mm(stepper_x, get_command_arg(command), false, 0);
+      rotate_concurrent_mm(stepper_x, get_command_arg(command), false, 0);
     }
     else if (command.startsWith("mm_y"))
     {
@@ -349,11 +349,9 @@ void check_directions()
 
 void rotate_concurrent_steps(stepper stepper, bool keep_engaged)
 {
-  if (stepper.active && stepper.timetamp_to_next_step < millis())
+  if (stepper.active && (stepper.timetamp_to_next_step < millis()))
   {
     stepper.timetamp_to_next_step = millis() + STEP_SLEEP;
-
-    digitalWrite(stepper.pow, LOW);
 
     digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
 
