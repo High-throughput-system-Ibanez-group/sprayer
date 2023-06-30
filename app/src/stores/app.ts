@@ -11,13 +11,17 @@ class AppStore {
   }
 
   startSocket = async () => {
-    await fetch("/api/socket");
-    runInAction(() => {
-      this.socket = io();
-      this.socket.on("connect", () => {
-        console.log("connected");
+    try {
+      await fetch("/api/socket");
+      runInAction(() => {
+        this.socket = io();
+        this.socket.on("connect", () => {
+          console.log("connected");
+        });
       });
-    });
+    } catch (e) {
+      console.log("error: ", e);
+    }
   };
 }
 

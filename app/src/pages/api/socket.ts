@@ -17,29 +17,33 @@ interface NextApiResponseWithSocket extends NextApiResponse {
   socket: SocketWithIO;
 }
 
-const serialPort = new SerialPort({
-  path: "/dev/tty.usbmodem11301",
+let serialPort = new SerialPort({
+  path: process.env.PORT_PATH || "",
   baudRate: 9600,
 });
 
 const readlineParser = new ReadlineParser({ delimiter: "\r\n" });
 
+let parser = serialPort.pipe(readlineParser);
+
+function configSerialPort() {
+  serialPort = new SerialPort({
+    path: process.env.PORT_PATH || "",
+    baudRate: 9600,
+  });
+  parser = serialPort.pipe(readlineParser);
+}
+
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (res.socket.server.io) {
+    configSerialPort();
     console.log("Socket is already running");
   } else {
     console.log("Socket is initializing");
     const io = new IOServer(res.socket.server);
     res.socket.server.io = io;
-    // function to print all the ports
-    /*void SerialPort.list().then(function (ports) {
-       ports.forEach(function (port) {
-         console.log("Portttt: ", port);
-       });
-     });*/
 
-    const parser = serialPort.pipe(readlineParser);
+    configSerialPort();
 
     parser.on("open", function () {
       console.log("connection is opened");
