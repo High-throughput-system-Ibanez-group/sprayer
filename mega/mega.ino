@@ -158,9 +158,9 @@ int rotate_until_end(stepper stepper)
   while (digitalRead(stepper.limit_end))
   {
     digitalWrite(stepper.stp, HIGH);
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
     digitalWrite(stepper.stp, LOW);
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
     steps += 1;
   }
 
@@ -202,7 +202,7 @@ int stepper_zeroing()
     if (limit_z)
       digitalWrite(stepper_z.stp, HIGH);
 
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
 
     if (limit_x)
       digitalWrite(stepper_x.stp, LOW);
@@ -211,7 +211,7 @@ int stepper_zeroing()
     if (limit_z)
       digitalWrite(stepper_z.stp, LOW);
 
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
 
     limit_x = digitalRead(stepper_x.limit_start);
     limit_y = digitalRead(stepper_y.limit_start);
@@ -249,7 +249,7 @@ int stepper_zeroing_end()
     if (limit_z)
       digitalWrite(stepper_z.stp, HIGH);
 
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
 
     if (limit_x)
       digitalWrite(stepper_x.stp, LOW);
@@ -258,7 +258,7 @@ int stepper_zeroing_end()
     if (limit_z)
       digitalWrite(stepper_z.stp, LOW);
 
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
 
     limit_x = digitalRead(stepper_x.limit_end);
     limit_y = digitalRead(stepper_y.limit_end);
