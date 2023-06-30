@@ -27,10 +27,6 @@ const readlineParser = new ReadlineParser({ delimiter: "\r\n" });
 let parser = serialPort.pipe(readlineParser);
 
 function configSerialPort() {
-  serialPort = new SerialPort({
-    path: process.env.PORT_PATH || "",
-    baudRate: 9600,
-  });
   parser = serialPort.pipe(readlineParser);
 }
 
