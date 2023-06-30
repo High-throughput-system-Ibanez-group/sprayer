@@ -19,6 +19,8 @@
 #define FULL_REV_MM_X_Y 54
 #define FULL_REV_MM_Z 44
 #define MICROSTEPPING 400
+#define LIN_MOV_X_Y 0.135 // 54/400 = 0.135
+#define LIN_MOV_Z 0.11    // 44/400 = 0.11
 #define STEP_SLEEP 8000
 
 #define STEPPER_SYRINGE_STP 52
@@ -67,6 +69,11 @@ void setup()
   stepper_y.pow = STEPPER_Y_POW;
   stepper_y.limit_start = STEPPER_Y_LIMIT_START;
   stepper_y.limit_end = STEPPER_Y_LIMIT_END;
+  stepper_y.pending_steps = 0;
+  stepper_y.active = false;
+  stepper_y.first_active = false;
+  stepper_y.toggle = true;
+  stepper_y.timetamp_to_next_step = 0;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -74,6 +81,11 @@ void setup()
   stepper_z.pow = STEPPER_Z_POW;
   stepper_z.limit_start = STEPPER_Z_LIMIT_START;
   stepper_z.limit_end = STEPPER_Z_LIMIT_END;
+  stepper_z.pending_steps = 0;
+  stepper_z.active = false;
+  stepper_z.first_active = false;
+  stepper_z.toggle = true;
+  stepper_z.timetamp_to_next_step = 0;
   setup_stepper(stepper_z);
 
   Serial.begin(9600);
@@ -107,14 +119,6 @@ void rotate_steps(stepper stepper, int steps, bool keep_engaged)
 
   digitalWrite(stepper.pow, LOW);
 
-  // int i = 0;
-
-  // while (i < abs(steps))
-  // {
-
-  //   i++;
-  // }
-
   for (int i = 0; i < abs(steps); i++)
   {
     digitalWrite(stepper.stp, HIGH);
@@ -129,10 +133,18 @@ void rotate_steps(stepper stepper, int steps, bool keep_engaged)
   }
 }
 
-void rotate_mm(stepper stepper, int mm, bool keep_engaged)
+void rotate_mm(stepper stepper, int mm, bool keep_engaged, int axis) // axis = 0 -> x or y, axis = 1 -> z
 {
-  int steps = (int)round(mm / 0.135); // 27 / 0.135 => 200
+  const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
   rotate_steps(stepper, steps, keep_engaged);
+}
+
+void rotate_concurrent_mm(stepper stepper, int mm, bool keep_engaged, int axis) // axis = 0 -> x or y, axis = 1 -> z
+{
+  const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
+  stepper.pending_steps = steps;
+  stepper_x.active = true;
+  stepper_x.first_active = true;
 }
 
 int rotate_until_end(stepper stepper)
@@ -160,7 +172,7 @@ int get_command_arg(String command)
 {
   int separator_index = command.indexOf(":");
   String arg = command.substring(separator_index + 1);
-  arg.toInt();
+  return arg.toInt();
 }
 
 int stepper_zeroing()
@@ -257,7 +269,26 @@ int stepper_zeroing_end()
   digitalWrite(stepper_z.pow, HIGH);
 }
 
-void loop()
+void check_direction(stepper stepper)
+{
+  if (stepper.first_active)
+  {
+    if (stepper.pending_steps >= 0)
+    {
+      digitalWrite(stepper.dir, HIGH);
+    }
+    else
+    {
+      digitalWrite(stepper.dir, LOW);
+    }
+
+    digitalWrite(stepper.pow, LOW);
+
+    stepper.first_active = false;
+  }
+}
+
+void read_serial_command()
 {
   if (Serial.available() > 0)
   {
@@ -293,55 +324,66 @@ void loop()
     {
       rotate_steps(stepper_z, 200, true);
     }
+    else if (command.startsWith("mm_x"))
+    {
+      rotate_concurrent_mm(stepper_x, get_command_arg(command), false, 0);
+    }
+    else if (command.startsWith("mm_y"))
+    {
+      rotate_mm(stepper_y, get_command_arg(command), false, 0);
+    }
+    else if (command.startsWith("mm_z"))
+    {
+      rotate_mm(stepper_z, get_command_arg(command), true, 1);
+    }
   }
+}
 
-  if (stepper_x.first_active)
+void check_directions()
+{
+  check_direction(stepper_x);
+  check_direction(stepper_y);
+  check_direction(stepper_z);
+}
+
+void rotate_concurrent_steps(stepper stepper, bool keep_engaged)
+{
+  if (stepper.active && stepper.timetamp_to_next_step < millis())
   {
-
-    if (stepper_x.pending_steps >= 0)
-    {
-      digitalWrite(stepper.dir, HIGH);
-    }
-    else
-    {
-      digitalWrite(stepper.dir, LOW);
-    }
+    stepper.timetamp_to_next_step = millis() + STEP_SLEEP;
 
     digitalWrite(stepper.pow, LOW);
 
-    stepper_x.firtst_active = false;
-  }
+    digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
 
-  if (stepper_x.active && stepper_x.timetamp_to_next_step < millis())
-  {
-    stepper_x.timetamp_to_next_step = millis() + STEP_SLEEP;
+    stepper.toggle = !stepper.toggle;
 
-    if (stepper_x.toggle)
+    stepper.pending_steps += (stepper.pending_steps > 0) ? -1 : 1;
+
+    if (stepper.pending_steps == 0)
     {
-      digitalWrite(stepper.stp, HIGH);
-    }
-    else
-    {
-      digitalWrite(stepper.stp, LOW);
-    }
-
-    stepper_x.toggle ^= stepper_x.toggle;
-
-    if (stepper_x.pending_steps > 0)
-    {
-
-      stepper_x.pending_steps -= 1;
-    }
-    else
-    {
-      stepper_x.pending_steps += 1;
-    }
-
-    if (stepper_x.pending_steps == 0)
-    {
-      stepper_x.active = false;
+      stepper.active = false;
+      if (!keep_engaged)
+      {
+        digitalWrite(stepper.pow, HIGH);
+      }
     }
   }
+}
 
-  delay(1);
+void rotate_steppers()
+{
+  rotate_concurrent_steps(stepper_x, false);
+  rotate_concurrent_steps(stepper_y, false);
+  rotate_concurrent_steps(stepper_z, true);
+}
+
+void loop()
+{
+  read_serial_command();
+
+  check_directions();
+
+  rotate_steppers();
+  // delay(1);
 }
