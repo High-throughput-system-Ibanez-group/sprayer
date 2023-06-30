@@ -326,7 +326,8 @@ void read_serial_command()
     }
     else if (command.startsWith("mm_x"))
     {
-      rotate_concurrent_mm(stepper_x, get_command_arg(command), false, 0);
+      rotate_steps(stepper_x, 200, false);
+      // rotate_concurrent_mm(stepper_x, get_command_arg(command), false, 0);
     }
     else if (command.startsWith("mm_y"))
     {

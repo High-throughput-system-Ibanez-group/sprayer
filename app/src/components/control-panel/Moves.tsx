@@ -55,7 +55,7 @@ export const Moves = observer(() => {
         console.log("No option selected");
     }
     if (value) {
-      socket?.emit("command", `move_${axis}:${isNegative ? "-" : ""}${value}`);
+      socket?.emit("command", `mm_${axis}:${isNegative ? "-" : ""}${value}`);
     }
   };
 
