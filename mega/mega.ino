@@ -374,8 +374,8 @@ void rotate_concurrent_steps(stepper stepper, bool keep_engaged)
 void rotate_steppers()
 {
   rotate_concurrent_steps(stepper_x, false);
-  rotate_concurrent_steps(stepper_y, false);
-  rotate_concurrent_steps(stepper_z, true);
+  // rotate_concurrent_steps(stepper_y, false);
+  // rotate_concurrent_steps(stepper_z, true);
 }
 
 void loop()
@@ -386,5 +386,5 @@ void loop()
 
   rotate_steppers();
 
-  delay(1);
+  // delay(1);
 }
