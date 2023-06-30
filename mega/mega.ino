@@ -21,7 +21,8 @@
 #define MICROSTEPPING 400
 #define LIN_MOV_X_Y 0.135 // 54/400 = 0.135
 #define LIN_MOV_Z 0.11    // 44/400 = 0.11
-#define STEP_SLEEP 8000
+#define STEP_SLEEP_MICRO 8000
+#define STEP_SLEEP_MILLI 8
 
 #define STEPPER_SYRINGE_STP 52
 #define STEPPER_SYRINGE_DIR 2
@@ -122,9 +123,9 @@ void rotate_steps(stepper stepper, int steps, bool keep_engaged)
   for (int i = 0; i < abs(steps); i++)
   {
     digitalWrite(stepper.stp, HIGH);
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
     digitalWrite(stepper.stp, LOW);
-    delayMicroseconds(STEP_SLEEP);
+    delayMicroseconds(STEP_SLEEP_MICRO);
   }
 
   if (!keep_engaged)
@@ -351,7 +352,7 @@ void rotate_concurrent_steps(stepper stepper, bool keep_engaged)
 {
   if (stepper.active && (stepper.timetamp_to_next_step < millis()))
   {
-    stepper.timetamp_to_next_step = millis() + STEP_SLEEP;
+    stepper.timetamp_to_next_step = millis() + STEP_SLEEP_MILLI;
 
     digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
 
@@ -384,5 +385,6 @@ void loop()
   check_directions();
 
   rotate_steppers();
-  // delay(1);
+
+  delay(1);
 }
