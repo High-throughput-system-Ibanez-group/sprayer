@@ -140,7 +140,7 @@ void rotate_mm(stepper stepper, int mm, bool keep_engaged, int axis) // axis = 0
   rotate_steps(stepper, steps, keep_engaged);
 }
 
-void rotate_concurrent_mm(stepper stepper, int mm, bool keep_engaged, int axis) // axis = 0 -> x or y, axis = 1 -> z
+void rotate_concurrent_mm(stepper& stepper, int mm, bool keep_engaged, int axis) // axis = 0 -> x or y, axis = 1 -> z
 {
   const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
   stepper.pending_steps = steps;
@@ -270,7 +270,7 @@ int stepper_zeroing_end()
   digitalWrite(stepper_z.pow, HIGH);
 }
 
-void check_direction(stepper stepper)
+void check_direction(stepper& stepper)
 {
   if (stepper.first_active)
   {
@@ -348,7 +348,7 @@ void check_directions()
   check_direction(stepper_z);
 }
 
-void rotate_concurrent_steps(stepper stepper, bool keep_engaged)
+void rotate_concurrent_steps(stepper& stepper, bool keep_engaged)
 {
   if (stepper.active && (stepper.timetamp_to_next_step < millis()))
   {
@@ -374,8 +374,8 @@ void rotate_concurrent_steps(stepper stepper, bool keep_engaged)
 void rotate_steppers()
 {
   rotate_concurrent_steps(stepper_x, false);
-  // rotate_concurrent_steps(stepper_y, false);
-  // rotate_concurrent_steps(stepper_z, true);
+  rotate_concurrent_steps(stepper_y, false);
+  rotate_concurrent_steps(stepper_z, true);
 }
 
 void loop()
@@ -386,5 +386,5 @@ void loop()
 
   rotate_steppers();
 
-  // delay(1);
+  delay(1);
 }
