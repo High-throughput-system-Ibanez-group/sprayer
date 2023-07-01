@@ -14,7 +14,7 @@
 #define STEPPER_Z_DIR 50
 #define STEPPER_Z_POW 51
 #define STEPPER_Z_LIMIT_START 55
-#define STEPPER_Z_LIMIT_END 54
+#define STEPPER_Z_LIMIT_END 24
 
 #define FULL_REV_MM_X_Y 54
 #define FULL_REV_MM_Z 44
@@ -30,6 +30,10 @@
 #define STEPPER_SYRINGE_LIMIT_START 23
 #define STEPPER_SYRINGE_LIMIT_END 22
 #define SYRINGE_FULL_REV_MM 1
+
+#define PRESSURE_REGULATOR_OUT 6
+#define PRESSURE_REGULATOR_IN 54
+#define SOLENOID_VALVE 40
 
 #define PI 3.1416
 
@@ -140,7 +144,7 @@ void rotate_mm(stepper stepper, int mm, bool keep_engaged, int axis) // axis = 0
   rotate_steps(stepper, steps, keep_engaged);
 }
 
-void rotate_concurrent_mm(stepper& stepper, int mm, bool keep_engaged, int axis) // axis = 0 -> x or y, axis = 1 -> z
+void rotate_concurrent_mm(stepper &stepper, int mm, bool keep_engaged, int axis) // axis = 0 -> x or y, axis = 1 -> z
 {
   const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
   stepper.pending_steps = steps;
@@ -270,7 +274,7 @@ int stepper_zeroing_end()
   digitalWrite(stepper_z.pow, HIGH);
 }
 
-void check_direction(stepper& stepper)
+void check_direction(stepper &stepper)
 {
   if (stepper.first_active)
   {
@@ -348,7 +352,7 @@ void check_directions()
   check_direction(stepper_z);
 }
 
-void rotate_concurrent_steps(stepper& stepper, bool keep_engaged)
+void rotate_concurrent_steps(stepper &stepper, bool keep_engaged)
 {
   if (stepper.active && (stepper.timetamp_to_next_step < millis()))
   {
