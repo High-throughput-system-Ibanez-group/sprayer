@@ -439,24 +439,23 @@ void check_limits()
 
 void check_limit(stepper &stepper)
 {
-  if (stepper.limit_start)
+  int limit_start = digitalRead(stepper.limit_start);
+  int limit_end = digitalRead(stepper.limit_end);
+
+  if (!digitalRead(stepper.limit_start) && !digitalRead(stepper.dir))
   {
-    if (!digitalRead(stepper.limit_start))
-    {
-      stepper.pending_steps = 0;
-      stepper.active = false;
-      digitalWrite(stepper.pow, HIGH);
-    }
+    stepper.pending_steps = 0;
+    stepper.active = false;
+    stepper.first_active = false;
+    digitalWrite(stepper.pow, HIGH);
   }
 
-  if (stepper.limit_end)
+  if (!digitalRead(stepper.limit_end) && digitalRead(stepper.dir))
   {
-    if (!digitalRead(stepper.limit_end))
-    {
-      stepper.pending_steps = 0;
-      stepper.active = false;
-      digitalWrite(stepper.pow, HIGH);
-    }
+    stepper.pending_steps = 0;
+    stepper.active = false;
+    stepper.first_active = false;
+    digitalWrite(stepper.pow, HIGH);
   }
 }
 
@@ -464,9 +463,9 @@ void loop()
 {
   read_serial_command();
 
-  check_limits();
-
   check_directions();
+
+  check_limits();
 
   rotate_steppers();
 
