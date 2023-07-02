@@ -442,7 +442,7 @@ void check_limit(stepper &stepper)
   int limit_start = digitalRead(stepper.limit_start);
   int limit_end = digitalRead(stepper.limit_end);
 
-  if (!digitalRead(stepper.limit_start))
+  if (!digitalRead(stepper.limit_start) && !digitalRead(stepper.dir))
   {
     stepper.pending_steps = 0;
     stepper.active = false;
@@ -450,7 +450,7 @@ void check_limit(stepper &stepper)
     digitalWrite(stepper.pow, HIGH);
   }
 
-  if (!digitalRead(stepper.limit_end))
+  if (!digitalRead(stepper.limit_end) && digitalRead(stepper.dir))
   {
     stepper.pending_steps = 0;
     stepper.active = false;
@@ -463,9 +463,9 @@ void loop()
 {
   read_serial_command();
 
-  check_limits();
-
   check_directions();
+
+  check_limits();
 
   rotate_steppers();
 
