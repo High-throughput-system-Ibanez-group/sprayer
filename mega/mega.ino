@@ -44,7 +44,7 @@ struct stepper
   int pow;
   int limit_start;
   int limit_end;
-  int linear_mov;
+  float linear_mov;
   int pending_steps;
   bool keep_engaged;
   bool active;
@@ -193,6 +193,23 @@ int stepper_concurrent_zeroing()
   digitalWrite(stepper_x.dir, LOW);
   digitalWrite(stepper_y.dir, LOW);
   digitalWrite(stepper_z.dir, LOW);
+  digitalWrite(stepper_x.pow, LOW);
+  digitalWrite(stepper_y.pow, LOW);
+  digitalWrite(stepper_z.pow, LOW);
+
+  stepper_x.active = true;
+  stepper_y.active = true;
+  stepper_z.active = true;
+}
+
+int stepper_concurrent_zeroing_end()
+{
+  digitalWrite(stepper_x.dir, HIGH);
+  digitalWrite(stepper_y.dir, HIGH);
+  digitalWrite(stepper_z.dir, HIGH);
+  digitalWrite(stepper_x.pow, LOW);
+  digitalWrite(stepper_y.pow, LOW);
+  digitalWrite(stepper_z.pow, LOW);
 
   stepper_x.active = true;
   stepper_y.active = true;
@@ -331,7 +348,7 @@ void read_serial_command()
     }
     else if (command == "zeroing_end")
     {
-      stepper_zeroing_end();
+      stepper_concurrent_zeroing_end();
     }
     else if (command.startsWith("stepper_x"))
     {
