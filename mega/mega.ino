@@ -48,7 +48,7 @@ struct stepper
   bool active;
   bool first_active;
   bool toggle;
-  unsigned long timetamp_to_next_step;
+  unsigned long next_step_time;
 };
 
 stepper stepper_x;
@@ -66,7 +66,7 @@ void setup()
   stepper_x.active = false;
   stepper_x.first_active = false;
   stepper_x.toggle = true;
-  stepper_x.timetamp_to_next_step = 0;
+  stepper_x.next_step_time = 0;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -78,7 +78,7 @@ void setup()
   stepper_y.active = false;
   stepper_y.first_active = false;
   stepper_y.toggle = true;
-  stepper_y.timetamp_to_next_step = 0;
+  stepper_y.next_step_time = 0;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -90,7 +90,7 @@ void setup()
   stepper_z.active = false;
   stepper_z.first_active = false;
   stepper_z.toggle = true;
-  stepper_z.timetamp_to_next_step = 0;
+  stepper_z.next_step_time = 0;
   setup_stepper(stepper_z);
 
   Serial.begin(9600);
@@ -354,9 +354,9 @@ void check_directions()
 
 void rotate_concurrent_steps(stepper &stepper, bool keep_engaged)
 {
-  if (stepper.active && (stepper.timetamp_to_next_step < millis()))
+  if (stepper.active && (stepper.next_step_time < millis()))
   {
-    stepper.timetamp_to_next_step = millis() + STEP_SLEEP_MILLI;
+    stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
 
     digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
 
