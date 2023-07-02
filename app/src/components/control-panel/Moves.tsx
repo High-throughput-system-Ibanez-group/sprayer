@@ -105,6 +105,7 @@ export const Moves = observer(() => {
               id="number-input"
               className="w-16 rounded-md border border-gray-300 px-3 py-2"
               ref={refXMm}
+              min="0"
             />
             <div className="absolute -top-8 left-0 flex w-full justify-center">
               (mm)
@@ -151,6 +152,7 @@ export const Moves = observer(() => {
             id="number-input"
             className="w-16 rounded-md border border-gray-300 px-3 py-2"
             ref={refYMm}
+            min="0"
           />
           <button
             type="button"
@@ -194,6 +196,7 @@ export const Moves = observer(() => {
             id="number-input"
             className="w-16 rounded-md border border-gray-300 px-3 py-2"
             ref={refZMm}
+            min="0"
           />
           <button
             type="button"
