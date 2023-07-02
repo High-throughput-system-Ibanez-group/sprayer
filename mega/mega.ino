@@ -44,6 +44,7 @@ struct stepper
   int pow;
   int limit_start;
   int limit_end;
+  int linear_mov;
   int pending_steps;
   bool keep_engaged;
   bool active;
@@ -63,6 +64,7 @@ void setup()
   stepper_x.pow = STEPPER_X_POW;
   stepper_x.limit_start = STEPPER_X_LIMIT_START;
   stepper_x.limit_end = STEPPER_X_LIMIT_END;
+  stepper_x.linear_mov = LIN_MOV_X_Y;
   stepper_x.pending_steps = 0;
   stepper_x.active = false;
   stepper_x.first_active = false;
@@ -76,6 +78,7 @@ void setup()
   stepper_y.pow = STEPPER_Y_POW;
   stepper_y.limit_start = STEPPER_Y_LIMIT_START;
   stepper_y.limit_end = STEPPER_Y_LIMIT_END;
+  stepper_y.linear_mov = LIN_MOV_X_Y;
   stepper_y.pending_steps = 0;
   stepper_y.active = false;
   stepper_y.first_active = false;
@@ -89,6 +92,7 @@ void setup()
   stepper_z.pow = STEPPER_Z_POW;
   stepper_z.limit_start = STEPPER_Z_LIMIT_START;
   stepper_z.limit_end = STEPPER_Z_LIMIT_END;
+  stepper_z.linear_mov = LIN_MOV_Z;
   stepper_z.pending_steps = 0;
   stepper_z.active = false;
   stepper_z.first_active = false;
@@ -148,9 +152,9 @@ void setup_stepper(stepper stepper)
 //   rotate_steps(stepper, steps);
 // }
 
-void rotate_concurrent_mm(stepper &stepper, int mm, int axis) // axis = 0 -> x or y, axis = 1 -> z
+void rotate_concurrent_mm(stepper &stepper, int mm)
 {
-  const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
+  const int steps = (int)round(mm / stepper.linear_mov);
   stepper.pending_steps = steps;
   stepper.active = true;
   stepper.first_active = true;
@@ -346,16 +350,15 @@ void read_serial_command()
     }
     else if (command.startsWith("mm_x"))
     {
-      // rotate_mm(stepper_x, get_command_arg(command), false, 0);
-      rotate_concurrent_mm(stepper_x, get_command_arg(command), 0);
+      rotate_concurrent_mm(stepper_x, get_command_arg(command));
     }
     else if (command.startsWith("mm_y"))
     {
-      rotate_concurrent_mm(stepper_y, get_command_arg(command), 0);
+      rotate_concurrent_mm(stepper_y, get_command_arg(command));
     }
     else if (command.startsWith("mm_z"))
     {
-      rotate_concurrent_mm(stepper_z, get_command_arg(command), 1);
+      rotate_concurrent_mm(stepper_z, get_command_arg(command));
     }
   }
 }
