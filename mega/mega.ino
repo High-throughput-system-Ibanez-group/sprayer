@@ -115,38 +115,38 @@ void setup_stepper(stepper stepper)
   pinMode(stepper.limit_end, INPUT);
 }
 
-void rotate_steps(stepper stepper, int steps)
-{
-  if (steps >= 0)
-  {
-    digitalWrite(stepper.dir, HIGH);
-  }
-  else
-  {
-    digitalWrite(stepper.dir, LOW);
-  }
+// void rotate_steps(stepper stepper, int steps)
+// {
+//   if (steps >= 0)
+//   {
+//     digitalWrite(stepper.dir, HIGH);
+//   }
+//   else
+//   {
+//     digitalWrite(stepper.dir, LOW);
+//   }
 
-  digitalWrite(stepper.pow, LOW);
+//   digitalWrite(stepper.pow, LOW);
 
-  for (int i = 0; i < abs(steps); i++)
-  {
-    digitalWrite(stepper.stp, HIGH);
-    delayMicroseconds(STEP_SLEEP_MICRO);
-    digitalWrite(stepper.stp, LOW);
-    delayMicroseconds(STEP_SLEEP_MICRO);
-  }
+//   for (int i = 0; i < abs(steps); i++)
+//   {
+//     digitalWrite(stepper.stp, HIGH);
+//     delayMicroseconds(STEP_SLEEP_MICRO);
+//     digitalWrite(stepper.stp, LOW);
+//     delayMicroseconds(STEP_SLEEP_MICRO);
+//   }
 
-  if (!stepper.keep_engaged)
-  {
-    digitalWrite(stepper.pow, HIGH);
-  }
-}
+//   if (!stepper.keep_engaged)
+//   {
+//     digitalWrite(stepper.pow, HIGH);
+//   }
+// }
 
-void rotate_mm(stepper stepper, int mm, int axis) // axis = 0 -> x or y, axis = 1 -> z
-{
-  const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
-  rotate_steps(stepper, steps);
-}
+// void rotate_mm(stepper stepper, int mm, int axis) // axis = 0 -> x or y, axis = 1 -> z
+// {
+//   const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
+//   rotate_steps(stepper, steps);
+// }
 
 void rotate_concurrent_mm(stepper &stepper, int mm, int axis) // axis = 0 -> x or y, axis = 1 -> z
 {
@@ -182,6 +182,17 @@ int get_command_arg(String command)
   int separator_index = command.indexOf(":");
   String arg = command.substring(separator_index + 1);
   return arg.toInt();
+}
+
+int stepper_concurrent_zeroing()
+{
+  digitalWrite(stepper_x.dir, LOW);
+  digitalWrite(stepper_y.dir, LOW);
+  digitalWrite(stepper_z.dir, LOW);
+
+  stepper_x.active = true;
+  stepper_y.active = true;
+  stepper_z.active = true;
 }
 
 int stepper_zeroing()
@@ -275,7 +286,7 @@ int stepper_zeroing_end()
 
   digitalWrite(stepper_x.pow, HIGH);
   digitalWrite(stepper_y.pow, HIGH);
-  digitalWrite(stepper_z.pow, HIGH);
+  digitalWrite(stepper_z.pow, LOW);
 }
 
 void check_direction(stepper &stepper)
@@ -312,7 +323,7 @@ void read_serial_command()
     }
     else if (command == "zeroing_start")
     {
-      stepper_zeroing();
+      stepper_concurrent_zeroing();
     }
     else if (command == "zeroing_end")
     {
@@ -321,9 +332,9 @@ void read_serial_command()
     else if (command.startsWith("stepper_x"))
     {
       // rotate_steps(stepper_x, 200, false);
-      stepper_x.active = true;
-      stepper_x.first_active = true;
-      stepper_x.pending_steps = 200;
+      // stepper_x.active = true;
+      // stepper_x.first_active = true;
+      // stepper_x.pending_steps = 200;
     }
     else if (command.startsWith("stepper_y"))
     {
@@ -340,11 +351,11 @@ void read_serial_command()
     }
     else if (command.startsWith("mm_y"))
     {
-      rotate_mm(stepper_y, get_command_arg(command), 0);
+      rotate_concurrent_mm(stepper_y, get_command_arg(command), 0);
     }
     else if (command.startsWith("mm_z"))
     {
-      rotate_mm(stepper_z, get_command_arg(command), 1);
+      rotate_concurrent_mm(stepper_z, get_command_arg(command), 1);
     }
   }
 }
@@ -379,6 +390,39 @@ void rotate_concurrent_steps(stepper &stepper)
   }
 }
 
+void rotate(stepper &stepper)
+{
+  if (stepper.active && (stepper.next_step_time < millis()))
+  {
+    stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
+
+    digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
+
+    stepper.toggle = !stepper.toggle;
+  }
+}
+
+void rotate_steps(stepper &stepper, int steps)
+{
+  stepper.active = true;
+  stepper.first_active = true;
+  stepper.pending_steps = steps;
+}
+
+void stop_steppers()
+{
+  stop_stepper(stepper_x);
+  stop_stepper(stepper_y);
+  stop_stepper(stepper_z);
+}
+
+void stop_stepper(stepper &stepper)
+{
+  stepper.active = false;
+  stepper.pending_steps = 0;
+  digitalWrite(stepper.pow, HIGH);
+}
+
 void rotate_steppers()
 {
   rotate_concurrent_steps(stepper_x);
@@ -386,9 +430,41 @@ void rotate_steppers()
   rotate_concurrent_steps(stepper_z);
 }
 
+void check_limits()
+{
+  check_limit(stepper_x);
+  check_limit(stepper_y);
+  check_limit(stepper_z);
+}
+
+void check_limit(stepper &stepper)
+{
+  if (stepper.limit_start)
+  {
+    if (!digitalRead(stepper.limit_start))
+    {
+      stepper.pending_steps = 0;
+      stepper.active = false;
+      digitalWrite(stepper.pow, HIGH);
+    }
+  }
+
+  if (stepper.limit_end)
+  {
+    if (!digitalRead(stepper.limit_end))
+    {
+      stepper.pending_steps = 0;
+      stepper.active = false;
+      digitalWrite(stepper.pow, HIGH);
+    }
+  }
+}
+
 void loop()
 {
   read_serial_command();
+
+  check_limits();
 
   check_directions();
 
