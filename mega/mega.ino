@@ -114,6 +114,7 @@ void setup_stepper(stepper stepper)
   digitalWrite(stepper.dir, LOW);
 
   pinMode(stepper.pow, OUTPUT);
+  digitalWrite(stepper.pow, HIGH);
 
   pinMode(stepper.limit_start, INPUT);
   pinMode(stepper.limit_end, INPUT);
@@ -155,8 +156,6 @@ void setup_stepper(stepper stepper)
 void rotate_concurrent_mm(stepper &stepper, int mm)
 {
   const int steps = (int)round(mm / stepper.linear_mov); // stepper.linear_mov z -> 44/400 = 0.11
-  Serial.println("steps: " + String(steps) + "\n");
-  Serial.println("stepper.lin_mov: " + String(stepper.linear_mov) + "\n");
   stepper.pending_steps = steps;
   stepper.free_rotate = false;
   stepper.first_active = true;
@@ -191,12 +190,13 @@ int get_command_arg(String command)
 
 int stepper_concurrent_zeroing()
 {
-  digitalWrite(stepper_x.dir, LOW);
-  digitalWrite(stepper_y.dir, LOW);
-  digitalWrite(stepper_z.dir, LOW);
   digitalWrite(stepper_x.pow, LOW);
   digitalWrite(stepper_y.pow, LOW);
   digitalWrite(stepper_z.pow, LOW);
+  digitalWrite(stepper_x.dir, LOW);
+  digitalWrite(stepper_y.dir, LOW);
+  digitalWrite(stepper_z.dir, LOW);
+
 
   stepper_x.active = true;
   stepper_x.free_rotate = true;
@@ -208,12 +208,12 @@ int stepper_concurrent_zeroing()
 
 int stepper_concurrent_zeroing_end()
 {
-  digitalWrite(stepper_x.dir, HIGH);
-  digitalWrite(stepper_y.dir, HIGH);
-  digitalWrite(stepper_z.dir, HIGH);
   digitalWrite(stepper_x.pow, LOW);
   digitalWrite(stepper_y.pow, LOW);
   digitalWrite(stepper_z.pow, LOW);
+  digitalWrite(stepper_x.dir, HIGH);
+  digitalWrite(stepper_y.dir, HIGH);
+  digitalWrite(stepper_z.dir, HIGH);
 
   stepper_x.active = true;
   stepper_x.free_rotate = true;
@@ -321,6 +321,8 @@ void check_direction(stepper &stepper)
 {
   if (stepper.first_active)
   {
+    digitalWrite(stepper.pow, LOW);
+
     if (stepper.pending_steps >= 0)
     {
       digitalWrite(stepper.dir, HIGH);
@@ -329,8 +331,6 @@ void check_direction(stepper &stepper)
     {
       digitalWrite(stepper.dir, LOW);
     }
-
-    digitalWrite(stepper.pow, LOW);
 
     stepper.first_active = false;
   }
@@ -409,6 +409,10 @@ void rotate_concurrent_steps(stepper &stepper)
     if (stepper.pending_steps == 0)
     {
       stepper.active = false;
+      if (!stepper.keep_engaged)
+      {
+        digitalWrite(stepper.pow, HIGH);
+      }
     }
   }
 }
@@ -475,15 +479,22 @@ void check_limit(stepper &stepper)
     stepper.active = false;
     stepper.first_active = false;
     stepper.free_rotate = false;
+    if (!stepper.keep_engaged)
+    {
+      digitalWrite(stepper.pow, HIGH);
+    }
   }
 
   if (stepper.active && !limit_end && stepper_dir)
   {
-    Serial.println("limit_end");
     stepper.pending_steps = 0;
     stepper.active = false;
     stepper.first_active = false;
     stepper.free_rotate = false;
+    if (!stepper.keep_engaged)
+    {
+      digitalWrite(stepper.pow, HIGH);
+    }
   }
 }
 
