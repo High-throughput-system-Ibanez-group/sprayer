@@ -18,9 +18,6 @@
 
 #define FULL_REV_MM_X_Y 54
 #define FULL_REV_MM_Z 44
-#define MICROSTEPPING 400
-#define LIN_MOV_X_Y 0.135 // 54/400 = 0.135
-#define LIN_MOV_Z 0.11    // 44/400 = 0.11
 #define STEP_SLEEP_MICRO 8000
 #define STEP_SLEEP_MILLI 8
 
@@ -44,12 +41,13 @@ struct stepper
   int pow;
   int limit_start;
   int limit_end;
-  float linear_mov;
+  double linear_mov;
   int pending_steps;
   bool keep_engaged;
   bool active;
   bool first_active;
   bool toggle;
+  bool free_rotate;
   unsigned long next_step_time;
 };
 
@@ -64,13 +62,14 @@ void setup()
   stepper_x.pow = STEPPER_X_POW;
   stepper_x.limit_start = STEPPER_X_LIMIT_START;
   stepper_x.limit_end = STEPPER_X_LIMIT_END;
-  stepper_x.linear_mov = LIN_MOV_X_Y;
+  stepper_x.linear_mov = 0.06875; // 54/400 = 0.135   
   stepper_x.pending_steps = 0;
   stepper_x.active = false;
   stepper_x.first_active = false;
   stepper_x.toggle = true;
   stepper_x.next_step_time = 0;
   stepper_x.keep_engaged = false;
+  stepper_x.free_rotate = false;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -78,13 +77,14 @@ void setup()
   stepper_y.pow = STEPPER_Y_POW;
   stepper_y.limit_start = STEPPER_Y_LIMIT_START;
   stepper_y.limit_end = STEPPER_Y_LIMIT_END;
-  stepper_y.linear_mov = LIN_MOV_X_Y;
+  stepper_y.linear_mov = 0.06875; // 54/400 = 0.135   
   stepper_y.pending_steps = 0;
   stepper_y.active = false;
   stepper_y.first_active = false;
   stepper_y.toggle = true;
   stepper_y.next_step_time = 0;
   stepper_y.keep_engaged = false;
+  stepper_y.free_rotate = false;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -92,13 +92,14 @@ void setup()
   stepper_z.pow = STEPPER_Z_POW;
   stepper_z.limit_start = STEPPER_Z_LIMIT_START;
   stepper_z.limit_end = STEPPER_Z_LIMIT_END;
-  stepper_z.linear_mov = LIN_MOV_Z;
+  stepper_z.linear_mov = 0.055; // 44/800 = 0.11
   stepper_z.pending_steps = 0;
   stepper_z.active = false;
   stepper_z.first_active = false;
   stepper_z.toggle = true;
   stepper_z.next_step_time = 0;
   stepper_z.keep_engaged = true;
+  stepper_z.free_rotate = false;
   setup_stepper(stepper_z);
 
   Serial.begin(9600);
@@ -113,7 +114,6 @@ void setup_stepper(stepper stepper)
   digitalWrite(stepper.dir, LOW);
 
   pinMode(stepper.pow, OUTPUT);
-  digitalWrite(stepper.pow, HIGH);
 
   pinMode(stepper.limit_start, INPUT);
   pinMode(stepper.limit_end, INPUT);
@@ -154,10 +154,13 @@ void setup_stepper(stepper stepper)
 
 void rotate_concurrent_mm(stepper &stepper, int mm)
 {
-  const int steps = (int)round(mm / stepper.linear_mov);
+  const int steps = (int)round(mm / stepper.linear_mov); // stepper.linear_mov z -> 44/400 = 0.11
+  Serial.println("steps: " + String(steps) + "\n");
+  Serial.println("stepper.lin_mov: " + String(stepper.linear_mov) + "\n");
   stepper.pending_steps = steps;
-  stepper.active = true;
+  stepper.free_rotate = false;
   stepper.first_active = true;
+  stepper.active = true;
 }
 
 int rotate_until_end(stepper stepper)
@@ -175,8 +178,6 @@ int rotate_until_end(stepper stepper)
     delayMicroseconds(STEP_SLEEP_MICRO);
     steps += 1;
   }
-
-  digitalWrite(stepper.pow, HIGH);
 
   return steps;
 }
@@ -198,8 +199,11 @@ int stepper_concurrent_zeroing()
   digitalWrite(stepper_z.pow, LOW);
 
   stepper_x.active = true;
+  stepper_x.free_rotate = true;
   stepper_y.active = true;
+  stepper_y.free_rotate = true;
   stepper_z.active = true;
+  stepper_z.free_rotate = true;
 }
 
 int stepper_concurrent_zeroing_end()
@@ -212,8 +216,11 @@ int stepper_concurrent_zeroing_end()
   digitalWrite(stepper_z.pow, LOW);
 
   stepper_x.active = true;
+  stepper_x.free_rotate = true;
   stepper_y.active = true;
+  stepper_y.free_rotate = true;
   stepper_z.active = true;
+  stepper_z.free_rotate = true;
 }
 
 int stepper_zeroing()
@@ -389,7 +396,7 @@ void check_directions()
 
 void rotate_concurrent_steps(stepper &stepper)
 {
-  if (stepper.active && (stepper.next_step_time < millis()))
+  if (!stepper.free_rotate && stepper.active && (stepper.next_step_time < millis()))
   {
     stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
 
@@ -402,17 +409,13 @@ void rotate_concurrent_steps(stepper &stepper)
     if (stepper.pending_steps == 0)
     {
       stepper.active = false;
-      if (!stepper.keep_engaged)
-      {
-        digitalWrite(stepper.pow, HIGH);
-      }
     }
   }
 }
 
 void rotate(stepper &stepper)
 {
-  if (stepper.active && (stepper.next_step_time < millis()))
+  if (stepper.free_rotate && stepper.active && (stepper.next_step_time < millis()))
   {
     stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
 
@@ -445,6 +448,9 @@ void stop_stepper(stepper &stepper)
 
 void rotate_steppers()
 {
+  rotate(stepper_x);
+  rotate(stepper_y);
+  rotate(stepper_z);
   rotate_concurrent_steps(stepper_x);
   rotate_concurrent_steps(stepper_y);
   rotate_concurrent_steps(stepper_z);
@@ -461,21 +467,22 @@ void check_limit(stepper &stepper)
 {
   int limit_start = digitalRead(stepper.limit_start);
   int limit_end = digitalRead(stepper.limit_end);
+  int stepper_dir = digitalRead(stepper.dir);
 
-  if (!digitalRead(stepper.limit_start) && !digitalRead(stepper.dir))
+  if (!limit_start && !stepper_dir)
   {
     stepper.pending_steps = 0;
     stepper.active = false;
     stepper.first_active = false;
-    digitalWrite(stepper.pow, HIGH);
+    stepper.free_rotate = false;
   }
 
-  if (!digitalRead(stepper.limit_end) && digitalRead(stepper.dir))
+  if (!limit_end && stepper_dir)
   {
     stepper.pending_steps = 0;
     stepper.active = false;
     stepper.first_active = false;
-    digitalWrite(stepper.pow, HIGH);
+    stepper.free_rotate = false;
   }
 }
 
