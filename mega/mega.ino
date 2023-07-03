@@ -469,7 +469,7 @@ void check_limit(stepper &stepper)
   int limit_end = digitalRead(stepper.limit_end);
   int stepper_dir = digitalRead(stepper.dir);
 
-  if (!limit_start && !stepper_dir)
+  if (stepper.active && !limit_start && !stepper_dir)
   {
     stepper.pending_steps = 0;
     stepper.active = false;
@@ -477,8 +477,9 @@ void check_limit(stepper &stepper)
     stepper.free_rotate = false;
   }
 
-  if (!limit_end && stepper_dir)
+  if (stepper.active && !limit_end && stepper_dir)
   {
+    Serial.println("limit_end");
     stepper.pending_steps = 0;
     stepper.active = false;
     stepper.first_active = false;
