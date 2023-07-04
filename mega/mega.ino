@@ -30,9 +30,8 @@
 
 #define PRESSURE_REGULATOR_OUT 6
 #define PRESSURE_REGULATOR_IN 54
-#define SOLENOID_VALVE 40
 
-#define PI 3.1416
+#define SOLENOID_VALVE_SYRINGE 40
 
 struct stepper
 {
@@ -62,13 +61,13 @@ void setup()
   stepper_x.pow = STEPPER_X_POW;
   stepper_x.limit_start = STEPPER_X_LIMIT_START;
   stepper_x.limit_end = STEPPER_X_LIMIT_END;
-  stepper_x.linear_mov = 0.06875; // 54/800   
+  stepper_x.linear_mov = 0.06875; // 54/800
+  stepper_x.keep_engaged = true;
   stepper_x.pending_steps = 0;
   stepper_x.active = false;
   stepper_x.first_active = false;
   stepper_x.toggle = true;
   stepper_x.next_step_time = 0;
-  stepper_x.keep_engaged = true;
   stepper_x.free_rotate = false;
   setup_stepper(stepper_x);
 
@@ -77,13 +76,13 @@ void setup()
   stepper_y.pow = STEPPER_Y_POW;
   stepper_y.limit_start = STEPPER_Y_LIMIT_START;
   stepper_y.limit_end = STEPPER_Y_LIMIT_END;
-  stepper_y.linear_mov = 0.06875; // 54/800   
+  stepper_y.linear_mov = 0.06875; // 54/800
+  stepper_y.keep_engaged = false;
   stepper_y.pending_steps = 0;
   stepper_y.active = false;
   stepper_y.first_active = false;
   stepper_y.toggle = true;
   stepper_y.next_step_time = 0;
-  stepper_y.keep_engaged = false;
   stepper_y.free_rotate = false;
   setup_stepper(stepper_y);
 
@@ -93,14 +92,25 @@ void setup()
   stepper_z.limit_start = STEPPER_Z_LIMIT_START;
   stepper_z.limit_end = STEPPER_Z_LIMIT_END;
   stepper_z.linear_mov = 0.055; // 44/800 = 0.11
+  stepper_z.keep_engaged = true;
   stepper_z.pending_steps = 0;
   stepper_z.active = false;
   stepper_z.first_active = false;
   stepper_z.toggle = true;
   stepper_z.next_step_time = 0;
-  stepper_z.keep_engaged = true;
   stepper_z.free_rotate = false;
   setup_stepper(stepper_z);
+
+  // config pressure regulator input
+  pinMode(PRESSURE_REGULATOR_IN, INPUT);
+
+  // config pressure regulator output
+  pinMode(PRESSURE_REGULATOR_OUT, OUTPUT);
+  analogWrite(PRESSURE_REGULATOR_OUT, 0);
+
+  // config solenoid valve syringe
+  pinMode(SOLENOID_VALVE_SYRINGE, OUTPUT);
+  digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
 
   Serial.begin(9600);
 }
@@ -196,7 +206,6 @@ int stepper_concurrent_zeroing()
   digitalWrite(stepper_x.dir, LOW);
   digitalWrite(stepper_y.dir, LOW);
   digitalWrite(stepper_z.dir, LOW);
-
 
   stepper_x.active = true;
   stepper_x.free_rotate = true;
@@ -336,57 +345,6 @@ void check_direction(stepper &stepper)
   }
 }
 
-void read_serial_command()
-{
-  if (Serial.available() > 0)
-  {
-    String command = Serial.readStringUntil('\n');
-
-    if (command == "test")
-    {
-      int data = rotate_until_end(stepper_x);
-      char cstr[16];
-      itoa(data, cstr, 10);
-      Serial.println(cstr);
-    }
-    else if (command == "zeroing_start")
-    {
-      stepper_concurrent_zeroing();
-    }
-    else if (command == "zeroing_end")
-    {
-      stepper_concurrent_zeroing_end();
-    }
-    else if (command.startsWith("stepper_x"))
-    {
-      // rotate_steps(stepper_x, 200, false);
-      // stepper_x.active = true;
-      // stepper_x.first_active = true;
-      // stepper_x.pending_steps = 200;
-    }
-    else if (command.startsWith("stepper_y"))
-    {
-      rotate_steps(stepper_y, 200);
-    }
-    else if (command.startsWith("stepper_z"))
-    {
-      rotate_steps(stepper_z, 200);
-    }
-    else if (command.startsWith("mm_x"))
-    {
-      rotate_concurrent_mm(stepper_x, get_command_arg(command));
-    }
-    else if (command.startsWith("mm_y"))
-    {
-      rotate_concurrent_mm(stepper_y, get_command_arg(command));
-    }
-    else if (command.startsWith("mm_z"))
-    {
-      rotate_concurrent_mm(stepper_z, get_command_arg(command));
-    }
-  }
-}
-
 void check_directions()
 {
   check_direction(stepper_x);
@@ -498,6 +456,87 @@ void check_limit(stepper &stepper)
   }
 }
 
+// last time the pressure was printed
+unsigned long last_pressure_print = 0;
+
+void send_pressure_regulator()
+{
+  // every second
+  if (millis() - last_pressure_print > 1000)
+  {
+    last_pressure_print = millis();
+
+    // pressure regulator in
+    float V2 = analogRead(PRESSURE_REGULATOR_IN);
+    Serial.println("pressure_regulator_in:" + String(V2));
+  }
+}
+
+void set_pressure_regulator(int val)
+{
+  analogWrite(PRESSURE_REGULATOR_OUT, val);
+}
+
+void toggle_solonoid(bool val)
+{
+  digitalWrite(SOLENOID_VALVE_SYRINGE, val ? HIGH : LOW);
+}
+
+void read_serial_command()
+{
+  if (Serial.available() > 0)
+  {
+    String command = Serial.readStringUntil('\n');
+
+    if (command == "test")
+    {
+      int data = rotate_until_end(stepper_x);
+      char cstr[16];
+      itoa(data, cstr, 10);
+      Serial.println(cstr);
+    }
+    else if (command == "zeroing_start")
+    {
+      stepper_concurrent_zeroing();
+    }
+    else if (command == "zeroing_end")
+    {
+      stepper_concurrent_zeroing_end();
+    }
+    else if (command.startsWith("stepper_x"))
+    {
+      // rotate_steps(stepper_x, 200, false);
+      // stepper_x.active = true;
+      // stepper_x.first_active = true;
+      // stepper_x.pending_steps = 200;
+    }
+    else if (command.startsWith("stepper_y"))
+    {
+      rotate_steps(stepper_y, 200);
+    }
+    else if (command.startsWith("stepper_z"))
+    {
+      rotate_steps(stepper_z, 200);
+    }
+    else if (command.startsWith("mm_x"))
+    {
+      rotate_concurrent_mm(stepper_x, get_command_arg(command));
+    }
+    else if (command.startsWith("mm_y"))
+    {
+      rotate_concurrent_mm(stepper_y, get_command_arg(command));
+    }
+    else if (command.startsWith("mm_z"))
+    {
+      rotate_concurrent_mm(stepper_z, get_command_arg(command));
+    }
+    else if (command.startsWith("set_sharpening_pressure"))
+    {
+      set_pressure_regulator(get_command_arg(command));
+    }
+  }
+}
+
 void loop()
 {
   read_serial_command();
@@ -507,6 +546,8 @@ void loop()
   check_limits();
 
   rotate_steppers();
+
+  send_pressure_regulator();
 
   delay(1);
 }

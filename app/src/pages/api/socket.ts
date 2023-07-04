@@ -17,7 +17,7 @@ interface NextApiResponseWithSocket extends NextApiResponse {
   socket: SocketWithIO;
 }
 
-let serialPort = new SerialPort({
+const serialPort = new SerialPort({
   path: process.env.PORT_PATH || "",
   baudRate: 9600,
 });
@@ -45,8 +45,12 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       console.log("connection is opened");
     });
 
-    parser.on("data", function (data) {
+    parser.on("data", function (data: string) {
       console.log("data from board: ", data);
+      if (data.startsWith("pressure_regulator_in")) {
+        const val = data.split(":")[1];
+        io.emit("pressure_regulator_in", val);
+      }
     });
 
     parser.on("error", (err) => console.log("err creating the parser.. ", err));
@@ -56,6 +60,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     );
 
     io.on("connection", (socket) => {
+      console.log("Socket connected");
       socket.on("command", (command: string) => {
         serialPort.write(`${command}\n`, (err) => {
           if (err) {
@@ -65,6 +70,8 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         console.log("Command: ", command);
       });
     });
+
+    io.on("error", (err) => console.log("err with socket connection.. ", err));
   }
   res.end();
 };
