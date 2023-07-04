@@ -466,7 +466,7 @@ void send_pressure_regulator()
     last_pressure_print = millis();
 
     // pressure regulator in
-    float V2 = analogRead(PRESSURE_REGULATOR_IN);
+    int V2 = analogRead(PRESSURE_REGULATOR_IN);
     Serial.println("pressure_regulator_in:" + String(V2));
   }
 }
@@ -564,6 +564,8 @@ void loop()
   rotate_steppers();
 
   send_pressure_regulator();
+
+  send_solenoid_valve_syringe();
 
   delay(1);
 }
