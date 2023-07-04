@@ -92,7 +92,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     // conver joint(-) separated string to array of points
-    const points = areaPattern?.points.split("-").map((point) => {
+    const points = areaPattern?.points.split("-").map((point: any) => {
       const [x, y] = point.split(",");
       return { x: Number(x), y: Number(y) };
     });

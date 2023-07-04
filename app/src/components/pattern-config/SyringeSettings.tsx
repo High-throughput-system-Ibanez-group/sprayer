@@ -20,15 +20,20 @@ export const Settings = observer(() => {
   };
 
   const onClickSetValve = () => {
-    socket?.emit("command", `set_valve:${valve ? "0" : "1"}`);
+    socket?.emit("command", `set_solenoid_valve_syringe:${valve ? "0" : "1"}`);
     setValve(!valve);
   };
 
   useEffect(() => {
-    socket?.on("pressure_input", (data) => {
-      console.log("pressure_input_from_board: ", data);
+    socket?.on("pressure_regulator_in", (data) => {
       const dataString = data as string;
       setPressureInput(dataString);
+    });
+
+    socket?.on("solenoid_valve_syringe", (data) => {
+      const dataString = data as string;
+
+      setValve(!!dataString);
     });
   }, [socket]);
 

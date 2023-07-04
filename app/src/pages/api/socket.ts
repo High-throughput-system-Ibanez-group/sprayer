@@ -24,22 +24,15 @@ const serialPort = new SerialPort({
 
 const readlineParser = new ReadlineParser({ delimiter: "\r\n" });
 
-let parser = serialPort.pipe(readlineParser);
-
-function configSerialPort() {
-  parser = serialPort.pipe(readlineParser);
-}
-
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {
-    configSerialPort();
     console.log("Socket is already running");
   } else {
     console.log("Socket is initializing");
     const io = new IOServer(res.socket.server);
     res.socket.server.io = io;
 
-    configSerialPort();
+    const parser = serialPort.pipe(readlineParser);
 
     parser.on("open", function () {
       console.log("connection is opened");
@@ -50,6 +43,10 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       if (data.startsWith("pressure_regulator_in")) {
         const val = data.split(":")[1];
         io.emit("pressure_regulator_in", val);
+      }
+      if (data.startsWith("solenoid_valve_syringe")) {
+        const val = data.split(":")[1];
+        io.emit("solenoid_valve_syringe", val);
       }
     });
 

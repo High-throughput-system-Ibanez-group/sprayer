@@ -456,7 +456,6 @@ void check_limit(stepper &stepper)
   }
 }
 
-// last time the pressure was printed
 unsigned long last_pressure_print = 0;
 
 void send_pressure_regulator()
@@ -477,9 +476,22 @@ void set_pressure_regulator(int val)
   analogWrite(PRESSURE_REGULATOR_OUT, val);
 }
 
-void toggle_solonoid(bool val)
+void set_solenoid_valve_syringe(int val)
 {
   digitalWrite(SOLENOID_VALVE_SYRINGE, val ? HIGH : LOW);
+}
+
+unsigned long last_solenoid_valve_syringe_print = 0;
+
+void send_solenoid_valve_syringe()
+{
+  if (millis() - last_solenoid_valve_syringe_print > 1000)
+  {
+    last_solenoid_valve_syringe_print = millis();
+
+    int solenoid_valve_syringe = digitalRead(SOLENOID_VALVE_SYRINGE);
+    Serial.println("solenoid_valve_syringe:" + String(solenoid_valve_syringe));
+  }
 }
 
 void read_serial_command()
@@ -533,6 +545,10 @@ void read_serial_command()
     else if (command.startsWith("set_sharpening_pressure"))
     {
       set_pressure_regulator(get_command_arg(command));
+    }
+    else if (command.startsWith("set_solenoid_valve_syringe"))
+    {
+      set_solenoid_valve_syringe(get_command_arg(command));
     }
   }
 }
