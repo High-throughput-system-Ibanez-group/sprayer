@@ -33,7 +33,7 @@ const Nav = () => {
             router.pathname === "/pattern-config" ? "underline" : ""
           }`}
         >
-          Pattern Configuration
+          Experiment Configuration
         </div>
       </Link>
     </nav>

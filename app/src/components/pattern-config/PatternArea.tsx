@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
-import { Settings } from "./SyringeSettings";
+import { Settings } from "./SpraySettings";
 
 interface GridCanvas {
   canvasWidth: number;
@@ -92,7 +92,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     // conver joint(-) separated string to array of points
-    const points = areaPattern?.points.split("-").map((point: any) => {
+    const points = areaPattern?.points.split("-").map((point: string) => {
       const [x, y] = point.split(",");
       return { x: Number(x), y: Number(y) };
     });
@@ -174,7 +174,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
       <Settings />
       <div className="h-8" />
       <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
-        <div className="mb-2 text-xl font-bold">Pattern Settings</div>
+        <div className="mb-2 text-xl font-bold">Experiment Settings</div>
         <div className="h-4" />
         <div className="flex items-center space-x-4">
           <label htmlFor="number-input" className="w-44 font-medium">
@@ -218,7 +218,46 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={onGenerate}
         >
-          Generate
+          Generate spray pattern
+        </button>
+        <div className="h-4" />
+        <div className="flex items-center space-x-4">
+          <input
+            type="number"
+            id="number-input"
+            className="w-32 rounded-md border border-gray-300 px-3 py-2"
+          />
+          <span>mm/min</span>
+          <button
+            type="button"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          >
+            Set motor speed
+          </button>
+        </div>
+        <div className="h-4" />
+        <div className="flex items-center space-x-4">
+          <label htmlFor="number-input" className="w-44 font-medium">
+            Time required:
+          </label>
+          {"NaN"}
+          <span>min</span>
+        </div>{" "}
+        <div className="h-4" />
+        <div className="flex items-center space-x-4">
+          <label htmlFor="number-input" className="w-44 font-medium">
+            Ink volume required:
+          </label>
+          {"NaN"}
+          <span>ml</span>
+        </div>
+        <div className="h-4" />
+        <button
+          type="button"
+          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          onClick={onGenerate}
+        >
+          Start experiment
         </button>
       </div>
       <>

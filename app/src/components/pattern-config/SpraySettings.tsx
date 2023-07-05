@@ -11,6 +11,16 @@ export const Settings = observer(() => {
   const [pressureInput, setPressureInput] = useState("");
   const [sharpeningPressure, setSharpeningPressure] = useState(0.07);
 
+  const [activeButton, setActiveButton] = useState("");
+
+  const handleButtonClick = (buttonName: string) => {
+    setActiveButton(buttonName);
+  };
+
+  const onStopPump = () => {
+    // socket?.emit("command", "stop_pumping");
+  };
+
   const wrongPressure = (pressure: number) => {
     return pressure < 0.005 || pressure > 1;
   };
@@ -21,21 +31,11 @@ export const Settings = observer(() => {
       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
       socket?.emit("command", `set_sharpening_pressure:${value}`);
     }
-    // convert pressure to a value from 0 to 255
-    // pressure bar from 0,005 to 1, convert to 0 to 255 value
-    //       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
-    // console.log("value", value);
-    // if (refInputSharpeningPressure.current?.value) {
-    //   socket?.emit(
-    //     "command",
-    //     `set_sharpening_pressure:${refInputSharpeningPressure.current?.value}`
-    //   );
-    // }
   };
 
   const onClickSetValve = () => {
     socket?.emit("command", `set_solenoid_valve_syringe:${valve ? "0" : "1"}`);
-    setValve(valve);
+    setValve(!valve);
   };
 
   useEffect(() => {
@@ -57,15 +57,12 @@ export const Settings = observer(() => {
 
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
-      <div className="mb-2 text-xl font-bold">Syringe Settings</div>
+      <div className="mb-2 text-xl font-bold">Spray Settings</div>
       <div className="flex flex-1 flex-col py-6">
         <div className="flex items-center space-x-4">
           <div className="relative">
             <input
               type="number"
-              id="number-input"
-              // min value 0.005
-              // max value 1
               step="0.005"
               min="0.005"
               max="1"
@@ -77,7 +74,7 @@ export const Settings = observer(() => {
               }}
             />
           </div>
-          Bar
+          <span>Bar</span>
           <button
             type="button"
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
@@ -110,82 +107,85 @@ export const Settings = observer(() => {
             onClickSetValve();
           }}
         >
-          {valve ? "OFF" : "ON"}
+          {valve ? "Activate Spray channel" : "Recharge/Activate Flush channel"}
         </button>
         <div className="h-4" />
-        <div>
-          Pressure reading:
-          <input
-            type="number"
-            id="number-input"
-            className="w-32 rounded-md border border-gray-300 px-3 py-2"
-            readOnly
-            value={pressureInput}
-          />
-          Bar
-        </div>
+        <div>Pressure reading: {pressureInput ? pressureInput : "NaN"} Bar</div>
 
         <div className="h-4" />
         <button
           type="button"
-          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          className={
+            "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          }
+          onClick={onStopPump}
         >
-          Start Pumping
+          Stop Pump
         </button>
         <div className="h-4" />
-        <button
-          type="button"
-          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-        >
-          Stop Pumping
-        </button>
-        <div className="h-4" />
-        <button
-          type="button"
-          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-        >
-          Recharge Pump
-        </button>
-        <div className="h-4" />
-        <button
-          type="button"
-          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-        >
-          Inject
-        </button>
+        <div className="flex overflow-hidden rounded-md">
+          <button
+            className={`btn flex-1 ${
+              activeButton === "Recharge Pump"
+                ? "bg-blue-500 px-4 py-2 text-white"
+                : "bg-gray-200 px-4 py-2 text-gray-700 hover:bg-blue-300 hover:text-white focus:outline-none"
+            }`}
+            onClick={() => handleButtonClick("Recharge Pump")}
+          >
+            Recharge Pump
+          </button>
+          <button
+            className={`btn flex-1 ${
+              activeButton === "Spray"
+                ? "bg-blue-500 px-4 py-2 text-white"
+                : "bg-gray-200 px-4 py-2 text-gray-700 hover:bg-blue-300 hover:text-white focus:outline-none"
+            }`}
+            onClick={() => handleButtonClick("Spray")}
+          >
+            Spray
+          </button>
+          <button
+            className={`btn flex-1 ${
+              activeButton === "Flux nozzle"
+                ? "bg-blue-500 px-4 py-2 text-white"
+                : "bg-gray-200 px-4 py-2 text-gray-700 hover:bg-blue-300 hover:text-white focus:outline-none"
+            }`}
+            onClick={() => handleButtonClick("Flux nozzle")}
+          >
+            Flux nozzle
+          </button>
+        </div>
         <div className="h-4" />
         <div className="flex flex-1 items-center space-x-4">
-          <label htmlFor="number-input" className="w-[162px] font-medium">
-            Radius syringe:
-          </label>
           <input
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
           />
+          <span>mm</span>
+          <button
+            type="button"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          >
+            Set Radius syringe
+          </button>
         </div>
         <div className="h-4" />
         <div className="flex flex-1 items-center space-x-4">
-          <label htmlFor="number-input" className="w-[162px] font-medium">
-            Flow rate:
-          </label>
           <input
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
           />
+          <span>ml/min</span>
+          <button
+            type="button"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          >
+            Set Flow rate
+          </button>
         </div>
         <div className="h-4" />
-        <div className="flex flex-1 items-center space-x-4">
-          <label htmlFor="number-input" className="w-[162px] font-medium">
-            Volume:
-          </label>
-          <input
-            type="number"
-            id="number-input"
-            className="w-32 rounded-md border border-gray-300 px-3 py-2"
-          />
-        </div>
       </div>
     </div>
   );
