@@ -17,15 +17,12 @@ export const Settings = observer(() => {
 
   const onSetSharpeningPressure = () => {
     const pressure = refInputSharpeningPressure.current?.valueAsNumber;
-    if(pressure && !wrongPressure(pressure)) {
+    if (pressure && !wrongPressure(pressure)) {
       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
-            socket?.emit(
-        "command",
-        `set_sharpening_pressure:${value}`
-      );
+      socket?.emit("command", `set_sharpening_pressure:${value}`);
     }
-          // convert pressure to a value from 0 to 255
-          // pressure bar from 0,005 to 1, convert to 0 to 255 value
+    // convert pressure to a value from 0 to 255
+    // pressure bar from 0,005 to 1, convert to 0 to 255 value
     //       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
     // console.log("value", value);
     // if (refInputSharpeningPressure.current?.value) {
@@ -42,7 +39,7 @@ export const Settings = observer(() => {
   };
 
   useEffect(() => {
-    socket?.on("pressure_regulator_in", (data) => {
+    socket?.on("pressure_regulator_in", (data: string) => {
       const value = parseInt(data);
       // convert value from 0 to 1023 to pressure from 0.005 to 1
       const pressure = (value / 1023) * (1 - 0.005) + 0.005;
@@ -62,7 +59,6 @@ export const Settings = observer(() => {
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Syringe Settings</div>
       <div className="flex flex-1 flex-col py-6">
-
         <div className="flex items-center space-x-4">
           <div className="relative">
             <input
@@ -93,20 +89,22 @@ export const Settings = observer(() => {
           </button>
         </div>
         <div className="h-4" />
-        {wrongPressure(sharpeningPressure) && <div className="text-red-400">
-Wrong pressure, please enter a value between 0.005 and 1 Bar
-        </div>}
-      
-          <div className="text-gray-400">
-            {"Recommended pressure between 0.06 to 0.5 Bar"}
+        {wrongPressure(sharpeningPressure) && (
+          <div className="text-red-400">
+            Wrong pressure, please enter a value between 0.005 and 1 Bar
           </div>
+        )}
+
+        <div className="text-gray-400">
+          {"Recommended pressure between 0.06 to 0.5 Bar"}
+        </div>
         <div className="h-4" />
         <button
           type="button"
           className={
             valve
-            ? "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
-            : "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
+              ? "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+              : "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
           }
           onClick={() => {
             onClickSetValve();
