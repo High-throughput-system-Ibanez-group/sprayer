@@ -2,23 +2,28 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import { appStore } from "~/stores/app";
 
+type ActiveButtonType = "Recharge Pump" | "Spray" | "Flux nozzle";
+
 export const Settings = observer(() => {
   const app = appStore();
   const socket = app.socket;
   const refInputSharpeningPressure = useRef<HTMLInputElement>(null);
 
   const [valve, setValve] = useState(false);
+  const [pumping, setPumping] = useState(false);
   const [pressureInput, setPressureInput] = useState("");
   const [sharpeningPressure, setSharpeningPressure] = useState(0.07);
 
-  const [activeButton, setActiveButton] = useState("");
+  const [activeButton, setActiveButton] = useState<ActiveButtonType>("Spray");
 
-  const handleButtonClick = (buttonName: string) => {
+  const handleButtonClick = (buttonName: ActiveButtonType) => {
     setActiveButton(buttonName);
   };
 
-  const onStopPump = () => {
-    // socket?.emit("command", "stop_pumping");
+  const onTogglePumping = () => {
+    const command = pumping ? "stop_syringe" : (activeButton === "Spray" || activeButton === "Flux nozzle") ?  "syringe_start" : "syringe_end";
+    socket?.emit("command",`${command}`);
+    setPumping(!pumping);
   };
 
   const wrongPressure = (pressure: number) => {
@@ -53,7 +58,25 @@ export const Settings = observer(() => {
 
       setValve(dataString === "1" ? true : false);
     });
+
+    socket?.on("syringe_status", (data) => {
+      const dataString = data as string;
+
+      setPumping(dataString === "0" ? true : false);
+    });
   }, [socket]);
+
+  const onSyringeStart = () => {
+    socket?.emit("command", "syringe_start");
+  };
+
+  const onSyringeEnd = () => {
+    socket?.emit("command", "syringe_end");
+  };
+
+  const onStopStyringe = () => {
+    socket?.emit("command", "stop_syringe");
+  };
 
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -93,8 +116,10 @@ export const Settings = observer(() => {
         )}
 
         <div className="text-gray-400">
-          {"Recommended pressure between 0.06 to 0.5 Bar"}
+          Recommended pressure between 0.06 to 0.5 Bar
         </div>
+        <div className="h-4" />
+        <div>Pressure reading: {pressureInput ? pressureInput : "NaN"} Bar</div>
         <div className="h-4" />
         <button
           type="button"
@@ -108,19 +133,6 @@ export const Settings = observer(() => {
           }}
         >
           {valve ? "Activate Spray channel" : "Recharge/Activate Flush channel"}
-        </button>
-        <div className="h-4" />
-        <div>Pressure reading: {pressureInput ? pressureInput : "NaN"} Bar</div>
-
-        <div className="h-4" />
-        <button
-          type="button"
-          className={
-            "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
-          }
-          onClick={onStopPump}
-        >
-          Stop Pump
         </button>
         <div className="h-4" />
         <div className="flex overflow-hidden rounded-md">
@@ -186,6 +198,46 @@ export const Settings = observer(() => {
           </button>
         </div>
         <div className="h-4" />
+        <button
+          type="button"
+          className={!pumping ?
+             "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
+           : "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          }
+          onClick={onTogglePumping}
+        >
+          {pumping ? "Stop Pumping" : "Start Pumping"}
+        </button>
+        <div className="h-4" />
+        <button
+          type="button"
+          className={
+             "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          }
+          onClick={onSyringeStart}
+        >
+          Calibrate syringe start
+        </button>
+        <div className="h-4" />
+        <button
+          type="button"
+          className={
+             "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          }
+          onClick={onSyringeEnd}
+        >
+          Calibrate syringe end
+        </button>        
+        <div className="h-4" />
+        <button
+          type="button"
+          className={
+             "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          }
+          onClick={onStopStyringe}
+        >
+          Stop syringe motor
+        </button>
       </div>
     </div>
   );

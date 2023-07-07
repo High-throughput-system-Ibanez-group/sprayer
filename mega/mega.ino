@@ -24,8 +24,8 @@
 #define STEPPER_SYRINGE_STP 52
 #define STEPPER_SYRINGE_DIR 2
 #define STEPPER_SYRINGE_POW 36
-#define STEPPER_SYRINGE_LIMIT_START 23
-#define STEPPER_SYRINGE_LIMIT_END 22
+#define STEPPER_SYRINGE_LIMIT_START 22
+#define STEPPER_SYRINGE_LIMIT_END 23
 #define SYRINGE_FULL_REV_MM 1
 
 #define PRESSURE_REGULATOR_OUT 6
@@ -53,6 +53,7 @@ struct stepper
 stepper stepper_x;
 stepper stepper_y;
 stepper stepper_z;
+stepper stepper_syringe;
 
 void setup()
 {
@@ -101,6 +102,21 @@ void setup()
   stepper_z.free_rotate = false;
   setup_stepper(stepper_z);
 
+  stepper_syringe.stp = STEPPER_SYRINGE_STP;
+  stepper_syringe.dir = STEPPER_SYRINGE_DIR;
+  stepper_syringe.pow = STEPPER_SYRINGE_POW;
+  stepper_syringe.limit_start = STEPPER_SYRINGE_LIMIT_START;
+  stepper_syringe.limit_end = STEPPER_SYRINGE_LIMIT_END;
+  stepper_syringe.linear_mov = 0.00125; // 1/800 = 0.11
+  stepper_syringe.keep_engaged = true;
+  stepper_syringe.pending_steps = 0;
+  stepper_syringe.active = false;
+  stepper_syringe.first_active = false;
+  stepper_syringe.toggle = true;
+  stepper_syringe.next_step_time = 0;
+  stepper_syringe.free_rotate = false;
+  setup_stepper(stepper_syringe);
+
   // config pressure regulator input
   pinMode(PRESSURE_REGULATOR_IN, INPUT);
 
@@ -124,7 +140,7 @@ void setup_stepper(stepper stepper)
   digitalWrite(stepper.dir, LOW);
 
   pinMode(stepper.pow, OUTPUT);
-  digitalWrite(stepper.pow, HIGH);
+  digitalWrite(stepper.pow, LOW);
 
   pinMode(stepper.limit_start, INPUT);
   pinMode(stepper.limit_end, INPUT);
@@ -394,18 +410,12 @@ void rotate_steps(stepper &stepper, int steps)
   stepper.pending_steps = steps;
 }
 
-void stop_steppers()
-{
-  stop_stepper(stepper_x);
-  stop_stepper(stepper_y);
-  stop_stepper(stepper_z);
-}
-
 void stop_stepper(stepper &stepper)
 {
   stepper.active = false;
+  stepper.free_rotate = false;
   stepper.pending_steps = 0;
-  digitalWrite(stepper.pow, HIGH);
+  digitalWrite(stepper.pow, LOW);
 }
 
 void rotate_steppers()
@@ -413,6 +423,7 @@ void rotate_steppers()
   rotate(stepper_x);
   rotate(stepper_y);
   rotate(stepper_z);
+  rotate(stepper_syringe);
   rotate_concurrent_steps(stepper_x);
   rotate_concurrent_steps(stepper_y);
   rotate_concurrent_steps(stepper_z);
@@ -423,6 +434,7 @@ void check_limits()
   check_limit(stepper_x);
   check_limit(stepper_y);
   check_limit(stepper_z);
+  check_limit(stepper_syringe);
 }
 
 void check_limit(stepper &stepper)
@@ -494,6 +506,26 @@ void send_solenoid_valve_syringe()
   }
 }
 
+unsigned long last_syringe_status_print = 0;
+
+void send_syringe_status()
+{
+  if (millis() - last_syringe_status_print > 1000)
+  {
+    last_syringe_status_print = millis();
+
+    int syringe_status = digitalRead(STEPPER_SYRINGE_POW);
+    Serial.println("syringe_status:" + String(syringe_status));
+  }
+}
+
+void stop_x_y_z()
+{
+  stop_stepper(stepper_x);
+  stop_stepper(stepper_y);
+  stop_stepper(stepper_z);
+}
+
 void read_serial_command()
 {
   if (Serial.available() > 0)
@@ -550,6 +582,26 @@ void read_serial_command()
     {
       set_solenoid_valve_syringe(get_command_arg(command));
     }
+    else if (command.startsWith("syringe_start"))
+    {
+      digitalWrite(STEPPER_SYRINGE_DIR, LOW);
+      stepper_syringe.free_rotate = true;
+      stepper_syringe.active = true;
+    }
+    else if (command.startsWith("syringe_end"))
+    {
+      digitalWrite(STEPPER_SYRINGE_DIR, HIGH);
+      stepper_syringe.free_rotate = true;
+      stepper_syringe.active = true;
+    }
+    else if (command.startsWith("stop_syringe"))
+    {
+      stop_stepper(stepper_syringe);
+    }
+    else if (command.startsWith("stop_x_y_z"))
+    {
+      stop_x_y_z();
+    }
   }
 }
 
@@ -564,6 +616,8 @@ void loop()
   rotate_steppers();
 
   send_pressure_regulator();
+
+  send_syringe_status();
 
   send_solenoid_valve_syringe();
 

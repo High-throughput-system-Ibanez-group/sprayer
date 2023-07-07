@@ -39,14 +39,16 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     });
 
     parser.on("data", function (data: string) {
-      console.log("data from board: ", data);
       if (data.startsWith("pressure_regulator_in")) {
         const val = data.split(":")[1];
         io.emit("pressure_regulator_in", val);
-      }
-      if (data.startsWith("solenoid_valve_syringe")) {
+      } else if (data.startsWith("solenoid_valve_syringe")) {
         const val = data.split(":")[1];
         io.emit("solenoid_valve_syringe", val);
+      } else if (data.startsWith("syringe_status")) {
+        console.log("syringe from board... ", data);
+        const val = data.split(":")[1];
+        io.emit("syringe_status", val);
       }
     });
 

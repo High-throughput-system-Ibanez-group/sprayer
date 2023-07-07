@@ -10,6 +10,10 @@ export const Zeroing = observer(() => {
     socket?.emit("command", `zeroing_${type}`);
   };
 
+  const onStopMotors = () => {
+    socket?.emit("command", `stop_x_y_z`);
+  };
+
   return (
     <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Zeroing</div>
@@ -32,6 +36,16 @@ export const Zeroing = observer(() => {
           Zeroing end
         </button>
       </div>
+      <div className="h-4" />
+        <button
+          type="button"
+          className={
+             "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          }
+          onClick={onStopMotors}
+        >
+          Stop motors
+        </button>
     </div>
   );
 });
