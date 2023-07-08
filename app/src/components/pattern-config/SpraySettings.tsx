@@ -21,8 +21,12 @@ export const Settings = observer(() => {
   };
 
   const onTogglePumping = () => {
-    const command = pumping ? "stop_syringe" : (activeButton === "Spray" || activeButton === "Flux nozzle") ?  "syringe_start" : "syringe_end";
-    socket?.emit("command",`${command}`);
+    const command = pumping
+      ? "stop_syringe"
+      : activeButton === "Spray" || activeButton === "Flux nozzle"
+      ? "syringe_start"
+      : "syringe_end";
+    socket?.emit("command", command);
     setPumping(!pumping);
   };
 
@@ -200,9 +204,10 @@ export const Settings = observer(() => {
         <div className="h-4" />
         <button
           type="button"
-          className={!pumping ?
-             "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
-           : "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          className={
+            !pumping
+              ? "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
+              : "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
           }
           onClick={onTogglePumping}
         >
@@ -212,7 +217,7 @@ export const Settings = observer(() => {
         <button
           type="button"
           className={
-             "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+            "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           }
           onClick={onSyringeStart}
         >
@@ -222,17 +227,17 @@ export const Settings = observer(() => {
         <button
           type="button"
           className={
-             "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+            "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           }
           onClick={onSyringeEnd}
         >
           Calibrate syringe end
-        </button>        
+        </button>
         <div className="h-4" />
         <button
           type="button"
           className={
-             "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+            "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
           }
           onClick={onStopStyringe}
         >

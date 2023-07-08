@@ -468,19 +468,11 @@ void check_limit(stepper &stepper)
   }
 }
 
-unsigned long last_pressure_print = 0;
-
 void send_pressure_regulator()
 {
-  // every second
-  if (millis() - last_pressure_print > 1000)
-  {
-    last_pressure_print = millis();
-
-    // pressure regulator in
-    int V2 = analogRead(PRESSURE_REGULATOR_IN);
-    Serial.println("pressure_regulator_in:" + String(V2));
-  }
+  // pressure regulator in
+  int V2 = analogRead(PRESSURE_REGULATOR_IN);
+  Serial.println("pressure_regulator_in:" + String(V2));
 }
 
 void set_pressure_regulator(int val)
@@ -493,30 +485,15 @@ void set_solenoid_valve_syringe(int val)
   digitalWrite(SOLENOID_VALVE_SYRINGE, val ? HIGH : LOW);
 }
 
-unsigned long last_solenoid_valve_syringe_print = 0;
-
 void send_solenoid_valve_syringe()
 {
-  if (millis() - last_solenoid_valve_syringe_print > 1000)
-  {
-    last_solenoid_valve_syringe_print = millis();
-
-    int solenoid_valve_syringe = digitalRead(SOLENOID_VALVE_SYRINGE);
-    Serial.println("solenoid_valve_syringe:" + String(solenoid_valve_syringe));
-  }
+  int solenoid_valve_syringe = digitalRead(SOLENOID_VALVE_SYRINGE);
+  Serial.println("solenoid_valve_syringe:" + String(solenoid_valve_syringe));
 }
-
-unsigned long last_syringe_status_print = 0;
 
 void send_syringe_status()
 {
-  if (millis() - last_syringe_status_print > 1000)
-  {
-    last_syringe_status_print = millis();
-
-    int syringe_status = digitalRead(STEPPER_SYRINGE_POW);
-    Serial.println("syringe_status:" + String(syringe_status));
-  }
+  Serial.println("syringe_status:" + String(stepper_syringe.active));
 }
 
 void stop_x_y_z()
@@ -526,41 +503,47 @@ void stop_x_y_z()
   stop_stepper(stepper_z);
 }
 
+unsigned long last_status_print = 0;
+
+void send_info()
+{
+  // send every second
+  if (millis() - last_status_print > 1000)
+  {
+    last_status_print = millis();
+    send_pressure_regulator();
+    send_solenoid_valve_syringe();
+    send_syringe_status();
+  }
+}
+
+void syringe_start()
+{
+  digitalWrite(STEPPER_SYRINGE_DIR, LOW);
+  stepper_syringe.free_rotate = true;
+  stepper_syringe.active = true;
+}
+
+void syringe_end()
+{
+  digitalWrite(STEPPER_SYRINGE_DIR, HIGH);
+  stepper_syringe.free_rotate = true;
+  stepper_syringe.active = true;
+}
+
 void read_serial_command()
 {
   if (Serial.available() > 0)
   {
     String command = Serial.readStringUntil('\n');
 
-    if (command == "test")
-    {
-      int data = rotate_until_end(stepper_x);
-      char cstr[16];
-      itoa(data, cstr, 10);
-      Serial.println(cstr);
-    }
-    else if (command == "zeroing_start")
+    if (command == "zeroing_start")
     {
       stepper_concurrent_zeroing();
     }
     else if (command == "zeroing_end")
     {
       stepper_concurrent_zeroing_end();
-    }
-    else if (command.startsWith("stepper_x"))
-    {
-      // rotate_steps(stepper_x, 200, false);
-      // stepper_x.active = true;
-      // stepper_x.first_active = true;
-      // stepper_x.pending_steps = 200;
-    }
-    else if (command.startsWith("stepper_y"))
-    {
-      rotate_steps(stepper_y, 200);
-    }
-    else if (command.startsWith("stepper_z"))
-    {
-      rotate_steps(stepper_z, 200);
     }
     else if (command.startsWith("mm_x"))
     {
@@ -584,15 +567,11 @@ void read_serial_command()
     }
     else if (command.startsWith("syringe_start"))
     {
-      digitalWrite(STEPPER_SYRINGE_DIR, LOW);
-      stepper_syringe.free_rotate = true;
-      stepper_syringe.active = true;
+      syringe_start();
     }
     else if (command.startsWith("syringe_end"))
     {
-      digitalWrite(STEPPER_SYRINGE_DIR, HIGH);
-      stepper_syringe.free_rotate = true;
-      stepper_syringe.active = true;
+      syringe_end();
     }
     else if (command.startsWith("stop_syringe"))
     {
@@ -615,11 +594,7 @@ void loop()
 
   rotate_steppers();
 
-  send_pressure_regulator();
-
-  send_syringe_status();
-
-  send_solenoid_valve_syringe();
+  send_info();
 
   delay(1);
 }
