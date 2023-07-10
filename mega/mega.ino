@@ -146,39 +146,6 @@ void setup_stepper(stepper stepper)
   pinMode(stepper.limit_end, INPUT);
 }
 
-// void rotate_steps(stepper stepper, int steps)
-// {
-//   if (steps >= 0)
-//   {
-//     digitalWrite(stepper.dir, HIGH);
-//   }
-//   else
-//   {
-//     digitalWrite(stepper.dir, LOW);
-//   }
-
-//   digitalWrite(stepper.pow, LOW);
-
-//   for (int i = 0; i < abs(steps); i++)
-//   {
-//     digitalWrite(stepper.stp, HIGH);
-//     delayMicroseconds(STEP_SLEEP_MICRO);
-//     digitalWrite(stepper.stp, LOW);
-//     delayMicroseconds(STEP_SLEEP_MICRO);
-//   }
-
-//   if (!stepper.keep_engaged)
-//   {
-//     digitalWrite(stepper.pow, HIGH);
-//   }
-// }
-
-// void rotate_mm(stepper stepper, int mm, int axis) // axis = 0 -> x or y, axis = 1 -> z
-// {
-//   const int steps = (int)round(mm / (axis ? LIN_MOV_Z : LIN_MOV_X_Y));
-//   rotate_steps(stepper, steps);
-// }
-
 void rotate_concurrent_mm(stepper &stepper, int mm)
 {
   const int steps = (int)round(mm / stepper.linear_mov); // stepper.linear_mov z -> 44/400 = 0.11
