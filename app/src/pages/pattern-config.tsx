@@ -1,7 +1,9 @@
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
+import { Cleaning } from "~/components/pattern-config/Cleaning";
 import { PatternArea } from "~/components/pattern-config/PatternArea";
 import { Sidebar } from "~/components/pattern-config/Sidebar";
+import { Settings } from "~/components/pattern-config/SpraySettings";
 import { patternConfigStore } from "~/stores/patternConfig";
 import { api } from "~/utils/api";
 
@@ -24,7 +26,13 @@ const PatternConfig = () => {
     <div className="flex flex-1 flex-row">
       <Sidebar areas={fetchedAreas} />
       <div className="h-8" />
-      {areaId && <PatternArea areaId={areaId} />}
+      <div className="flex flex-1 flex-col items-center justify-start p-8">
+        <Settings />
+        <div className="h-8" />
+        <Cleaning />
+        <div className="h-8" />
+        {areaId && <PatternArea areaId={areaId} />}
+      </div>
     </div>
   );
 };

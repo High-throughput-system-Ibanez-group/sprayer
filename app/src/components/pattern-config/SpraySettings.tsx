@@ -66,7 +66,7 @@ export const Settings = observer(() => {
     socket?.on("syringe_status", (data) => {
       const dataString = data as string;
 
-      setPumping(dataString === "0" ? true : false);
+      setPumping(dataString === "1" ? true : false);
     });
   }, [socket]);
 

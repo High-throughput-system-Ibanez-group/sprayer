@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
-import { Settings } from "./SpraySettings";
 
 interface GridCanvas {
   canvasWidth: number;
@@ -170,9 +169,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-start p-8">
-      <Settings />
-      <div className="h-8" />
+    <>
       <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
         <div className="mb-2 text-xl font-bold">Experiment Settings</div>
         <div className="h-4" />
@@ -269,7 +266,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
           style={{ border: "1px solid black" }}
         />
       </>
-    </div>
+    </>
   );
 };
 

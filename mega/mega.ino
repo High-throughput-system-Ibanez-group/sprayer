@@ -20,6 +20,7 @@
 #define FULL_REV_MM_Z 44
 #define STEP_SLEEP_MICRO 8000
 #define STEP_SLEEP_MILLI 8
+#define STEP_SLEEP_MILLI_SYRINGE 4
 
 #define STEPPER_SYRINGE_STP 52
 #define STEPPER_SYRINGE_DIR 2
@@ -32,6 +33,15 @@
 #define PRESSURE_REGULATOR_IN 54
 
 #define SOLENOID_VALVE_SYRINGE 40
+
+struct CleanSequence
+{
+  int number_of_repetitions;
+  int current_repetition;
+  bool active;
+  int steps;
+  int current_step;
+};
 
 struct stepper
 {
@@ -48,12 +58,15 @@ struct stepper
   bool toggle;
   bool free_rotate;
   unsigned long next_step_time;
+  bool is_syringe;
 };
 
 stepper stepper_x;
 stepper stepper_y;
 stepper stepper_z;
 stepper stepper_syringe;
+
+CleanSequence clean_sequence;
 
 void setup()
 {
@@ -70,6 +83,7 @@ void setup()
   stepper_x.toggle = true;
   stepper_x.next_step_time = 0;
   stepper_x.free_rotate = false;
+  stepper_x.is_syringe = false;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -85,6 +99,7 @@ void setup()
   stepper_y.toggle = true;
   stepper_y.next_step_time = 0;
   stepper_y.free_rotate = false;
+  stepper_y.is_syringe = false;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -100,6 +115,7 @@ void setup()
   stepper_z.toggle = true;
   stepper_z.next_step_time = 0;
   stepper_z.free_rotate = false;
+  stepper_z.is_syringe = false;
   setup_stepper(stepper_z);
 
   stepper_syringe.stp = STEPPER_SYRINGE_STP;
@@ -115,6 +131,7 @@ void setup()
   stepper_syringe.toggle = true;
   stepper_syringe.next_step_time = 0;
   stepper_syringe.free_rotate = false;
+  stepper_syringe.is_syringe = true;
   setup_stepper(stepper_syringe);
 
   // config pressure regulator input
@@ -362,7 +379,14 @@ void rotate(stepper &stepper)
 {
   if (stepper.free_rotate && stepper.active && (stepper.next_step_time < millis()))
   {
-    stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
+    if (stepper.is_syringe)
+    {
+      stepper.next_step_time = millis() + STEP_SLEEP_MILLI_SYRINGE;
+    }
+    else
+    {
+      stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
+    }
 
     digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
 
@@ -498,6 +522,64 @@ void syringe_end()
   stepper_syringe.active = true;
 }
 
+void stop_clean_sequence()
+{
+  clean_sequence.active = false;
+  stop_stepper(stepper_syringe);
+}
+
+void resume_clean_sequence()
+{
+  clean_sequence.active = true;
+  stepper_syringe.free_rotate = true;
+  stepper_syringe.active = true;
+}
+
+void setup_clean_sequence(int number_of_repetitions)
+{
+  clean_sequence.number_of_repetitions = number_of_repetitions;
+  clean_sequence.current_repetition = 0;
+  clean_sequence.steps = 3;
+  clean_sequence.current_step = 1;
+  clean_sequence.active = true;
+}
+
+void clean_sequence_check()
+{
+  if (clean_sequence.active)
+  {
+    if (clean_sequence.current_repetition < clean_sequence.number_of_repetitions)
+    {
+      if (clean_sequence.current_step == 1)
+      {
+        digitalWrite(SOLENOID_VALVE_SYRINGE, HIGH);
+        syringe_end();
+        clean_sequence.current_step = 2;
+      }
+      else if (clean_sequence.current_step == 2 && !stepper_syringe.active)
+      {
+        digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
+        syringe_start();
+        clean_sequence.current_step = 3;
+      }
+      else if (clean_sequence.current_step == 3 && !stepper_syringe.active)
+      {
+        clean_sequence.current_step = 1;
+        clean_sequence.current_repetition++;
+      }
+    }
+    else if (clean_sequence.current_repetition >= clean_sequence.number_of_repetitions)
+    {
+      clean_sequence.active = false;
+    }
+  }
+}
+
+void check_sequences()
+{
+  clean_sequence_check();
+}
+
 void read_serial_command()
 {
   if (Serial.available() > 0)
@@ -548,6 +630,18 @@ void read_serial_command()
     {
       stop_x_y_z();
     }
+    else if (command.startsWith("clean"))
+    {
+      setup_clean_sequence(get_command_arg(command));
+    }
+    else if (command.startsWith("stop_clean"))
+    {
+      stop_clean_sequence();
+    }
+    else if (command.startsWith("resume_clean"))
+    {
+      resume_clean_sequence();
+    }
   }
 }
 
@@ -562,6 +656,8 @@ void loop()
   rotate_steppers();
 
   send_info();
+
+  check_sequences();
 
   delay(1);
 }
