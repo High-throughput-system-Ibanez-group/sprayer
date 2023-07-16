@@ -34,13 +34,14 @@
 
 #define SOLENOID_VALVE_SYRINGE 40
 
-struct CleanSequence
+struct sequence
 {
   int number_of_repetitions;
   int current_repetition;
   bool active;
   int steps;
   int current_step;
+  double distance_mm;
 };
 
 struct stepper
@@ -66,7 +67,10 @@ stepper stepper_y;
 stepper stepper_z;
 stepper stepper_syringe;
 
-CleanSequence clean_sequence;
+sequence clean_sequence;   // 'c' name
+sequence pattern_sequence; // 'p' name
+
+char active_sequence = '-'; // default value
 
 void setup()
 {
@@ -191,10 +195,18 @@ int rotate_until_end(stepper stepper)
   return steps;
 }
 
-int get_command_arg(String command)
+int get_command_arg(String command, int argIndex)
 {
-  int separator_index = command.indexOf(":");
-  String arg = command.substring(separator_index + 1);
+  int separatorIndex = 0;
+  for (int i = 0; i < argIndex; i++)
+  {
+    separatorIndex = command.indexOf(':', separatorIndex + 1);
+    if (separatorIndex == -1)
+    {
+      return 0;
+    }
+  }
+  String arg = command.substring(separatorIndex + 1);
   return arg.toInt();
 }
 
@@ -535,8 +547,15 @@ void resume_clean_sequence()
   stepper_syringe.active = true;
 }
 
+void set_default_sequence()
+{
+  active_sequence = '-';
+}
+
+// ------ clean sequence ------
 void setup_clean_sequence(int number_of_repetitions)
 {
+  active_sequence = 'c';
   clean_sequence.number_of_repetitions = number_of_repetitions;
   clean_sequence.current_repetition = 0;
   clean_sequence.steps = 3;
@@ -546,7 +565,7 @@ void setup_clean_sequence(int number_of_repetitions)
 
 void clean_sequence_check()
 {
-  if (clean_sequence.active)
+  if (active_sequence == 'c' && clean_sequence.active)
   {
     if (clean_sequence.current_repetition < clean_sequence.number_of_repetitions)
     {
@@ -571,9 +590,65 @@ void clean_sequence_check()
     else if (clean_sequence.current_repetition >= clean_sequence.number_of_repetitions)
     {
       clean_sequence.active = false;
+      set_default_sequence();
     }
   }
 }
+// ------ end clean sequence ------
+
+// ------ pattern sequence ------
+void setup_pattern_sequence(int number_of_repetitions)
+{
+  active_sequence = 'p';
+  pattern_sequence.number_of_repetitions = number_of_repetitions;
+  pattern_sequence.current_repetition = 0;
+  pattern_sequence.steps = 3;
+  pattern_sequence.current_step = 1;
+  pattern_sequence.active = true;
+}
+
+bool xyz_steppers_active()
+{
+  if (stepper_x.active || stepper_y.active || stepper_z.active)
+  {
+    return true;
+  }
+  return false;
+}
+
+void pattern_sequence_check()
+{
+  if (active_sequence == 'p' && pattern_sequence.active)
+  {
+    if (pattern_sequence.current_repetition < pattern_sequence.number_of_repetitions)
+    {
+      if (pattern_sequence.current_step == 1 && !xyz_steppers_active())
+      {
+        stepper_concurrent_zeroing();
+        pattern_sequence.current_step = 2;
+      }
+      else if (pattern_sequence.current_step == 2 && !xyz_steppers_active())
+      {
+        rotate_concurrent_mm(stepper_x, 100);
+        rotate_concurrent_mm(stepper_y, 100);
+        digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
+        syringe_start();
+        pattern_sequence.current_step = 3;
+      }
+      else if (pattern_sequence.current_step == 3 && !xyz_steppers_active())
+      {
+        pattern_sequence.current_step = 1;
+        pattern_sequence.current_repetition++;
+      }
+    }
+    else if (pattern_sequence.current_repetition >= pattern_sequence.number_of_repetitions)
+    {
+      pattern_sequence.active = false;
+      set_default_sequence();
+    }
+  }
+}
+// ------ end pattern sequence ------
 
 void check_sequences()
 {
@@ -596,23 +671,23 @@ void read_serial_command()
     }
     else if (command.startsWith("mm_x"))
     {
-      rotate_concurrent_mm(stepper_x, get_command_arg(command));
+      rotate_concurrent_mm(stepper_x, get_command_arg(command, 0));
     }
     else if (command.startsWith("mm_y"))
     {
-      rotate_concurrent_mm(stepper_y, get_command_arg(command));
+      rotate_concurrent_mm(stepper_y, get_command_arg(command, 0));
     }
     else if (command.startsWith("mm_z"))
     {
-      rotate_concurrent_mm(stepper_z, get_command_arg(command));
+      rotate_concurrent_mm(stepper_z, get_command_arg(command, 0));
     }
     else if (command.startsWith("set_sharpening_pressure"))
     {
-      set_pressure_regulator(get_command_arg(command));
+      set_pressure_regulator(get_command_arg(command, 0));
     }
     else if (command.startsWith("set_solenoid_valve_syringe"))
     {
-      set_solenoid_valve_syringe(get_command_arg(command));
+      set_solenoid_valve_syringe(get_command_arg(command, 0));
     }
     else if (command.startsWith("syringe_start"))
     {
@@ -632,7 +707,7 @@ void read_serial_command()
     }
     else if (command.startsWith("clean"))
     {
-      setup_clean_sequence(get_command_arg(command));
+      setup_clean_sequence(get_command_arg(command, 0));
     }
     else if (command.startsWith("stop_clean"))
     {
@@ -641,6 +716,10 @@ void read_serial_command()
     else if (command.startsWith("resume_clean"))
     {
       resume_clean_sequence();
+    }
+    else if (command.startsWith("pattern"))
+    {
+      setup_pattern_sequence(get_command_arg(command, 0));
     }
   }
 }
