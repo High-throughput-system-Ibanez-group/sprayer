@@ -41,7 +41,11 @@ struct sequence
   bool active;
   int steps;
   int current_step;
-  double distance_mm;
+  double vertical_mov_mm;
+  double horizontal_mov_mm;
+  double total_vertical_mm;
+  double current_vertical_mm;
+  bool should_move_horizontal;
 };
 
 struct stepper
@@ -597,7 +601,7 @@ void clean_sequence_check()
 // ------ end clean sequence ------
 
 // ------ pattern sequence ------
-void setup_pattern_sequence(int number_of_repetitions)
+void setup_pattern_sequence(int number_of_repetitions, int vertical_mov_mm)
 {
   active_sequence = 'p';
   pattern_sequence.number_of_repetitions = number_of_repetitions;
@@ -605,6 +609,27 @@ void setup_pattern_sequence(int number_of_repetitions)
   pattern_sequence.steps = 3;
   pattern_sequence.current_step = 1;
   pattern_sequence.active = true;
+  clean_sequence.total_vertical_mm = 10;
+  clean_sequence.horizontal_mov_mm = 10;
+  clean_sequence.vertical_mov_mm = get_vertical_value_from_arg(vertical_mov_mm);
+  clean_sequence.should_move_horizontal = true;
+  clean_sequence.current_vertical_mm = 0;
+}
+
+double get_vertical_value_from_arg(int vertical_mov_mm)
+{
+  // 0 -> 1, 1 -> 0.5, 2 -> 0.25
+  switch (vertical_mov_mm)
+  {
+  case 0:
+    return 1;
+  case 1:
+    return 0.5;
+  case 2:
+    return 0.25;
+  default:
+    return 1;
+  }
 }
 
 bool xyz_steppers_active()
@@ -631,12 +656,50 @@ void pattern_sequence_check()
       {
         rotate_concurrent_mm(stepper_x, 100);
         rotate_concurrent_mm(stepper_y, 100);
-        digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
-        syringe_start();
         pattern_sequence.current_step = 3;
       }
-      else if (pattern_sequence.current_step == 3 && !xyz_steppers_active())
+      else if (pattern_sequence.current_step == 3 && !xyz_steppers_active()) // do the pattern
       {
+        if (pattern_sequence.should_move_horizontal)
+        {
+          if (pattern_sequence.current_vertical_mm == 0) // one direction or another
+          {
+            rotate_concurrent_mm(stepper_x, pattern_sequence.horizontal_mov_mm);
+          }
+          else
+          {
+            rotate_concurrent_mm(stepper_x, -pattern_sequence.horizontal_mov_mm);
+          }
+        }
+        else
+        {
+          rotate_concurrent_mm(stepper_y, pattern_sequence.vertical_mov_mm);
+        }
+        if (pattern_sequence.current_vertical_mm <= pattern_sequence.total_vertical_mm)
+        {
+          pattern_sequence.current_vertical_mm += pattern_sequence.vertical_mov_mm;
+          pattern_sequence.should_move_horizontal = !pattern_sequence.should_move_horizontal;
+        }
+        else
+        {
+          pattern_sequence.current_step = 4;
+        }
+      }
+      else if (pattern_sequence.current_step == 4 && !xyz_steppers_active())
+      {
+        if (digitalRead(STEPPER_X_DIR) == HIGH) // to check the direction of the stepper
+        {
+          rotate_concurrent_mm(stepper_x, -10);
+        }
+        rotate_concurrent_mm(stepper_y, -10);
+        pattern_sequence.should_move_horizontal = true;
+        pattern_sequence.current_vertical_mm = 0;
+        pattern_sequence.current_step = 5;
+      }
+      else if (pattern_sequence.current_step == 5 && !xyz_steppers_active())
+      {
+        pattern_sequence.should_move_horizontal = true;
+        pattern_sequence.current_vertical_mm = 0;
         pattern_sequence.current_step = 1;
         pattern_sequence.current_repetition++;
       }
@@ -719,7 +782,7 @@ void read_serial_command()
     }
     else if (command.startsWith("pattern"))
     {
-      setup_pattern_sequence(get_command_arg(command, 0));
+      setup_pattern_sequence(get_command_arg(command, 0), get_command_arg(command, 1));
     }
   }
 }

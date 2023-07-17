@@ -73,9 +73,24 @@ function drawSnakePattern(
   return points;
 }
 
+type ActiveButtonType = 0 | 1 | 2; // 0 -> 1, 1 -> 0.5, 2 -> 0.25
+
+const activeButtonToValue = (activeButton: ActiveButtonType) => {
+  switch (activeButton) {
+    case 0:
+      return 1;
+    case 1:
+      return 0.5;
+    case 2:
+      return 0.25;
+  }
+};
+
 const PatternArea = ({ areaId }: { areaId: number }) => {
   const { canvasHeight, canvasWidth } = config;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [activeButton, setActiveButton] = useState<ActiveButtonType>(0);
 
   const [horizontalDistance, setHorizontalDistance] = useState<number>();
   const [verticalDistance, setVerticalDistance] = useState<number>();
@@ -86,6 +101,10 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
       await utils.areas.getAreaPattern.invalidate();
     },
   });
+
+  const handleButtonClick = (buttonName: ActiveButtonType) => {
+    setActiveButton(buttonName);
+  };
 
   const drawPattern = useCallback(() => {
     const canvas = canvasRef.current;
@@ -249,6 +268,39 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
           <span>ml</span>
         </div>
         <div className="h-4" />
+        <div className="flex overflow-hidden rounded-md">
+          <button
+            className={`btn flex-1 ${
+              activeButton === 0
+                ? "bg-blue-500 px-4 py-2 text-white"
+                : "bg-gray-200 px-4 py-2 text-gray-700 hover:bg-blue-300 hover:text-white focus:outline-none"
+            }`}
+            onClick={() => handleButtonClick(0)}
+          >
+            {activeButtonToValue(0)}
+          </button>
+          <button
+            className={`btn flex-1 ${
+              activeButton === 1
+                ? "bg-blue-500 px-4 py-2 text-white"
+                : "bg-gray-200 px-4 py-2 text-gray-700 hover:bg-blue-300 hover:text-white focus:outline-none"
+            }`}
+            onClick={() => handleButtonClick(1)}
+          >
+            {activeButtonToValue(1)}
+          </button>
+          <button
+            className={`btn flex-1 ${
+              activeButton === 2
+                ? "bg-blue-500 px-4 py-2 text-white"
+                : "bg-gray-200 px-4 py-2 text-gray-700 hover:bg-blue-300 hover:text-white focus:outline-none"
+            }`}
+            onClick={() => handleButtonClick(2)}
+          >
+            {activeButtonToValue(2)}
+          </button>
+        </div>
+        <div className="h-4" />
         <button
           type="button"
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
@@ -257,7 +309,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
           Start experiment
         </button>
       </div>
-      <>
+      {/* <>
         <h1 className="p-4">Pattern</h1>
         <canvas
           ref={canvasRef}
@@ -265,7 +317,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
           height={canvasHeight}
           style={{ border: "1px solid black" }}
         />
-      </>
+      </> */}
     </>
   );
 };
