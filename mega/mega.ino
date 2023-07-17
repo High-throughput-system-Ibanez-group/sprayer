@@ -210,7 +210,8 @@ int get_command_arg(String command, int argIndex)
       return 0;
     }
   }
-  String arg = command.substring(separatorIndex + 1);
+  String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
+  Serial.println("arg index " + String(argIndex) + " : " + arg);
   return arg.toInt();
 }
 
@@ -687,7 +688,7 @@ void pattern_sequence_check()
       }
       else if (pattern_sequence.current_step == 4 && !xyz_steppers_active())
       {
-        if (digitalRead(STEPPER_X_DIR) == HIGH) // to check the direction of the stepper
+        if (digitalRead(STEPPER_X_DIR) == HIGH) // to check the direction of the stepper // HIGH
         {
           rotate_concurrent_mm(stepper_x, -10);
         }
@@ -716,6 +717,7 @@ void pattern_sequence_check()
 void check_sequences()
 {
   clean_sequence_check();
+  pattern_sequence_check();
 }
 
 void read_serial_command()
@@ -734,23 +736,23 @@ void read_serial_command()
     }
     else if (command.startsWith("mm_x"))
     {
-      rotate_concurrent_mm(stepper_x, get_command_arg(command, 0));
+      rotate_concurrent_mm(stepper_x, get_command_arg(command, 1));
     }
     else if (command.startsWith("mm_y"))
     {
-      rotate_concurrent_mm(stepper_y, get_command_arg(command, 0));
+      rotate_concurrent_mm(stepper_y, get_command_arg(command, 1));
     }
     else if (command.startsWith("mm_z"))
     {
-      rotate_concurrent_mm(stepper_z, get_command_arg(command, 0));
+      rotate_concurrent_mm(stepper_z, get_command_arg(command, 1));
     }
     else if (command.startsWith("set_sharpening_pressure"))
     {
-      set_pressure_regulator(get_command_arg(command, 0));
+      set_pressure_regulator(get_command_arg(command, 1));
     }
     else if (command.startsWith("set_solenoid_valve_syringe"))
     {
-      set_solenoid_valve_syringe(get_command_arg(command, 0));
+      set_solenoid_valve_syringe(get_command_arg(command, 1));
     }
     else if (command.startsWith("syringe_start"))
     {
@@ -770,7 +772,7 @@ void read_serial_command()
     }
     else if (command.startsWith("clean"))
     {
-      setup_clean_sequence(get_command_arg(command, 0));
+      setup_clean_sequence(get_command_arg(command, 1));
     }
     else if (command.startsWith("stop_clean"))
     {
@@ -782,7 +784,7 @@ void read_serial_command()
     }
     else if (command.startsWith("pattern"))
     {
-      setup_pattern_sequence(get_command_arg(command, 0), get_command_arg(command, 1));
+      setup_pattern_sequence(get_command_arg(command, 1), get_command_arg(command, 2));
     }
   }
 }

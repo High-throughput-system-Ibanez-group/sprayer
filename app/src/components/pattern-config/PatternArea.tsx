@@ -1,4 +1,6 @@
+import { observer } from "mobx-react-lite";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { appStore } from "~/stores/app";
 import { api } from "~/utils/api";
 
 interface GridCanvas {
@@ -86,11 +88,16 @@ const activeButtonToValue = (activeButton: ActiveButtonType) => {
   }
 };
 
-const PatternArea = ({ areaId }: { areaId: number }) => {
+const PatternArea = observer(({ areaId }: { areaId: number }) => {
+  const app = appStore();
+  const socket = app.socket;
+
   const { canvasHeight, canvasWidth } = config;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [activeButton, setActiveButton] = useState<ActiveButtonType>(0);
+
+  const numberOfLoopsRef = useRef<HTMLInputElement>(null);
 
   const [horizontalDistance, setHorizontalDistance] = useState<number>();
   const [verticalDistance, setVerticalDistance] = useState<number>();
@@ -187,6 +194,13 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
     savePattern({ areaId, points: numbersArray, patternId: areaPattern?.id });
   };
 
+  const onStartExperiment = () => {
+    const numberOfLoops = numberOfLoopsRef.current?.valueAsNumber;
+    if (numberOfLoops) {
+      socket?.emit("command", `pattern:${numberOfLoops}:${activeButton}`);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -200,6 +214,8 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
+            ref={numberOfLoopsRef}
+            min="0"
           />
         </div>
         <div className="h-4" />
@@ -304,7 +320,7 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
         <button
           type="button"
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-          onClick={onGenerate}
+          onClick={onStartExperiment}
         >
           Start experiment
         </button>
@@ -320,6 +336,6 @@ const PatternArea = ({ areaId }: { areaId: number }) => {
       </> */}
     </>
   );
-};
+});
 
 export { PatternArea };

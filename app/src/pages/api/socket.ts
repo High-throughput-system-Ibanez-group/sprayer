@@ -46,9 +46,11 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         const val = data.split(":")[1];
         io.emit("solenoid_valve_syringe", val);
       } else if (data.startsWith("syringe_status")) {
-        console.log("syringe from board... ", data);
+       // console.log("syringe from board... ", data);
         const val = data.split(":")[1];
         io.emit("syringe_status", val);
+      } else if (data.startsWith("arg")) {
+       console.log("arg from board... ", data);
       }
     });
 
