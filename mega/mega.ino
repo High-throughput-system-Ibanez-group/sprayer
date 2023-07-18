@@ -215,7 +215,7 @@ int get_command_arg(String command, int argIndex)
   return arg.toInt();
 }
 
-int stepper_concurrent_zeroing()
+int stepper_concurrent_zeroing_start()
 {
   digitalWrite(stepper_x.pow, LOW);
   digitalWrite(stepper_y.pow, LOW);
@@ -650,17 +650,20 @@ void pattern_sequence_check()
     {
       if (pattern_sequence.current_step == 1 && !xyz_steppers_active())
       {
-        stepper_concurrent_zeroing();
+        Serial.println("pattern_sequence.current_step = 1");
+        stepper_concurrent_zeroing_start();
         pattern_sequence.current_step = 2;
       }
       else if (pattern_sequence.current_step == 2 && !xyz_steppers_active())
       {
+        Serial.println("pattern_sequence.current_step = 2");
         rotate_concurrent_mm(stepper_x, 100);
         rotate_concurrent_mm(stepper_y, 100);
         pattern_sequence.current_step = 3;
       }
       else if (pattern_sequence.current_step == 3 && !xyz_steppers_active()) // do the pattern
       {
+        Serial.println("pattern_sequence.current_step = 3");
         if (pattern_sequence.should_move_horizontal)
         {
           if (pattern_sequence.current_vertical_mm == 0) // one direction or another
@@ -688,6 +691,7 @@ void pattern_sequence_check()
       }
       else if (pattern_sequence.current_step == 4 && !xyz_steppers_active())
       {
+        Serial.println("pattern_sequence.current_step = 4");
         if (digitalRead(STEPPER_X_DIR) == HIGH) // to check the direction of the stepper // HIGH
         {
           rotate_concurrent_mm(stepper_x, -10);
@@ -699,6 +703,7 @@ void pattern_sequence_check()
       }
       else if (pattern_sequence.current_step == 5 && !xyz_steppers_active())
       {
+        Serial.println("pattern_sequence.current_step = 5");
         pattern_sequence.should_move_horizontal = true;
         pattern_sequence.current_vertical_mm = 0;
         pattern_sequence.current_step = 1;
@@ -728,7 +733,7 @@ void read_serial_command()
 
     if (command == "zeroing_start")
     {
-      stepper_concurrent_zeroing();
+      stepper_concurrent_zeroing_start();
     }
     else if (command == "zeroing_end")
     {
