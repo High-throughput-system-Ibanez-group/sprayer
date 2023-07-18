@@ -201,6 +201,10 @@ const PatternArea = observer(({ areaId }: { areaId: number }) => {
     }
   };
 
+  const onStopExperiment = () => {
+    socket?.emit("command", "pattern_stop");
+  };
+
   return (
     <>
       <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -218,7 +222,7 @@ const PatternArea = observer(({ areaId }: { areaId: number }) => {
             min="0"
           />
         </div>
-        <div className="h-4" />
+        {/* <div className="h-4" />
         <div className="flex items-center space-x-4">
           <label htmlFor="number-input" className="w-44 font-medium">
             Horizontal distance:
@@ -251,7 +255,7 @@ const PatternArea = observer(({ areaId }: { areaId: number }) => {
           onClick={onGenerate}
         >
           Generate spray pattern
-        </button>
+        </button> */}
         <div className="h-4" />
         <div className="flex items-center space-x-4">
           <input
@@ -323,6 +327,14 @@ const PatternArea = observer(({ areaId }: { areaId: number }) => {
           onClick={onStartExperiment}
         >
           Start experiment
+        </button>{" "}
+        <div className="h-4" />
+        <button
+          type="button"
+          className="rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          onClick={onStopExperiment}
+        >
+          Stop experiment
         </button>
       </div>
       {/* <>

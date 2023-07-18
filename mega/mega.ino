@@ -171,7 +171,7 @@ void setup_stepper(stepper stepper)
   pinMode(stepper.limit_end, INPUT);
 }
 
-void rotate_concurrent_mm(stepper &stepper, int mm)
+void rotate_concurrent_mm(stepper &stepper, double mm)
 {
   const int steps = (int)round(mm / stepper.linear_mov); // stepper.linear_mov z -> 44/400 = 0.11
   stepper.pending_steps = steps;
@@ -610,11 +610,12 @@ void setup_pattern_sequence(int number_of_repetitions, int vertical_mov_mm)
   pattern_sequence.steps = 3;
   pattern_sequence.current_step = 1;
   pattern_sequence.active = true;
-  clean_sequence.total_vertical_mm = 10;
-  clean_sequence.horizontal_mov_mm = 10;
-  clean_sequence.vertical_mov_mm = get_vertical_value_from_arg(vertical_mov_mm);
-  clean_sequence.should_move_horizontal = true;
-  clean_sequence.current_vertical_mm = 0;
+  pattern_sequence.total_vertical_mm = 10;
+  pattern_sequence.horizontal_mov_mm = 10;
+  pattern_sequence.vertical_mov_mm = get_vertical_value_from_arg(vertical_mov_mm);
+  Serial.println("pattern_sequence.vertical_mov_mm = " + String(pattern_sequence.vertical_mov_mm));
+  pattern_sequence.should_move_horizontal = true;
+  pattern_sequence.current_vertical_mm = 0;
 }
 
 double get_vertical_value_from_arg(int vertical_mov_mm)
@@ -666,22 +667,28 @@ void pattern_sequence_check()
         Serial.println("pattern_sequence.current_step = 3");
         if (pattern_sequence.should_move_horizontal)
         {
-          if (pattern_sequence.current_vertical_mm == 0) // one direction or another
+          Serial.println("pattern_sequence.current_step = 3.1");
+          // move one direction or another, start with positive
+          int stepper_x_dir = digitalRead(stepper_x.dir);
+
+          if (stepper_x_dir == LOW || pattern_sequence.current_vertical_mm == 0)
           {
             rotate_concurrent_mm(stepper_x, pattern_sequence.horizontal_mov_mm);
           }
           else
           {
+            Serial.println("pattern_sequence.current_step = 3.1.2");
             rotate_concurrent_mm(stepper_x, -pattern_sequence.horizontal_mov_mm);
           }
         }
         else
         {
           rotate_concurrent_mm(stepper_y, pattern_sequence.vertical_mov_mm);
+          pattern_sequence.current_vertical_mm += pattern_sequence.vertical_mov_mm;
         }
+
         if (pattern_sequence.current_vertical_mm <= pattern_sequence.total_vertical_mm)
         {
-          pattern_sequence.current_vertical_mm += pattern_sequence.vertical_mov_mm;
           pattern_sequence.should_move_horizontal = !pattern_sequence.should_move_horizontal;
         }
         else
@@ -706,8 +713,8 @@ void pattern_sequence_check()
         Serial.println("pattern_sequence.current_step = 5");
         pattern_sequence.should_move_horizontal = true;
         pattern_sequence.current_vertical_mm = 0;
-        pattern_sequence.current_step = 1;
         pattern_sequence.current_repetition++;
+        pattern_sequence.current_step = 3;
       }
     }
     else if (pattern_sequence.current_repetition >= pattern_sequence.number_of_repetitions)
@@ -790,6 +797,10 @@ void read_serial_command()
     else if (command.startsWith("pattern"))
     {
       setup_pattern_sequence(get_command_arg(command, 1), get_command_arg(command, 2));
+    }
+    else if (command.startsWith("pattern_stop"))
+    {
+      set_default_sequence();
     }
   }
 }
