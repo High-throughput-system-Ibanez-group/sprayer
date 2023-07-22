@@ -90,7 +90,7 @@ void setup()
   stepper_x.pow = STEPPER_X_POW;
   stepper_x.limit_start = STEPPER_X_LIMIT_START;
   stepper_x.limit_end = STEPPER_X_LIMIT_END;
-  stepper_x.linear_mov = 0.06875; // 54/800
+  stepper_x.linear_mov = 0.0675; // 54/800
   stepper_x.keep_engaged = true;
   stepper_x.pending_steps = 0;
   stepper_x.active = false;

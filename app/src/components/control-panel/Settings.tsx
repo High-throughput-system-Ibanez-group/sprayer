@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useRef, useState } from "react";
 import { appStore } from "~/stores/app";
-import { Steppers, type Axis } from "~/utils/types";
+import { type Steppers } from "~/utils/types";
 
 export const Settings = observer(() => {
   const [selectedStepper, setSelectedStepper] = useState<Steppers>("x");
