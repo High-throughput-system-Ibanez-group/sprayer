@@ -81,7 +81,6 @@ const Element = ({ stepper }: { stepper: Steppers }) => {
         onClick={() => {
           handleStepperSubmit();
         }}
-        disabled
       >
         Update {stepper}
       </button>

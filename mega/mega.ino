@@ -796,6 +796,7 @@ void check_sequences()
 
 void config_stepper(stepper &stepper, int microstepping, int delay)
 {
+  Serial.println("stepper_config_" + String(stepper.axis) + ":" + String(microstepping) + ":" + String(delay));
   stepper.step_sleep_milli = delay;
   stepper.linear_mov = stepper.full_rev_mm / microstepping;
 }
