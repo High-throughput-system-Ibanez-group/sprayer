@@ -878,7 +878,7 @@ void read_serial_command()
     }
     else if (command.startsWith("stepper_config_"))
     {
-      config_stepper(command[14] == 'x' ? stepper_x : command[14] == 'y' ? stepper_y
+      config_stepper(command[15] == 'x' ? stepper_x : command[15] == 'y' ? stepper_y
                                                                          : stepper_z,
                      get_command_arg(command, 1), get_command_arg(command, 2));
     }

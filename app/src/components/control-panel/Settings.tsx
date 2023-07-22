@@ -46,7 +46,7 @@ const Element = observer(({ stepper }: { stepper: Steppers }) => {
     if (!refInputMicro.current?.value || !refInputDelay.current?.value) return;
     socket?.emit(
       "command",
-      `stepper_config:${refInputMicro.current?.value}:${refInputDelay.current?.value}`
+      `stepper_config_${stepper}:${refInputMicro.current?.value}:${refInputDelay.current?.value}`
     );
   };
 

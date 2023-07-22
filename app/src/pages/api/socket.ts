@@ -56,7 +56,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         const val = data.split(":")[1];
         const axis = data[7] || "";
         io.emit(`wspace_${axis}`, val);
-      } else if (data.startsWith("stepper_config_")) {
+      } else if (data.startsWith("stepper_config")) {
         console.log(data);
       }
     });
