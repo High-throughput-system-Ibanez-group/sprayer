@@ -169,8 +169,11 @@ void setup()
 
   // working spaces
   wspace_x.axis = 'x';
+  wspace_x.stepper = stepper_x;
   wspace_y.axis = 'y';
+  wspace_y.stepper = stepper_y;
   wspace_z.axis = 'z';
+  wspace_z.stepper = stepper_z;
 
   Serial.begin(9600);
 }
