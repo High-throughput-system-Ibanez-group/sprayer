@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { appStore } from "~/stores/app";
 import { type Steppers } from "~/utils/types";
 
-export const Settings = observer(() => {
+export const Settings = () => {
   const [selectedStepper, setSelectedStepper] = useState<Steppers>("x");
 
   const handleStepperChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -33,9 +33,9 @@ export const Settings = observer(() => {
       </div>
     </div>
   );
-});
+};
 
-const Element = ({ stepper }: { stepper: Steppers }) => {
+const Element = observer(({ stepper }: { stepper: Steppers }) => {
   const app = appStore();
   const socket = app.socket;
 
@@ -86,4 +86,4 @@ const Element = ({ stepper }: { stepper: Steppers }) => {
       </button>
     </div>
   );
-};
+});
