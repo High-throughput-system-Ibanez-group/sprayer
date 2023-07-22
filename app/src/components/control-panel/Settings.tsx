@@ -43,7 +43,7 @@ const Element = ({ stepper }: { stepper: Steppers }) => {
   const refInputDelay = useRef<HTMLInputElement>(null);
 
   const handleStepperSubmit = () => {
-    if (!(refInputMicro.current?.value && refInputDelay.current?.value)) return;
+    if (!refInputMicro.current?.value || !refInputDelay.current?.value) return;
     socket?.emit(
       "command",
       `stepper_config:${refInputMicro.current?.value}:${refInputDelay.current?.value}`
