@@ -34,22 +34,6 @@
 
 #define SOLENOID_VALVE_SYRINGE 40
 
-struct sequence
-{
-  int number_of_repetitions;
-  int current_repetition;
-  bool active;
-  int steps;
-  int current_move;
-  double vertical_mov_mm;
-  double horizontal_mov_mm;
-  double total_vertical_mm;
-  double current_vertical_mm;
-  bool should_move_horizontal;
-  char axis;
-  stepper stepper;
-};
-
 struct stepper
 {
   int stp;
@@ -68,6 +52,22 @@ struct stepper
   char axis;
   int step_sleep_milli;
   int full_rev_mm;
+};
+
+struct sequence
+{
+  int number_of_repetitions;
+  int current_repetition;
+  bool active;
+  int steps;
+  int current_move;
+  double vertical_mov_mm;
+  double horizontal_mov_mm;
+  double total_vertical_mm;
+  double current_vertical_mm;
+  bool should_move_horizontal;
+  char axis;
+  stepper *stepper;
 };
 
 stepper stepper_x;
@@ -746,8 +746,8 @@ void setup_working_space(sequence &wspace)
   active_sequence = "wspace_" + String(wspace.axis);
   wspace.steps = 0;
   wspace.current_move = 1;
-  wspace.stepper = wspace.axis == 'x' ? stepper_x : wspace.axis == 'y' ? stepper_y
-                                                                       : stepper_z;
+  wspace.stepper = wspace.axis == 'x' ? &stepper_x : wspace.axis == 'y' ? &stepper_y
+                                                                        : &stepper_z;
   wspace.active = true;
 }
 
@@ -760,6 +760,7 @@ void setup_working_spaces()
 
 void working_space_check(sequence &wspace)
 {
+  stepper *stepper_ptr = wspace.stepper;
   String sequence_name = "wspace_";
 
   if (active_sequence.startsWith(sequence_name) && wspace.active)
@@ -769,14 +770,14 @@ void working_space_check(sequence &wspace)
       stepper_concurrent_zeroing_start();
       wspace.current_move = 2;
     }
-    else if (wspace.current_move == 2 && !wspace.stepper.active)
+    else if (wspace.current_move == 2 && !stepper_ptr->active)
     {
       wspace.current_move = 3;
       stepper_concurrent_zeroing_end();
     }
-    else if (wspace.current_move == 3 && !wspace.stepper.active)
+    else if (wspace.current_move == 3 && !stepper_ptr->active)
     {
-      double mm = wspace.steps * wspace.stepper.linear_mov;
+      double mm = wspace.steps * stepper_ptr->linear_mov;
       Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm) + "mm");
       wspace.active = false;
       set_default_sequence();
