@@ -40,12 +40,14 @@ struct sequence
   int current_repetition;
   bool active;
   int steps;
-  int current_step;
+  int current_move;
   double vertical_mov_mm;
   double horizontal_mov_mm;
   double total_vertical_mm;
   double current_vertical_mm;
   bool should_move_horizontal;
+  char axis;
+  stepper stepper;
 };
 
 struct stepper
@@ -63,7 +65,9 @@ struct stepper
   bool toggle;
   bool free_rotate;
   unsigned long next_step_time;
-  bool is_syringe;
+  char axis;
+  int step_sleep_milli;
+  int full_rev_mm;
 };
 
 stepper stepper_x;
@@ -71,10 +75,13 @@ stepper stepper_y;
 stepper stepper_z;
 stepper stepper_syringe;
 
-sequence clean_sequence;   // 'c' name
-sequence pattern_sequence; // 'p' name
+sequence clean_sequence;
+sequence pattern_sequence;
+sequence wspace_x;
+sequence wspace_y;
+sequence wspace_z;
 
-char active_sequence = '-'; // default value
+String active_sequence = "-"; // default value
 
 void setup()
 {
@@ -91,7 +98,9 @@ void setup()
   stepper_x.toggle = true;
   stepper_x.next_step_time = 0;
   stepper_x.free_rotate = false;
-  stepper_x.is_syringe = false;
+  stepper_x.axis = 'x';
+  stepper_x.step_sleep_milli = STEP_SLEEP_MILLI;
+  stepper_x.full_rev_mm = FULL_REV_MM_X_Y;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -107,7 +116,9 @@ void setup()
   stepper_y.toggle = true;
   stepper_y.next_step_time = 0;
   stepper_y.free_rotate = false;
-  stepper_y.is_syringe = false;
+  stepper_y.axis = 'y';
+  stepper_y.step_sleep_milli = STEP_SLEEP_MILLI;
+  stepper_y.full_rev_mm = FULL_REV_MM_X_Y;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -115,7 +126,7 @@ void setup()
   stepper_z.pow = STEPPER_Z_POW;
   stepper_z.limit_start = STEPPER_Z_LIMIT_START;
   stepper_z.limit_end = STEPPER_Z_LIMIT_END;
-  stepper_z.linear_mov = 0.055; // 44/800 = 0.11
+  stepper_z.linear_mov = 0.055; // 44/800 = 0.055
   stepper_z.keep_engaged = true;
   stepper_z.pending_steps = 0;
   stepper_z.active = false;
@@ -123,7 +134,9 @@ void setup()
   stepper_z.toggle = true;
   stepper_z.next_step_time = 0;
   stepper_z.free_rotate = false;
-  stepper_z.is_syringe = false;
+  stepper_z.axis = 'z';
+  stepper_z.step_sleep_milli = STEP_SLEEP_MILLI;
+  stepper_z.full_rev_mm = FULL_REV_MM_Z;
   setup_stepper(stepper_z);
 
   stepper_syringe.stp = STEPPER_SYRINGE_STP;
@@ -139,7 +152,8 @@ void setup()
   stepper_syringe.toggle = true;
   stepper_syringe.next_step_time = 0;
   stepper_syringe.free_rotate = false;
-  stepper_syringe.is_syringe = true;
+  stepper_syringe.step_sleep_milli = STEP_SLEEP_MILLI_SYRINGE;
+  stepper_syringe.full_rev_mm = SYRINGE_FULL_REV_MM;
   setup_stepper(stepper_syringe);
 
   // config pressure regulator input
@@ -152,6 +166,11 @@ void setup()
   // config solenoid valve syringe
   pinMode(SOLENOID_VALVE_SYRINGE, OUTPUT);
   digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
+
+  // working spaces
+  wspace_x.axis = 'x';
+  wspace_y.axis = 'y';
+  wspace_z.axis = 'z';
 
   Serial.begin(9600);
 }
@@ -211,7 +230,7 @@ int get_command_arg(String command, int argIndex)
     }
   }
   String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
-  Serial.println("arg index " + String(argIndex) + " : " + arg);
+  // Serial.println("arg index " + String(argIndex) + " : " + arg);
   return arg.toInt();
 }
 
@@ -373,7 +392,7 @@ void rotate_concurrent_steps(stepper &stepper)
 {
   if (!stepper.free_rotate && stepper.active && (stepper.next_step_time < millis()))
   {
-    stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
+    stepper.next_step_time = millis() + stepper.step_sleep_milli;
 
     digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
 
@@ -396,18 +415,24 @@ void rotate(stepper &stepper)
 {
   if (stepper.free_rotate && stepper.active && (stepper.next_step_time < millis()))
   {
-    if (stepper.is_syringe)
-    {
-      stepper.next_step_time = millis() + STEP_SLEEP_MILLI_SYRINGE;
-    }
-    else
-    {
-      stepper.next_step_time = millis() + STEP_SLEEP_MILLI;
-    }
-
+    stepper.next_step_time = millis() + stepper.step_sleep_milli;
     digitalWrite(stepper.stp, stepper.toggle ? HIGH : LOW);
-
+    count_steps(stepper);
     stepper.toggle = !stepper.toggle;
+  }
+}
+
+void count_steps(stepper &stepper)
+{
+  if (active_sequence.startsWith("wspace_"))
+  {
+    sequence wspace = stepper.axis == 'x' ? wspace_x : stepper.axis == 'y' ? wspace_y
+                                                                           : wspace_z;
+
+    if (wspace.current_move == 3)
+    {
+      wspace.steps++;
+    }
   }
 }
 
@@ -554,41 +579,40 @@ void resume_clean_sequence()
 
 void set_default_sequence()
 {
-  active_sequence = '-';
+  active_sequence = "-";
 }
 
 // ------ clean sequence ------
 void setup_clean_sequence(int number_of_repetitions)
 {
-  active_sequence = 'c';
+  active_sequence = "clean";
   clean_sequence.number_of_repetitions = number_of_repetitions;
   clean_sequence.current_repetition = 0;
-  clean_sequence.steps = 3;
-  clean_sequence.current_step = 1;
+  clean_sequence.current_move = 1;
   clean_sequence.active = true;
 }
 
 void clean_sequence_check()
 {
-  if (active_sequence == 'c' && clean_sequence.active)
+  if (active_sequence == "clean" && clean_sequence.active)
   {
     if (clean_sequence.current_repetition < clean_sequence.number_of_repetitions)
     {
-      if (clean_sequence.current_step == 1)
+      if (clean_sequence.current_move == 1)
       {
         digitalWrite(SOLENOID_VALVE_SYRINGE, HIGH);
         syringe_end();
-        clean_sequence.current_step = 2;
+        clean_sequence.current_move = 2;
       }
-      else if (clean_sequence.current_step == 2 && !stepper_syringe.active)
+      else if (clean_sequence.current_move == 2 && !stepper_syringe.active)
       {
         digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
         syringe_start();
-        clean_sequence.current_step = 3;
+        clean_sequence.current_move = 3;
       }
-      else if (clean_sequence.current_step == 3 && !stepper_syringe.active)
+      else if (clean_sequence.current_move == 3 && !stepper_syringe.active)
       {
-        clean_sequence.current_step = 1;
+        clean_sequence.current_move = 1;
         clean_sequence.current_repetition++;
       }
     }
@@ -604,16 +628,14 @@ void clean_sequence_check()
 // ------ pattern sequence ------
 void setup_pattern_sequence(int number_of_repetitions, int vertical_mov_mm)
 {
-  active_sequence = 'p';
+  active_sequence = "pattern";
   pattern_sequence.number_of_repetitions = number_of_repetitions;
   pattern_sequence.current_repetition = 0;
-  pattern_sequence.steps = 3;
-  pattern_sequence.current_step = 1;
+  pattern_sequence.current_move = 1;
   pattern_sequence.active = true;
   pattern_sequence.total_vertical_mm = 10;
   pattern_sequence.horizontal_mov_mm = 10;
   pattern_sequence.vertical_mov_mm = get_vertical_value_from_arg(vertical_mov_mm);
-  Serial.println("pattern_sequence.vertical_mov_mm = " + String(pattern_sequence.vertical_mov_mm));
   pattern_sequence.should_move_horizontal = true;
   pattern_sequence.current_vertical_mm = 0;
 }
@@ -645,29 +667,25 @@ bool xyz_steppers_active()
 
 void pattern_sequence_check()
 {
-  if (active_sequence == 'p' && pattern_sequence.active)
+  if (active_sequence == "pattern" && pattern_sequence.active)
   {
     if (pattern_sequence.current_repetition < pattern_sequence.number_of_repetitions)
     {
-      if (pattern_sequence.current_step == 1 && !xyz_steppers_active())
+      if (pattern_sequence.current_move == 1 && !xyz_steppers_active())
       {
-        Serial.println("pattern_sequence.current_step = 1");
         stepper_concurrent_zeroing_start();
-        pattern_sequence.current_step = 2;
+        pattern_sequence.current_move = 2;
       }
-      else if (pattern_sequence.current_step == 2 && !xyz_steppers_active())
+      else if (pattern_sequence.current_move == 2 && !xyz_steppers_active())
       {
-        Serial.println("pattern_sequence.current_step = 2");
         rotate_concurrent_mm(stepper_x, 100);
         rotate_concurrent_mm(stepper_y, 100);
-        pattern_sequence.current_step = 3;
+        pattern_sequence.current_move = 3;
       }
-      else if (pattern_sequence.current_step == 3 && !xyz_steppers_active()) // do the pattern
+      else if (pattern_sequence.current_move == 3 && !xyz_steppers_active()) // do the pattern
       {
-        Serial.println("pattern_sequence.current_step = 3");
         if (pattern_sequence.should_move_horizontal)
         {
-          Serial.println("pattern_sequence.current_step = 3.1");
           // move one direction or another, start with positive
           int stepper_x_dir = digitalRead(stepper_x.dir);
 
@@ -677,7 +695,6 @@ void pattern_sequence_check()
           }
           else
           {
-            Serial.println("pattern_sequence.current_step = 3.1.2");
             rotate_concurrent_mm(stepper_x, -pattern_sequence.horizontal_mov_mm);
           }
         }
@@ -693,12 +710,11 @@ void pattern_sequence_check()
         }
         else
         {
-          pattern_sequence.current_step = 4;
+          pattern_sequence.current_move = 4;
         }
       }
-      else if (pattern_sequence.current_step == 4 && !xyz_steppers_active())
+      else if (pattern_sequence.current_move == 4 && !xyz_steppers_active())
       {
-        Serial.println("pattern_sequence.current_step = 4");
         if (digitalRead(STEPPER_X_DIR) == HIGH) // to check the direction of the stepper // HIGH
         {
           rotate_concurrent_mm(stepper_x, -10);
@@ -706,15 +722,14 @@ void pattern_sequence_check()
         rotate_concurrent_mm(stepper_y, -10);
         pattern_sequence.should_move_horizontal = true;
         pattern_sequence.current_vertical_mm = 0;
-        pattern_sequence.current_step = 5;
+        pattern_sequence.current_move = 5;
       }
-      else if (pattern_sequence.current_step == 5 && !xyz_steppers_active())
+      else if (pattern_sequence.current_move == 5 && !xyz_steppers_active())
       {
-        Serial.println("pattern_sequence.current_step = 5");
         pattern_sequence.should_move_horizontal = true;
         pattern_sequence.current_vertical_mm = 0;
         pattern_sequence.current_repetition++;
-        pattern_sequence.current_step = 3;
+        pattern_sequence.current_move = 3;
       }
     }
     else if (pattern_sequence.current_repetition >= pattern_sequence.number_of_repetitions)
@@ -726,10 +741,62 @@ void pattern_sequence_check()
 }
 // ------ end pattern sequence ------
 
+void setup_working_space(sequence &wspace)
+{
+  active_sequence = "wspace_x";
+  wspace.steps = 0;
+  wspace.current_move = 1;
+  wspace.stepper = wspace.axis == 'x' ? stepper_x : wspace.axis == 'y' ? stepper_y
+                                                                       : stepper_z;
+  wspace.active = true;
+}
+
+void setup_working_spaces()
+{
+  setup_working_space(wspace_x);
+  setup_working_space(wspace_y);
+  setup_working_space(wspace_z);
+}
+
+void working_space_check(sequence &wspace)
+{
+  String sequence_name = "wspace_";
+
+  if (active_sequence.startsWith(sequence_name) && wspace.active)
+  {
+    if (wspace.current_move == 1)
+    {
+      stepper_concurrent_zeroing_start();
+      wspace.current_move = 2;
+    }
+    else if (wspace.current_move == 2 && !wspace.stepper.active)
+    {
+      wspace.current_move = 3;
+      stepper_concurrent_zeroing_end();
+    }
+    else if (wspace.current_move == 3 && !wspace.stepper.active)
+    {
+      double mm = wspace.steps * wspace.stepper.linear_mov;
+      Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm) + "mm");
+      wspace.active = false;
+      set_default_sequence();
+    }
+  }
+}
+
 void check_sequences()
 {
   clean_sequence_check();
   pattern_sequence_check();
+  working_space_check(wspace_x);
+  working_space_check(wspace_y);
+  working_space_check(wspace_z);
+}
+
+void config_stepper(stepper &stepper, int microstepping, int delay)
+{
+  stepper.step_sleep_milli = delay;
+  stepper.linear_mov = stepper.full_rev_mm / microstepping;
 }
 
 void read_serial_command()
@@ -801,6 +868,17 @@ void read_serial_command()
     else if (command.startsWith("pattern_stop"))
     {
       set_default_sequence();
+    }
+    else if (command.startsWith("wspace_"))
+    {
+      setup_working_space(command[7] == 'x' ? wspace_x : command[7] == 'y' ? wspace_y
+                                                                           : wspace_z);
+    }
+    else if (command.startsWith("stepper_config_"))
+    {
+      config_stepper(command[14] == 'x' ? stepper_x : command[14] == 'y' ? stepper_y
+                                                                         : stepper_z,
+                     get_command_arg(command, 1), get_command_arg(command, 2));
     }
   }
 }

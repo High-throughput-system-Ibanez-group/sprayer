@@ -16,3 +16,5 @@ export type Area = {
   y2: number;
   z2: number;
 };
+
+export type Steppers = "x" | "y" | "z" | "syringe";
