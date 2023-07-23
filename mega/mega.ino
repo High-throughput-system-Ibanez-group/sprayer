@@ -41,7 +41,7 @@ struct stepper
   int pow;
   int limit_start;
   int limit_end;
-  float linear_mov;
+  double linear_mov;
   int pending_steps;
   bool keep_engaged;
   bool active;
@@ -61,10 +61,10 @@ struct sequence
   bool active;
   int steps;
   int current_move;
-  float vertical_mov_mm;
-  float horizontal_mov_mm;
-  float total_vertical_mm;
-  float current_vertical_mm;
+  double vertical_mov_mm;
+  double horizontal_mov_mm;
+  double total_vertical_mm;
+  double current_vertical_mm;
   bool should_move_horizontal;
   char axis;
   stepper *stepper;
@@ -190,7 +190,7 @@ void setup_stepper(stepper stepper)
   pinMode(stepper.limit_end, INPUT);
 }
 
-void rotate_concurrent_mm(stepper &stepper, float mm)
+void rotate_concurrent_mm(stepper &stepper, double mm)
 {
   const int steps = (int)round(mm / stepper.linear_mov); // stepper.linear_mov z -> 44/400 = 0.11
   stepper.pending_steps = steps;
@@ -640,7 +640,7 @@ void setup_pattern_sequence(int number_of_repetitions, int vertical_mov_mm)
   pattern_sequence.current_vertical_mm = 0;
 }
 
-float get_vertical_value_from_arg(int vertical_mov_mm)
+double get_vertical_value_from_arg(int vertical_mov_mm)
 {
   // 0 -> 1, 1 -> 0.5, 2 -> 0.25
   switch (vertical_mov_mm)
@@ -784,7 +784,7 @@ void working_space_check(sequence &wspace)
     }
     else if (wspace.current_move == 3 && !stepper_ptr->active)
     {
-      float mm = (float)(wspace.steps * stepper_ptr->linear_mov);
+      double mm = (double)(wspace.steps * stepper_ptr->linear_mov);
       Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm) + "mm" + " steps:" + String(wspace.steps) + " linear_mov:" + String(stepper_ptr->linear_mov));
       wspace.active = false;
       set_default_sequence();
@@ -803,8 +803,11 @@ void check_sequences()
 
 void config_stepper(stepper &stepper, int microstepping, int delay)
 {
+  Serial.println("stepper_config_" + String(stepper.axis) + ":" + String(microstepping) + ":" + String(delay));
   stepper.step_sleep_milli = delay;
-  stepper.linear_mov = (float)(stepper.full_rev_mm / microstepping);
+  Serial.println("stepper_config_" + String(stepper.axis) + "_liner_mov_" + String(stepper.linear_mov) + "_full_rev_mm_" + String(stepper.full_rev_mm));
+  stepper.linear_mov = double(stepper.full_rev_mm / double(microstepping));
+  Serial.println("stepper_config_" + String(stepper.axis) + "_liner_mov_" + String(stepper.linear_mov));
 }
 
 void read_serial_command()
