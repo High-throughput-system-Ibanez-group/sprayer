@@ -426,12 +426,12 @@ void count_steps(stepper &stepper)
 {
   if (active_sequence.startsWith("wspace_"))
   {
-    sequence wspace = stepper.axis == 'x' ? wspace_x : stepper.axis == 'y' ? wspace_y
-                                                                           : wspace_z;
+    sequence *wspace_ptr = stepper.axis == 'x' ? &wspace_x : stepper.axis == 'y' ? &wspace_y
+                                                                                 : &wspace_z;
 
-    if (wspace.current_move == 3)
+    if (wspace_ptr->current_move == 3)
     {
-      wspace.steps++;
+      wspace_ptr->steps++;
     }
   }
 }
@@ -785,7 +785,7 @@ void working_space_check(sequence &wspace)
     else if (wspace.current_move == 3 && !stepper_ptr->active)
     {
       double mm = (double)(wspace.steps * stepper_ptr->linear_mov);
-      Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm) + "mm" + " steps:" + String(wspace.steps) + " linear_mov:" + String(stepper_ptr->linear_mov));
+      Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm));
       wspace.active = false;
       set_default_sequence();
     }

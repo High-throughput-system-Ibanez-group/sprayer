@@ -6,9 +6,6 @@ import { type Axis } from "~/utils/types";
 export const WorkingSpace = observer(() => {
   const app = appStore();
   const socket = app.socket;
-  const refInputX = useRef<HTMLInputElement>(null);
-  const refInputY = useRef<HTMLInputElement>(null);
-  const refInputZ = useRef<HTMLInputElement>(null);
 
   const [state, setState] = useState({
     x: {
@@ -69,18 +66,6 @@ export const WorkingSpace = observer(() => {
     }));
   });
 
-  // const updateAll = () => {
-  //   if (refInputX.current?.value) {
-  //     socket?.emit("command", `stepper_x:${refInputX.current?.value}`);
-  //   }
-  //   if (refInputY.current?.value) {
-  //     socket?.emit("command", `stepper_y:${refInputY.current?.value}`);
-  //   }
-  //   if (refInputZ.current?.value) {
-  //     socket?.emit("command", `stepper_z:${refInputZ.current?.value}`);
-  //   }
-  // };
-
   return (
     <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Working Space</div>
@@ -95,7 +80,6 @@ export const WorkingSpace = observer(() => {
               type="number"
               id="number-input"
               className="w-32 rounded-md border border-gray-300 px-3 py-2"
-              ref={refInputX}
               value={state.x.value}
               readOnly
             />
@@ -123,7 +107,6 @@ export const WorkingSpace = observer(() => {
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
-            ref={refInputY}
             value={state.y.value}
             readOnly
           />
@@ -146,7 +129,6 @@ export const WorkingSpace = observer(() => {
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
-            ref={refInputZ}
             value={state.z.value}
             readOnly
           />
