@@ -767,18 +767,25 @@ void working_space_check(sequence &wspace)
   {
     if (wspace.current_move == 1)
     {
-      stepper_concurrent_zeroing_start();
       wspace.current_move = 2;
+      digitalWrite(stepper_ptr->pow, LOW);
+      digitalWrite(stepper_ptr->dir, LOW);
+      stepper_ptr->active = true;
+      stepper_ptr->free_rotate = true;
+      // stepper_concurrent_zeroing_start();
     }
     else if (wspace.current_move == 2 && !stepper_ptr->active)
     {
       wspace.current_move = 3;
-      stepper_concurrent_zeroing_end();
+      digitalWrite(stepper_ptr->dir, HIGH);
+      stepper_ptr->active = true;
+      stepper_ptr->free_rotate = true;
+      // stepper_concurrent_zeroing_end();
     }
     else if (wspace.current_move == 3 && !stepper_ptr->active)
     {
-      float mm = wspace.steps * stepper_ptr->linear_mov;
-      Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm) + "mm");
+      float mm = (float)(wspace.steps * stepper_ptr->linear_mov);
+      Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm) + "mm" + " steps:" + String(wspace.steps) + " linear_mov:" + String(stepper_ptr->linear_mov));
       wspace.active = false;
       set_default_sequence();
     }
