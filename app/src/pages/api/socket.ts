@@ -17,12 +17,17 @@ interface NextApiResponseWithSocket extends NextApiResponse {
   socket: SocketWithIO;
 }
 
-const serialPort = new SerialPort({
+const arduinoSerialPort = new SerialPort({
   path: process.env.PORT_PATH || "",
   baudRate: 9600,
 });
 
-const readlineParser = new ReadlineParser({ delimiter: "\r\n" });
+const ultrasonicSerialPort = new SerialPort({
+  path: process.env.ULTRASONIC_PORT_PATH || "",
+  baudRate: 9600,
+});
+
+const arduinoReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {
@@ -32,13 +37,21 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     const io = new IOServer(res.socket.server);
     res.socket.server.io = io;
 
-    const parser = serialPort.pipe(readlineParser);
+    const arduinoParser = arduinoSerialPort.pipe(arduinoReadlineParser);
 
-    parser.on("open", function () {
-      console.log("connection is opened");
+    arduinoParser.on("open", function () {
+      console.log("arduino connection is opened");
     });
 
-    parser.on("data", function (data: string) {
+    arduinoParser.on("error", (err) =>
+      console.log("err creating the parser.. ", err)
+    );
+
+    arduinoSerialPort.on("error", (err) =>
+      console.log("err with board connection..", err)
+    );
+
+    arduinoParser.on("data", function (data: string) {
       if (data.startsWith("pressure_regulator_in")) {
         const val = data.split(":")[1];
         io.emit("pressure_regulator_in", val);
@@ -62,16 +75,24 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       }
     });
 
-    parser.on("error", (err) => console.log("err creating the parser.. ", err));
+    const ultrasonicParser = ultrasonicSerialPort.pipe(arduinoReadlineParser);
 
-    serialPort.on("error", (err) =>
-      console.log("err with board connection..", err)
-    );
+    ultrasonicSerialPort.on("open", function () {
+      console.log("ultrasonic connection is opened");
+    });
+
+    ultrasonicSerialPort.on("error", (err) => {
+      console.log("err with ultrasonic connection..", err);
+    });
+
+    ultrasonicParser.on("data", function (data: string) {
+      console.log("Ultrasonic data: ", data);
+    });
 
     io.on("connection", (socket) => {
       console.log("Socket connected");
       socket.on("command", (command: string) => {
-        serialPort.write(`${command}\n`, (err) => {
+        arduinoSerialPort.write(`${command}\n`, (err) => {
           if (err) {
             return console.log("err on write.. ", err?.message);
           }
