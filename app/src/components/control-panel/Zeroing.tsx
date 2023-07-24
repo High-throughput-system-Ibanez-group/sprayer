@@ -21,7 +21,8 @@ export const Zeroing = observer(() => {
   return (
     <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Zeroing</div>
-      <div className="flex flex-row py-6">
+      <div className="h-4" />
+      <div className="flex flex-row">
         <button
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
@@ -44,7 +45,7 @@ export const Zeroing = observer(() => {
       <button
         type="button"
         className={
-          "rounded-md bg-red-200 px-4 py-2 font-medium text-white hover:bg-red-300"
+          "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
         }
         onClick={standbyMotors}
       >

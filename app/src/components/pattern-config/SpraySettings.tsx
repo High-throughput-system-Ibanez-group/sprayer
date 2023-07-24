@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import { appStore } from "~/stores/app";
 
-type ActiveButtonType = "Recharge Pump" | "Spray" | "Flux nozzle";
+type ActiveButtonType = "Recharge" | "Spray" | "Flux nozzle";
 
 export const Settings = observer(() => {
   const app = appStore();
@@ -123,7 +123,9 @@ export const Settings = observer(() => {
           Recommended pressure between 0.06 to 0.5 Bar
         </div>
         <div className="h-4" />
-        <div>Pressure reading: {pressureInput ? pressureInput : "NaN"} Bar</div>
+        <div>
+          Real Pressure reading: {pressureInput ? pressureInput : "NaN"} Bar
+        </div>
         <div className="h-4" />
         <button
           type="button"
@@ -136,19 +138,19 @@ export const Settings = observer(() => {
             onClickSetValve();
           }}
         >
-          {valve ? "Activate Spray channel" : "Recharge/Activate Flush channel"}
+          {valve ? "Activate Spray channel" : "Recharge/Clean channel"}
         </button>
         <div className="h-4" />
         <div className="flex overflow-hidden rounded-md">
           <button
             className={`btn flex-1 ${
-              activeButton === "Recharge Pump"
+              activeButton === "Recharge"
                 ? "bg-blue-500 px-4 py-2 text-white"
                 : "bg-gray-200 px-4 py-2 text-gray-700 hover:bg-blue-300 hover:text-white focus:outline-none"
             }`}
-            onClick={() => handleButtonClick("Recharge Pump")}
+            onClick={() => handleButtonClick("Recharge")}
           >
-            Recharge Pump
+            Recharge
           </button>
           <button
             className={`btn flex-1 ${

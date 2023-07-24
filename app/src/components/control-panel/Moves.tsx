@@ -21,20 +21,15 @@ export const Moves = observer(() => {
 
   const onMove = () => {
     if (refXPos.current?.value) {
-      // TODO: Pos move
-      // TODO: Check command
       socket?.emit("command", `mm_x:${refXPos.current?.value}`);
-      // set to 0
       refXPos.current.value = "0";
     }
     if (refYPos.current?.value) {
       socket?.emit("command", `mm_y:${refYPos.current?.value}`);
-      // set to 0
       refYPos.current.value = "0";
     }
     if (refZPos.current?.value) {
       socket?.emit("command", `mm_z:${refZPos.current?.value}`);
-      // set to 0
       refZPos.current.value = "0";
     }
   };
@@ -64,32 +59,13 @@ export const Moves = observer(() => {
       <div className="mb-2 text-xl font-bold">Moves</div>
       <div className="flex flex-col py-6">
         <div className="h-4" />
-        <div className="flex items-center space-x-4">
-          <label htmlFor="number-input" className="font-medium">
+        <div className="relative flex items-center space-x-4">
+          <label
+            htmlFor="number-input"
+            className="absolute -left-4 font-medium"
+          >
             x:
           </label>
-          <div className="relative">
-            <input
-              type="number"
-              id="number-input"
-              className="w-44 rounded-md border border-gray-300 px-3 py-2"
-              ref={refXPos}
-            />
-            <div className="absolute -top-8 left-0 flex w-full justify-center">
-              Absolute Position (mm)
-            </div>
-          </div>
-          <div className="relative">
-            <input
-              type="number"
-              id="number-input"
-              className="w-44 rounded-md border border-gray-300 px-3 py-2"
-              ref={refXMove}
-            />
-            <div className="absolute -top-8 left-0 flex w-full justify-center">
-              Move (mm)
-            </div>
-          </div>
           <button
             type="button"
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
@@ -122,22 +98,13 @@ export const Moves = observer(() => {
           </button>
         </div>
         <div className="h-4" />
-        <div className="flex items-center space-x-4">
-          <label htmlFor="number-input" className="font-medium">
+        <div className="relative flex items-center space-x-4">
+          <label
+            htmlFor="number-input"
+            className="absolute -left-4 font-medium"
+          >
             y:
           </label>
-          <input
-            type="number"
-            id="number-input"
-            className="w-44 rounded-md border border-gray-300 px-3 py-2"
-            ref={refYPos}
-          />
-          <input
-            type="number"
-            id="number-input"
-            className="w-44 rounded-md border border-gray-300 px-3 py-2"
-            ref={refYMove}
-          />
           <button
             type="button"
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
@@ -165,22 +132,13 @@ export const Moves = observer(() => {
           </button>
         </div>
         <div className="h-4" />
-        <div className="flex items-center space-x-4">
-          <label htmlFor="number-input" className="font-medium">
+        <div className="relative flex items-center space-x-4">
+          <label
+            htmlFor="number-input"
+            className="absolute -left-4 font-medium"
+          >
             z:
           </label>
-          <input
-            type="number"
-            id="number-input"
-            className="w-44 rounded-md border border-gray-300 px-3 py-2"
-            ref={refZPos}
-          />
-          <input
-            type="number"
-            id="number-input"
-            className="w-44 rounded-md border border-gray-300 px-3 py-2"
-            ref={refZMove}
-          />
           <button
             type="button"
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
@@ -208,17 +166,6 @@ export const Moves = observer(() => {
             +
           </button>
         </div>
-        <div className="h-6" />
-        <button
-          type="button"
-          className="ml-[260px] w-24 rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-          onClick={() => {
-            //TODO: on movew
-            onMove();
-          }}
-        >
-          Move
-        </button>
       </div>
     </div>
   );
