@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { appStore } from "~/stores/app";
 import { type Axis } from "~/utils/types";
 
@@ -67,7 +67,7 @@ export const WorkingSpace = observer(() => {
   });
 
   return (
-    <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
+    <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Working Space</div>
       <div className="h-4" />
       <div className="flex flex-col py-6">

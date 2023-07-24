@@ -10,8 +10,12 @@ export const Zeroing = observer(() => {
     socket?.emit("command", `zeroing_${type}`);
   };
 
+  const standbyMotors = () => {
+    socket?.emit("command", "standby_x_y_z");
+  };
+
   const onStopMotors = () => {
-    socket?.emit("command", `stop_x_y_z`);
+    socket?.emit("command", "stop_x_y_z");
   };
 
   return (
@@ -37,15 +41,25 @@ export const Zeroing = observer(() => {
         </button>
       </div>
       <div className="h-4" />
-        <button
-          type="button"
-          className={
-             "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
-          }
-          onClick={onStopMotors}
-        >
-          Stop motors
-        </button>
+      <button
+        type="button"
+        className={
+          "rounded-md bg-red-200 px-4 py-2 font-medium text-white hover:bg-red-300"
+        }
+        onClick={standbyMotors}
+      >
+        Stand-By Motors
+      </button>
+      <div className="h-4" />
+      <button
+        type="button"
+        className={
+          "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+        }
+        onClick={onStopMotors}
+      >
+        Stop motors
+      </button>
     </div>
   );
 });

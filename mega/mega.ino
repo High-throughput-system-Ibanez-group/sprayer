@@ -80,6 +80,7 @@ sequence pattern_sequence;
 sequence wspace_x;
 sequence wspace_y;
 sequence wspace_z;
+sequence standby_motors;
 
 String active_sequence = "-"; // default value
 
@@ -799,16 +800,45 @@ void check_sequences()
   working_space_check(wspace_x);
   working_space_check(wspace_y);
   working_space_check(wspace_z);
+  check_standby_motos_sequence();
 }
 
 void config_stepper(stepper &stepper, int microstepping, int delay)
 {
-  Serial.println("stepper_config_" + String(stepper.axis) + ":" + String(microstepping) + ":" + String(delay));
   stepper.step_sleep_milli = delay;
-  Serial.println("stepper_config_" + String(stepper.axis) + "_liner_mov_" + String(stepper.linear_mov) + "_full_rev_mm_" + String(stepper.full_rev_mm));
   stepper.linear_mov = double(stepper.full_rev_mm / double(microstepping));
-  Serial.println("stepper_config_" + String(stepper.axis) + "_liner_mov_" + String(stepper.linear_mov));
 }
+
+// ------ standby sequence ------
+
+void setup_standby_motors_sequence()
+{
+  active_sequence = "standby_motors";
+  standby_motors.active = true;
+  standby_motors.current_move = 1;
+}
+
+void check_standby_motos_sequence()
+{
+  if (active_sequence.startsWith("standby_motors") && standby_motors.active)
+  {
+    if (standby_motors.current_move == 1)
+    {
+      standby_motors.current_move = 2;
+      stepper_concurrent_zeroing_start();
+    }
+    else if (standby_motors.current_move == 2 && !xyz_steppers_active())
+    {
+      digitalWrite(stepper_x.pow, HIGH);
+      digitalWrite(stepper_y.pow, HIGH);
+      digitalWrite(stepper_z.pow, HIGH);
+      standby_motors.active = false;
+      set_default_sequence();
+    }
+  }
+}
+
+// ------ end standby sequence ------
 
 void read_serial_command()
 {
@@ -890,6 +920,10 @@ void read_serial_command()
       config_stepper(command[15] == 'x' ? stepper_x : command[15] == 'y' ? stepper_y
                                                                          : stepper_z,
                      get_command_arg(command, 1), get_command_arg(command, 2));
+    }
+    else if (command.startsWith("standby_x_y_z"))
+    {
+      setup_standby_motors_sequence();
     }
   }
 }
