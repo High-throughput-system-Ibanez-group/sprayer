@@ -18,7 +18,7 @@ interface NextApiResponseWithSocket extends NextApiResponse {
 }
 
 const arduinoSerialPort = new SerialPort({
-  path: process.env.PORT_PATH || "",
+  path: process.env.ARDUINO_PORT_PATH || "",
   baudRate: 9600,
 });
 
