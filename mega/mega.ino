@@ -104,7 +104,7 @@ void setup()
   stepper_x.axis = 'x';
   stepper_x.step_sleep_milli = STEP_SLEEP_MILLI;
   stepper_x.full_rev_mm = FULL_REV_MM_X_Y;
-  stepper_x.microstepping = 800;
+  stepper_x.microstepping = 400;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -123,7 +123,7 @@ void setup()
   stepper_y.axis = 'y';
   stepper_y.step_sleep_milli = STEP_SLEEP_MILLI;
   stepper_y.full_rev_mm = FULL_REV_MM_X_Y;
-  stepper_y.microstepping = 800;
+  stepper_y.microstepping = 400;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -142,7 +142,7 @@ void setup()
   stepper_z.axis = 'z';
   stepper_z.step_sleep_milli = STEP_SLEEP_MILLI;
   stepper_z.full_rev_mm = FULL_REV_MM_Z;
-  stepper_z.microstepping = 800;
+  stepper_z.microstepping = 400;
   setup_stepper(stepper_z);
 
   stepper_syringe.stp = STEPPER_SYRINGE_STP;
@@ -160,7 +160,7 @@ void setup()
   stepper_syringe.free_rotate = false;
   stepper_syringe.step_sleep_milli = STEP_SLEEP_MILLI_SYRINGE;
   stepper_syringe.full_rev_mm = SYRINGE_FULL_REV_MM;
-  stepper_syringe.microstepping = 1;
+  stepper_syringe.microstepping = 200;
   setup_stepper(stepper_syringe);
 
   // config pressure regulator input
@@ -203,30 +203,11 @@ void setup_stepper(stepper stepper)
 
 void rotate_concurrent_mm(stepper &stepper, double mm)
 {
-  const int steps = (int)round(mm / stepper.linear_mov); // stepper.linear_mov z -> 44/400 = 0.11
+  const int steps = (int)round(mm / (stepper.full_rev_mm / (float)(stepper.microstepping * 2))); // stepper.linear_mov z -> 44/400 = 0.11
   stepper.pending_steps = steps;
   stepper.free_rotate = false;
   stepper.first_active = true;
   stepper.active = true;
-}
-
-int rotate_until_end(stepper stepper)
-{
-  int steps = 0;
-
-  digitalWrite(stepper.dir, HIGH);
-  digitalWrite(stepper.pow, LOW);
-
-  while (digitalRead(stepper.limit_end))
-  {
-    digitalWrite(stepper.stp, HIGH);
-    delayMicroseconds(STEP_SLEEP_MICRO);
-    digitalWrite(stepper.stp, LOW);
-    delayMicroseconds(STEP_SLEEP_MICRO);
-    steps += 1;
-  }
-
-  return steps;
 }
 
 int get_command_arg(String command, int argIndex)
@@ -277,100 +258,6 @@ int stepper_concurrent_zeroing_end()
   stepper_y.free_rotate = true;
   stepper_z.active = true;
   stepper_z.free_rotate = true;
-}
-
-int stepper_zeroing()
-{
-  digitalWrite(stepper_x.dir, LOW);
-  digitalWrite(stepper_y.dir, LOW);
-  digitalWrite(stepper_z.dir, LOW);
-
-  int limit_x = digitalRead(stepper_x.limit_start);
-  int limit_y = digitalRead(stepper_y.limit_start);
-  int limit_z = digitalRead(stepper_z.limit_start);
-
-  if (limit_x)
-    digitalWrite(stepper_x.pow, LOW);
-  if (limit_y)
-    digitalWrite(stepper_y.pow, LOW);
-  if (limit_z)
-    digitalWrite(stepper_z.pow, LOW);
-
-  while (limit_x || limit_y || limit_z)
-  {
-    if (limit_x)
-      digitalWrite(stepper_x.stp, HIGH);
-    if (limit_y)
-      digitalWrite(stepper_y.stp, HIGH);
-    if (limit_z)
-      digitalWrite(stepper_z.stp, HIGH);
-
-    delayMicroseconds(STEP_SLEEP_MICRO);
-
-    if (limit_x)
-      digitalWrite(stepper_x.stp, LOW);
-    if (limit_y)
-      digitalWrite(stepper_y.stp, LOW);
-    if (limit_z)
-      digitalWrite(stepper_z.stp, LOW);
-
-    delayMicroseconds(STEP_SLEEP_MICRO);
-
-    limit_x = digitalRead(stepper_x.limit_start);
-    limit_y = digitalRead(stepper_y.limit_start);
-    limit_z = digitalRead(stepper_z.limit_start);
-  }
-
-  digitalWrite(stepper_x.pow, HIGH);
-  digitalWrite(stepper_y.pow, HIGH);
-  digitalWrite(stepper_z.pow, HIGH);
-}
-
-int stepper_zeroing_end()
-{
-  digitalWrite(stepper_x.dir, HIGH);
-  digitalWrite(stepper_y.dir, HIGH);
-  digitalWrite(stepper_z.dir, HIGH);
-
-  int limit_x = digitalRead(stepper_x.limit_end);
-  int limit_y = digitalRead(stepper_y.limit_end);
-  int limit_z = digitalRead(stepper_z.limit_end);
-
-  if (limit_x)
-    digitalWrite(stepper_x.pow, LOW);
-  if (limit_y)
-    digitalWrite(stepper_y.pow, LOW);
-  if (limit_z)
-    digitalWrite(stepper_z.pow, LOW);
-
-  while (limit_x || limit_y || limit_z)
-  {
-    if (limit_x)
-      digitalWrite(stepper_x.stp, HIGH);
-    if (limit_y)
-      digitalWrite(stepper_y.stp, HIGH);
-    if (limit_z)
-      digitalWrite(stepper_z.stp, HIGH);
-
-    delayMicroseconds(STEP_SLEEP_MICRO);
-
-    if (limit_x)
-      digitalWrite(stepper_x.stp, LOW);
-    if (limit_y)
-      digitalWrite(stepper_y.stp, LOW);
-    if (limit_z)
-      digitalWrite(stepper_z.stp, LOW);
-
-    delayMicroseconds(STEP_SLEEP_MICRO);
-
-    limit_x = digitalRead(stepper_x.limit_end);
-    limit_y = digitalRead(stepper_y.limit_end);
-    limit_z = digitalRead(stepper_z.limit_end);
-  }
-
-  digitalWrite(stepper_x.pow, HIGH);
-  digitalWrite(stepper_y.pow, HIGH);
-  digitalWrite(stepper_z.pow, LOW);
 }
 
 void check_direction(stepper &stepper)
@@ -809,7 +696,7 @@ void working_space_check(sequence &wspace)
     }
     else if (wspace.current_move == 3 && !stepper_ptr->active)
     {
-      double mm = (double)(wspace.steps * stepper_ptr->linear_mov);
+      double mm = (double)(wspace.steps * (stepper_ptr->full_rev_mm / (float)(stepper_ptr->microstepping * 2)));
       Serial.println("wspace_" + String(wspace.axis) + ":" + String(mm));
       wspace.active = false;
       set_default_sequence();
@@ -994,7 +881,7 @@ void loop()
 
   rotate_steppers();
 
-  send_info();
+  // send_info();
 
   check_sequences();
 
