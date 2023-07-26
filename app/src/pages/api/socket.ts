@@ -18,12 +18,7 @@ interface NextApiResponseWithSocket extends NextApiResponse {
 }
 
 const arduinoSerialPort = new SerialPort({
-  path: process.env.ARDUINO_PORT_PATH || "",
-  baudRate: 9600,
-});
-
-const ultrasonicSerialPort = new SerialPort({
-  path: process.env.ULTRASONIC_PORT_PATH || "",
+  path: process.env.ARDUINO_PORT_PATH || "COM10",
   baudRate: 9600,
 });
 
@@ -55,9 +50,10 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       if (data.startsWith("pressure_regulator_in")) {
         const val = data.split(":")[1];
         io.emit("pressure_regulator_in", val);
-      } else if (data.startsWith("solenoid_valve_syringe")) {
+      } else if (data.startsWith("solenoid_valve_syringe_1")) {
         const val = data.split(":")[1];
-        io.emit("solenoid_valve_syringe", val);
+        console.log("board -- solenoid_valve_syringe_1: ", val);
+        io.emit("solenoid_valve_syringe_1", val);
       } else if (data.startsWith("solenoid_valve_syringe_2")) {
         const val = data.split(":")[1];
         io.emit("solenoid_valve_syringe_2", val);
@@ -76,20 +72,6 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       } else if (data.startsWith("stepper_config")) {
         console.log(data);
       }
-    });
-
-    const ultrasonicParser = ultrasonicSerialPort.pipe(arduinoReadlineParser);
-
-    ultrasonicSerialPort.on("open", function () {
-      console.log("ultrasonic connection is opened");
-    });
-
-    ultrasonicSerialPort.on("error", (err) => {
-      console.log("err with ultrasonic connection..", err);
-    });
-
-    ultrasonicParser.on("data", function (data: string) {
-      console.log("Ultrasonic data: ", data);
     });
 
     io.on("connection", (socket) => {

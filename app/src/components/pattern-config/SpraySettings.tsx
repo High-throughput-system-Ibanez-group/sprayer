@@ -44,7 +44,10 @@ export const Settings = observer(() => {
   };
 
   const onClickSetValve = () => {
-    socket?.emit("command", `set_solenoid_valve_syringe:${valve ? "0" : "1"}`);
+    socket?.emit(
+      "command",
+      `set_solenoid_valve_syringe_1:${valve ? "0" : "1"}`
+    );
     setValve(!valve);
   };
 
@@ -66,7 +69,7 @@ export const Settings = observer(() => {
       setPressureInput(pressure.toFixed(3).toString());
     });
 
-    socket?.on("solenoid_valve_syringe", (data) => {
+    socket?.on("solenoid_valve_syringe_1", (data) => {
       const dataString = data as string;
 
       setValve(dataString === "1" ? true : false);

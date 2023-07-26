@@ -32,7 +32,7 @@
 #define PRESSURE_REGULATOR_OUT 6
 #define PRESSURE_REGULATOR_IN 54
 
-#define SOLENOID_VALVE_SYRINGE 40
+#define SOLENOID_VALVE_SYRINGE_1 40
 #define SOLENOID_VALVE_SYRINGE_2 39
 
 struct stepper
@@ -166,8 +166,8 @@ void setup()
   analogWrite(PRESSURE_REGULATOR_OUT, 0);
 
   // config solenoid valve syringe 1
-  pinMode(SOLENOID_VALVE_SYRINGE, OUTPUT);
-  digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
+  pinMode(SOLENOID_VALVE_SYRINGE_1, OUTPUT);
+  digitalWrite(SOLENOID_VALVE_SYRINGE_1, LOW);
 
   // config solenoid valve syringe 2
   pinMode(SOLENOID_VALVE_SYRINGE_2, OUTPUT);
@@ -519,15 +519,15 @@ void set_pressure_regulator(int val)
   analogWrite(PRESSURE_REGULATOR_OUT, val);
 }
 
-void set_solenoid_valve_syringe(int val)
+void set_solenoid_valve_syringe_1(int val)
 {
-  digitalWrite(SOLENOID_VALVE_SYRINGE, val ? HIGH : LOW);
+  digitalWrite(SOLENOID_VALVE_SYRINGE_1, val ? HIGH : LOW);
 }
 
-void send_solenoid_valve_syringe()
+void send_solenoid_valve_syringe_1()
 {
-  int solenoid_valve_syringe = digitalRead(SOLENOID_VALVE_SYRINGE);
-  Serial.println("solenoid_valve_syringe:" + String(solenoid_valve_syringe));
+  int solenoid_valve_syringe_1 = digitalRead(SOLENOID_VALVE_SYRINGE_1);
+  Serial.println("solenoid_valve_syringe_1:" + String(solenoid_valve_syringe_1));
 }
 
 void set_solenoid_valve_syringe_2(int val)
@@ -562,7 +562,7 @@ void send_info()
   {
     last_status_print = millis();
     send_pressure_regulator();
-    send_solenoid_valve_syringe();
+    send_solenoid_valve_syringe_1();
     send_solenoid_valve_syringe_2();
     send_syringe_status();
   }
@@ -618,13 +618,13 @@ void clean_sequence_check()
     {
       if (clean_sequence.current_move == 1)
       {
-        digitalWrite(SOLENOID_VALVE_SYRINGE, HIGH);
+        digitalWrite(SOLENOID_VALVE_SYRINGE_1, HIGH);
         syringe_end();
         clean_sequence.current_move = 2;
       }
       else if (clean_sequence.current_move == 2 && !stepper_syringe.active)
       {
-        digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
+        digitalWrite(SOLENOID_VALVE_SYRINGE_1, LOW);
         syringe_start();
         clean_sequence.current_move = 3;
       }
@@ -887,9 +887,9 @@ void read_serial_command()
     {
       set_pressure_regulator(get_command_arg(command, 1));
     }
-    else if (command.startsWith("set_solenoid_valve_syringe"))
+    else if (command.startsWith("set_solenoid_valve_syringe_1"))
     {
-      set_solenoid_valve_syringe(get_command_arg(command, 1));
+      set_solenoid_valve_syringe_1(get_command_arg(command, 1));
     }
     else if (command.startsWith("set_solenoid_valve_syringe_2"))
     {
