@@ -825,15 +825,13 @@ void check_sequences()
   check_standby_motos_sequence();
 }
 
-void config_stepper(stepper &stepper, int microstepping, int vel)
+void set_velocity_stepper(stepper &stepper, int vel)
 {
-  int steps_per_rev = int(360.0 * microstepping) / stepper.full_rev_mm;
+  int steps_per_rev = int(360.0 * stepper.microstepping) / stepper.full_rev_mm;
   double linear_movement_per_step = stepper.full_rev_mm / (steps_per_rev * stepper.microstepping);
   double time_per_step = linear_movement_per_step / (vel / 60.0); // convert velocity from mm/s to mm/min
   stepper.step_sleep_milli = int(round(time_per_step * 1000.0));
   stepper.linear_mov = linear_movement_per_step;
-  // stepper.step_sleep_milli = delay;
-  // stepper.linear_mov = double(stepper.full_rev_mm / double(microstepping));
 }
 
 // ------ standby sequence ------
@@ -946,11 +944,12 @@ void read_serial_command()
       setup_working_space(command[7] == 'x' ? wspace_x : command[7] == 'y' ? wspace_y
                                                                            : wspace_z);
     }
-    else if (command.startsWith("stepper_config_"))
+    else if (command.startsWith("stepper_velocity_"))
     {
-      config_stepper(command[15] == 'x' ? stepper_x : command[15] == 'y' ? stepper_y
-                                                                         : stepper_z,
-                     get_command_arg(command, 1), get_command_arg(command, 2));
+      set_velocity_stepper(command[15] == 'x' ? stepper_x : command[15] == 'y' ? stepper_y
+                                                        : command[15] == 'z'   ? stepper_z
+                                                                               : stepper_syringe,
+                           get_command_arg(command, 1));
     }
     else if (command.startsWith("standby_x_y_z"))
     {

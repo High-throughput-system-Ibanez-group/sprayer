@@ -39,14 +39,13 @@ const Element = observer(({ stepper }: { stepper: Steppers }) => {
   const app = appStore();
   const socket = app.socket;
 
-  const refInputMicro = useRef<HTMLInputElement>(null);
-  const refInputDelay = useRef<HTMLInputElement>(null);
+  const refInputVel = useRef<HTMLInputElement>(null);
 
   const handleStepperSubmit = () => {
-    if (!refInputMicro.current?.value || !refInputDelay.current?.value) return;
+    if (!refInputVel.current?.value) return;
     socket?.emit(
       "command",
-      `stepper_config_${stepper}:${refInputMicro.current?.value}:${refInputDelay.current?.value}`
+      `stepper_velocity_${stepper}:${refInputVel.current?.value}`
     );
   };
 
@@ -56,20 +55,12 @@ const Element = observer(({ stepper }: { stepper: Steppers }) => {
         {stepper}:
       </label>
       <div className="relative flex flex-col">
-        <div>Microstepping</div>
+        <div>Velocity in mm/s</div>
         <input
           type="number"
           id="number-input"
           className="w-32 rounded-md border border-gray-300 px-3 py-2"
-          ref={refInputMicro}
-        />
-        <div className="h-4" />
-        <div>Delay in millis</div>
-        <input
-          type="number"
-          id="number-input"
-          className="w-32 rounded-md border border-gray-300 px-3 py-2"
-          ref={refInputDelay}
+          ref={refInputVel}
         />
       </div>
 

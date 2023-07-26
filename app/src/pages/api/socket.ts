@@ -59,16 +59,11 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       } else if (data.startsWith("syringe_status")) {
         const val = data.split(":")[1];
         io.emit("syringe_status", val);
-      } else if (data.startsWith("arg")) {
-        // console.log("arg from board... ", data);
-      } else if (data.startsWith("pattern_sequence")) {
-        // console.log(data);
       } else if (data.startsWith("wspace_")) {
         const val = data.split(":")[1];
         const axis = data[7] || "";
-        console.log(data);
         io.emit(`wspace_${axis}`, val);
-      } else if (data.startsWith("stepper_config")) {
+      } else if (data.startsWith("stepper_velocity")) {
         console.log(data);
       }
     });
