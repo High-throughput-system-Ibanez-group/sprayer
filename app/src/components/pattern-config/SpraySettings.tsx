@@ -10,6 +10,7 @@ export const Settings = observer(() => {
   const refInputSharpeningPressure = useRef<HTMLInputElement>(null);
 
   const [valve, setValve] = useState(false);
+  const [valve2, setValve2] = useState(false);
   const [pumping, setPumping] = useState(false);
   const [pressureInput, setPressureInput] = useState("");
   const [sharpeningPressure, setSharpeningPressure] = useState(0.07);
@@ -45,6 +46,14 @@ export const Settings = observer(() => {
   const onClickSetValve = () => {
     socket?.emit("command", `set_solenoid_valve_syringe:${valve ? "0" : "1"}`);
     setValve(!valve);
+  };
+
+  const onClickSetValve2 = () => {
+    socket?.emit(
+      "command",
+      `set_solenoid_valve_syringe_2:${valve ? "0" : "1"}`
+    );
+    setValve2(!valve2);
   };
 
   useEffect(() => {
@@ -118,7 +127,6 @@ export const Settings = observer(() => {
             Wrong pressure, please enter a value between 0.005 and 1 Bar
           </div>
         )}
-
         <div className="text-gray-400">
           Recommended pressure between 0.06 to 0.5 Bar
         </div>
@@ -139,6 +147,20 @@ export const Settings = observer(() => {
           }}
         >
           {valve ? "Activate Spray channel" : "Recharge/Clean channel"}
+        </button>
+        <div className="h-4" />
+        <button
+          type="button"
+          className={
+            valve2
+              ? "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+              : "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
+          }
+          onClick={() => {
+            onClickSetValve2();
+          }}
+        >
+          {valve2 ? "Stop Solenoid Syringe 2" : "Start Solenoid Syringe 2"}
         </button>
         <div className="h-4" />
         <div className="flex overflow-hidden rounded-md">

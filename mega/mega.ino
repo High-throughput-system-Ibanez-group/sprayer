@@ -33,6 +33,7 @@
 #define PRESSURE_REGULATOR_IN 54
 
 #define SOLENOID_VALVE_SYRINGE 40
+#define SOLENOID_VALVE_SYRINGE_2 39
 
 struct stepper
 {
@@ -164,9 +165,13 @@ void setup()
   pinMode(PRESSURE_REGULATOR_OUT, OUTPUT);
   analogWrite(PRESSURE_REGULATOR_OUT, 0);
 
-  // config solenoid valve syringe
+  // config solenoid valve syringe 1
   pinMode(SOLENOID_VALVE_SYRINGE, OUTPUT);
   digitalWrite(SOLENOID_VALVE_SYRINGE, LOW);
+
+  // config solenoid valve syringe 2
+  pinMode(SOLENOID_VALVE_SYRINGE_2, OUTPUT);
+  digitalWrite(SOLENOID_VALVE_SYRINGE_2, LOW);
 
   // working spaces
   wspace_x.axis = 'x';
@@ -525,6 +530,17 @@ void send_solenoid_valve_syringe()
   Serial.println("solenoid_valve_syringe:" + String(solenoid_valve_syringe));
 }
 
+void set_solenoid_valve_syringe_2(int val)
+{
+  digitalWrite(SOLENOID_VALVE_SYRINGE_2, val ? HIGH : LOW);
+}
+
+void send_solenoid_valve_syringe_2()
+{
+  int solenoid_valve_syringe_2 = digitalRead(SOLENOID_VALVE_SYRINGE_2);
+  Serial.println("solenoid_valve_syringe_2:" + String(solenoid_valve_syringe_2));
+}
+
 void send_syringe_status()
 {
   Serial.println("syringe_status:" + String(stepper_syringe.active));
@@ -547,6 +563,7 @@ void send_info()
     last_status_print = millis();
     send_pressure_regulator();
     send_solenoid_valve_syringe();
+    send_solenoid_valve_syringe_2();
     send_syringe_status();
   }
 }
@@ -873,6 +890,10 @@ void read_serial_command()
     else if (command.startsWith("set_solenoid_valve_syringe"))
     {
       set_solenoid_valve_syringe(get_command_arg(command, 1));
+    }
+    else if (command.startsWith("set_solenoid_valve_syringe_2"))
+    {
+      set_solenoid_valve_syringe_2(get_command_arg(command, 1));
     }
     else if (command.startsWith("syringe_start"))
     {
