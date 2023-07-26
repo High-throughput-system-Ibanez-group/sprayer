@@ -828,10 +828,15 @@ void check_sequences()
 void set_velocity_stepper(stepper &stepper, int vel)
 {
   int steps_per_rev = int(360.0 * stepper.microstepping) / stepper.full_rev_mm;
+  Serial.println("set_velocity_stepper: steps_per_rev" + String(steps_per_rev));
   double linear_movement_per_step = stepper.full_rev_mm / (steps_per_rev * stepper.microstepping);
+  Serial.println("set_velocity_stepper: linear_movement_per_step" + String(linear_movement_per_step));
   double time_per_step = linear_movement_per_step / (vel / 60.0); // convert velocity from mm/s to mm/min
+  Serial.println("set_velocity_stepper: time_per_step" + String(time_per_step));
   stepper.step_sleep_milli = int(round(time_per_step * 1000.0));
+  Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli));
   stepper.linear_mov = linear_movement_per_step;
+  Serial.println("set_velocity_stepper: stepper.linear_mov" + String(stepper.linear_mov));
 }
 
 // ------ standby sequence ------
