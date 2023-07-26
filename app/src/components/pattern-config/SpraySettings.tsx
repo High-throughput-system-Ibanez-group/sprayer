@@ -72,6 +72,12 @@ export const Settings = observer(() => {
       setValve(dataString === "1" ? true : false);
     });
 
+    socket?.on("solenoid_valve_syringe_2", (data) => {
+      const dataString = data as string;
+
+      setValve2(dataString === "1" ? true : false);
+    });
+
     socket?.on("syringe_status", (data) => {
       const dataString = data as string;
 
