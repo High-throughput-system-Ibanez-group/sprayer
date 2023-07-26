@@ -51,7 +51,7 @@ export const Settings = observer(() => {
   const onClickSetValve2 = () => {
     socket?.emit(
       "command",
-      `set_solenoid_valve_syringe_2:${valve ? "0" : "1"}`
+      `set_solenoid_valve_syringe_2:${valve2 ? "0" : "1"}`
     );
     setValve2(!valve2);
   };
