@@ -63,7 +63,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         const val = data.split(":")[1];
         const axis = data[7] || "";
         io.emit(`wspace_${axis}`, val);
-      } else if ("set_velocity_stepper") {
+      } else if (data.startsWith("time:")) {
         console.log(data);
       }
     });

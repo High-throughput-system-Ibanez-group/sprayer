@@ -562,6 +562,8 @@ unsigned long last_status_print = 0;
 
 void send_info()
 {
+  print_elapsed_time(stepper_x);
+
   // send every second
   if (millis() - last_status_print > 1000)
   {
@@ -827,16 +829,19 @@ void check_sequences()
 
 void set_velocity_stepper(stepper &stepper, int vel)
 {
-  int steps_per_rev = int(360.0 * stepper.microstepping) / stepper.full_rev_mm;
+  Serial.println("set_velocity_stepper: axis" + String(stepper.axis));
+  int steps_per_rev = int(360.0 * (stepper.microstepping / 2)) / stepper.full_rev_mm;
   Serial.println("set_velocity_stepper: steps_per_rev" + String(steps_per_rev));
-  double linear_movement_per_step = stepper.full_rev_mm / (steps_per_rev * stepper.microstepping);
+  Serial.println("set_velocity_stepper: stepper.microstepping" + String(stepper.microstepping));
+  Serial.println("set_velocity_stepper: stepper.full_rev_mm" + String(stepper.full_rev_mm));
+  double linear_movement_per_step = double(stepper.full_rev_mm) / double(steps_per_rev * (stepper.microstepping / 2));
   Serial.println("set_velocity_stepper: linear_movement_per_step" + String(linear_movement_per_step));
   double time_per_step = linear_movement_per_step / (vel / 60.0); // convert velocity from mm/s to mm/min
   Serial.println("set_velocity_stepper: time_per_step" + String(time_per_step));
   stepper.step_sleep_milli = int(round(time_per_step * 1000.0));
   Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli));
-  stepper.linear_mov = linear_movement_per_step;
-  Serial.println("set_velocity_stepper: stepper.linear_mov" + String(stepper.linear_mov));
+  // stepper.linear_mov = linear_movement_per_step;
+  // Serial.println("set_velocity_stepper: stepper.linear_mov" + String(stepper.linear_mov));
 }
 
 // ------ standby sequence ------
@@ -869,6 +874,22 @@ void check_standby_motos_sequence()
 }
 
 // ------ end standby sequence ------
+
+static unsigned long start_time = 0;
+
+void print_elapsed_time(stepper &stepper)
+{
+  if (stepper.active && start_time == 0)
+  {
+    start_time = millis();
+  }
+  else if (!stepper.active && start_time != 0)
+  {
+    unsigned long elapsed_time = (millis() - start_time) / 1000;
+    Serial.println("time: Stepper was active for " + String(elapsed_time) + " seconds");
+    start_time = 0;
+  }
+}
 
 void read_serial_command()
 {
@@ -951,8 +972,8 @@ void read_serial_command()
     }
     else if (command.startsWith("stepper_velocity_"))
     {
-      set_velocity_stepper(command[15] == 'x' ? stepper_x : command[15] == 'y' ? stepper_y
-                                                        : command[15] == 'z'   ? stepper_z
+      set_velocity_stepper(command[17] == 'x' ? stepper_x : command[17] == 'y' ? stepper_y
+                                                        : command[17] == 'z'   ? stepper_z
                                                                                : stepper_syringe,
                            get_command_arg(command, 1));
     }
