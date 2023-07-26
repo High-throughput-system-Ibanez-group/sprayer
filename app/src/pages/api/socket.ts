@@ -52,7 +52,6 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         io.emit("pressure_regulator_in", val);
       } else if (data.startsWith("solenoid_valve_syringe_1")) {
         const val = data.split(":")[1];
-        console.log("board -- solenoid_valve_syringe_1: ", val);
         io.emit("solenoid_valve_syringe_1", val);
       } else if (data.startsWith("solenoid_valve_syringe_2")) {
         const val = data.split(":")[1];

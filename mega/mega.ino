@@ -53,6 +53,7 @@ struct stepper
   char axis;
   int step_sleep_milli;
   int full_rev_mm;
+  int microstepping;
 };
 
 struct sequence
@@ -103,6 +104,7 @@ void setup()
   stepper_x.axis = 'x';
   stepper_x.step_sleep_milli = STEP_SLEEP_MILLI;
   stepper_x.full_rev_mm = FULL_REV_MM_X_Y;
+  stepper_x.microstepping = 800;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -110,7 +112,7 @@ void setup()
   stepper_y.pow = STEPPER_Y_POW;
   stepper_y.limit_start = STEPPER_Y_LIMIT_START;
   stepper_y.limit_end = STEPPER_Y_LIMIT_END;
-  stepper_y.linear_mov = 0.06875; // 54/800
+  stepper_y.linear_mov = 0.0675; // 54/800
   stepper_y.keep_engaged = false;
   stepper_y.pending_steps = 0;
   stepper_y.active = false;
@@ -121,6 +123,7 @@ void setup()
   stepper_y.axis = 'y';
   stepper_y.step_sleep_milli = STEP_SLEEP_MILLI;
   stepper_y.full_rev_mm = FULL_REV_MM_X_Y;
+  stepper_y.microstepping = 800;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -139,6 +142,7 @@ void setup()
   stepper_z.axis = 'z';
   stepper_z.step_sleep_milli = STEP_SLEEP_MILLI;
   stepper_z.full_rev_mm = FULL_REV_MM_Z;
+  stepper_z.microstepping = 800;
   setup_stepper(stepper_z);
 
   stepper_syringe.stp = STEPPER_SYRINGE_STP;
@@ -156,6 +160,7 @@ void setup()
   stepper_syringe.free_rotate = false;
   stepper_syringe.step_sleep_milli = STEP_SLEEP_MILLI_SYRINGE;
   stepper_syringe.full_rev_mm = SYRINGE_FULL_REV_MM;
+  stepper_syringe.microstepping = 1;
   setup_stepper(stepper_syringe);
 
   // config pressure regulator input
@@ -820,10 +825,15 @@ void check_sequences()
   check_standby_motos_sequence();
 }
 
-void config_stepper(stepper &stepper, int microstepping, int delay)
+void config_stepper(stepper &stepper, int microstepping, int vel)
 {
-  stepper.step_sleep_milli = delay;
-  stepper.linear_mov = double(stepper.full_rev_mm / double(microstepping));
+  int steps_per_rev = int(360.0 * microstepping) / stepper.full_rev_mm;
+  double linear_movement_per_step = stepper.full_rev_mm / (steps_per_rev * stepper.microstepping);
+  double time_per_step = linear_movement_per_step / (vel / 60.0); // convert velocity from mm/s to mm/min
+  stepper.step_sleep_milli = int(round(time_per_step * 1000.0));
+  stepper.linear_mov = linear_movement_per_step;
+  // stepper.step_sleep_milli = delay;
+  // stepper.linear_mov = double(stepper.full_rev_mm / double(microstepping));
 }
 
 // ------ standby sequence ------
