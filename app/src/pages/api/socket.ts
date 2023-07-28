@@ -67,11 +67,12 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         console.log(data);
       } else if (data.startsWith("set_velocity_stepper:")) {
         console.log(data);
-      } else if (data.startsWith("arg")) {
-        console.log(data);
+      } else {
+        console.log(data)
       }
     });
 
+    
     io.on("connection", (socket) => {
       console.log("Socket connected");
       socket.on("command", (command: string) => {

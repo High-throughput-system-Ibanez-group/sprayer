@@ -1,42 +1,20 @@
 import { observer } from "mobx-react-lite";
 import { useRef } from "react";
 import { appStore } from "~/stores/app";
-import { type Axis } from "~/utils/types";
+import { type Steppers } from "~/utils/types";
 
 export const Moves = observer(() => {
   const app = appStore();
   const socket = app.socket;
 
-  const refXPos = useRef<HTMLInputElement>(null);
-  const refXMove = useRef<HTMLInputElement>(null);
   const refXMm = useRef<HTMLInputElement>(null);
-
-  const refYPos = useRef<HTMLInputElement>(null);
-  const refYMove = useRef<HTMLInputElement>(null);
   const refYMm = useRef<HTMLInputElement>(null);
-
-  const refZPos = useRef<HTMLInputElement>(null);
-  const refZMove = useRef<HTMLInputElement>(null);
   const refZMm = useRef<HTMLInputElement>(null);
+  const refSyringeMm = useRef<HTMLInputElement>(null);
 
-  const onMove = () => {
-    if (refXPos.current?.value) {
-      socket?.emit("command", `mm_x:${refXPos.current?.value}`);
-      refXPos.current.value = "0";
-    }
-    if (refYPos.current?.value) {
-      socket?.emit("command", `mm_y:${refYPos.current?.value}`);
-      refYPos.current.value = "0";
-    }
-    if (refZPos.current?.value) {
-      socket?.emit("command", `mm_z:${refZPos.current?.value}`);
-      refZPos.current.value = "0";
-    }
-  };
-
-  const onSpecificMove = (axis: Axis, isNegative?: boolean) => {
+  const onSpecificMove = (steppers: Steppers, isNegative?: boolean) => {
     let value;
-    switch (axis) {
+    switch (steppers) {
       case "x":
         value = refXMm.current?.value;
         break;
@@ -50,7 +28,10 @@ export const Moves = observer(() => {
         console.log("No option selected");
     }
     if (value) {
-      socket?.emit("command", `mm_${axis}:${isNegative ? "-" : ""}${value}`);
+      socket?.emit(
+        "command",
+        `mm_${steppers}:${isNegative ? "-" : ""}${value}`
+      );
     }
   };
 
@@ -144,7 +125,6 @@ export const Moves = observer(() => {
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("z", true);
-              //TODO: move x
             }}
           >
             -
@@ -161,6 +141,40 @@ export const Moves = observer(() => {
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
               onSpecificMove("z");
+            }}
+          >
+            +
+          </button>
+        </div>
+        <div className="h-4" />
+        <div className="relative flex items-center space-x-4">
+          <label
+            htmlFor="number-input"
+            className="absolute -left-16 font-medium"
+          >
+            syringe:
+          </label>
+          <button
+            type="button"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+            onClick={() => {
+              onSpecificMove("syringe", true);
+            }}
+          >
+            -
+          </button>
+          <input
+            type="number"
+            id="number-input"
+            className="w-16 rounded-md border border-gray-300 px-3 py-2"
+            ref={refSyringeMm}
+            min="0"
+          />
+          <button
+            type="button"
+            className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+            onClick={() => {
+              onSpecificMove("syringe");
             }}
           >
             +

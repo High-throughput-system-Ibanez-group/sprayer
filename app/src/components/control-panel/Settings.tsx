@@ -10,9 +10,31 @@ export const Settings = () => {
     setSelectedStepper(event.target.value as Steppers);
   };
 
+  const testByteCommand = () => {
+    const COMMAND_ZEROING_END = 0x41;
+    const app = appStore();
+    const socket = app.socket;
+    socket?.emit(
+      "command",
+      [String.fromCharCode(COMMAND_ZEROING_END), 11, 22].join(":")
+    );
+  };
+
   return (
     <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Settings</div>
+      <div className="h-4" />
+      <button
+        type="button"
+        className={
+          "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+        }
+        onClick={() => {
+          testByteCommand();
+        }}
+      >
+        Test byte command
+      </button>
       <div className="h-4" />
       <div className="flex flex-col py-6">
         <label htmlFor="stepper-select" className="mb-2 text-lg font-medium">

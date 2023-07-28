@@ -35,6 +35,28 @@
 #define SOLENOID_VALVE_SYRINGE_1 40
 #define SOLENOID_VALVE_SYRINGE_2 39
 
+#define COMMAND_ZEROING_START 0x41
+#define COMMAND_ZEROING_END 0x42
+#define COMMAND_ROTATE_X 0x43
+#define COMMAND_ROTATE_Y 0x44
+#define COMMAND_ROTATE_Z 0x45
+#define COMMAND_ROTATE_S 0x46
+#define COMMAND_SET_PRESSURE_REGULATOR 0x47
+#define COMMAND_SET_SOLENOID_VALVE_SYRINGE_1 0x48
+#define COMMAND_SET_SOLENOID_VALVE_SYRINGE_2 0x49
+#define COMMAND_SYRINGE_START 0x4A
+#define COMMAND_SYRINGE_END 0x4B
+#define COMMAND_STOP_STEPPER 0x4C
+#define COMMAND_STOP_X_Y_Z 0x4D
+#define COMMAND_SETUP_CLEAN_SEQUENCE 0x4E
+#define COMMAND_STOP_CLEAN_SEQUENCE 0x4F
+#define COMMAND_RESUME_CLEAN_SEQUENCE 0x50
+#define COMMAND_SETUP_PATTERN_SEQUENCE 0x51
+#define COMMAND_SET_DEFAULT_SEQUENCE 0x52
+#define COMMAND_SET_WORKING_SPACE 0x53
+#define COMMAND_SET_VELOCITY_STEPPER 0x54
+#define COMMAND_SET_STANDBY_MOTORS_SEQUENCE 0x55
+
 struct stepper
 {
   int stp;
@@ -718,7 +740,7 @@ void set_velocity_stepper(stepper &stepper, double vel)
 {
   double step_sleep_milli = (stepper.full_rev_mm * stepper.microstepping) / (360.0 * vel);
   stepper.step_sleep_milli = int(round(step_sleep_milli));
-  Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli));
+  Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli) + " vel: " + String(vel) + " axis: " + String(stepper.axis ? stepper.axis : 'syringe'));
 }
 
 // void set_velocity_stepper(stepper &stepper, int vel)
@@ -786,89 +808,100 @@ void read_serial_command()
   {
     String command = Serial.readStringUntil('\n');
 
-    if (command == "zeroing_start")
+    switch (command.charAt(0))
     {
+    case COMMAND_ZEROING_START:
       stepper_concurrent_zeroing_start();
-    }
-    else if (command == "zeroing_end")
-    {
+      break;
+
+    case COMMAND_ZEROING_END:
       stepper_concurrent_zeroing_end();
-    }
-    else if (command.startsWith("mm_x"))
-    {
+      break;
+
+    case COMMAND_ROTATE_X:
       rotate_concurrent_mm(stepper_x, get_command_arg(command, 1));
-    }
-    else if (command.startsWith("mm_y"))
-    {
+      break;
+
+    case COMMAND_ROTATE_Y:
       rotate_concurrent_mm(stepper_y, get_command_arg(command, 1));
-    }
-    else if (command.startsWith("mm_z"))
-    {
+      break;
+
+    case COMMAND_ROTATE_Z:
       rotate_concurrent_mm(stepper_z, get_command_arg(command, 1));
-    }
-    else if (command.startsWith("set_sharpening_pressure"))
-    {
+      break;
+
+    case COMMAND_ROTATE_S:
+      rotate_concurrent_mm(stepper_syringe, get_command_arg(command, 1));
+      break;
+
+    case COMMAND_SET_PRESSURE_REGULATOR:
       set_pressure_regulator(get_command_arg(command, 1));
-    }
-    else if (command.startsWith("set_solenoid_valve_syringe_1"))
-    {
+      break;
+
+    case COMMAND_SET_SOLENOID_VALVE_SYRINGE_1:
       set_solenoid_valve_syringe_1(get_command_arg(command, 1));
-    }
-    else if (command.startsWith("set_solenoid_valve_syringe_2"))
-    {
+      break;
+
+    case COMMAND_SET_SOLENOID_VALVE_SYRINGE_2:
       set_solenoid_valve_syringe_2(get_command_arg(command, 1));
-    }
-    else if (command.startsWith("syringe_start"))
-    {
+      break;
+
+    case COMMAND_SYRINGE_START:
       syringe_start();
-    }
-    else if (command.startsWith("syringe_end"))
-    {
+      break;
+
+    case COMMAND_SYRINGE_END:
       syringe_end();
-    }
-    else if (command.startsWith("stop_syringe"))
-    {
+      break;
+
+    case COMMAND_STOP_STEPPER:
       stop_stepper(stepper_syringe);
-    }
-    else if (command.startsWith("stop_x_y_z"))
-    {
+      break;
+
+    case COMMAND_STOP_X_Y_Z:
       stop_x_y_z();
-    }
-    else if (command.startsWith("clean"))
-    {
+      break;
+
+    case COMMAND_SETUP_CLEAN_SEQUENCE:
       setup_clean_sequence(get_command_arg(command, 1));
-    }
-    else if (command.startsWith("stop_clean"))
-    {
+      break;
+
+    case COMMAND_STOP_CLEAN_SEQUENCE:
       stop_clean_sequence();
-    }
-    else if (command.startsWith("resume_clean"))
-    {
+      break;
+
+    case COMMAND_RESUME_CLEAN_SEQUENCE:
       resume_clean_sequence();
-    }
-    else if (command.startsWith("pattern"))
-    {
+      break;
+
+    case COMMAND_SETUP_PATTERN_SEQUENCE:
       setup_pattern_sequence(get_command_arg(command, 1), get_command_arg(command, 2));
-    }
-    else if (command.startsWith("pattern_stop"))
-    {
+      break;
+
+    case COMMAND_SET_DEFAULT_SEQUENCE:
       set_default_sequence();
-    }
-    else if (command.startsWith("wspace_"))
-    {
-      setup_working_space(command[7] == 'x' ? wspace_x : command[7] == 'y' ? wspace_y
-                                                                           : wspace_z);
-    }
-    else if (command.startsWith("stepper_velocity_"))
-    {
+      break;
+
+    case COMMAND_SET_WORKING_SPACE:
+      int arg1 = 0;
+      sequence asd[] = {wspace_x, wspace_y, wspace_z};
+      setup_working_space(asd[arg1]);
+      break;
+
+    case COMMAND_SET_VELOCITY_STEPPER:
       set_velocity_stepper(command[17] == 'x' ? stepper_x : command[17] == 'y' ? stepper_y
                                                         : command[17] == 'z'   ? stepper_z
                                                                                : stepper_syringe,
                            get_command_arg(command, 1));
-    }
-    else if (command.startsWith("standby_x_y_z"))
-    {
+      break;
+
+    case COMMAND_SET_STANDBY_MOTORS_SEQUENCE:
       setup_standby_motors_sequence();
+      break;
+
+    default:
+      Serial.println("Unknown command");
+      break;
     }
   }
 }
