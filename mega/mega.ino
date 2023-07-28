@@ -714,22 +714,24 @@ void check_sequences()
   check_standby_motos_sequence();
 }
 
-void set_velocity_stepper(stepper &stepper, int vel)
+void set_velocity_stepper(stepper &stepper, double vel)
 {
-  Serial.println("set_velocity_stepper: axis" + String(stepper.axis));
-  int steps_per_rev = int(360.0 * (stepper.microstepping / 2)) / stepper.full_rev_mm;
-  Serial.println("set_velocity_stepper: steps_per_rev" + String(steps_per_rev));
-  Serial.println("set_velocity_stepper: stepper.microstepping" + String(stepper.microstepping));
-  Serial.println("set_velocity_stepper: stepper.full_rev_mm" + String(stepper.full_rev_mm));
-  double linear_movement_per_step = double(stepper.full_rev_mm) / double(steps_per_rev * (stepper.microstepping / 2));
-  Serial.println("set_velocity_stepper: linear_movement_per_step" + String(linear_movement_per_step));
-  double time_per_step = linear_movement_per_step / (vel / 60.0); // convert velocity from mm/s to mm/min
-  Serial.println("set_velocity_stepper: time_per_step" + String(time_per_step));
-  stepper.step_sleep_milli = int(round(time_per_step * 1000.0));
+  double step_sleep_milli = (stepper.full_rev_mm * stepper.microstepping) / (360.0 * vel);
+  stepper.step_sleep_milli = int(round(step_sleep_milli));
   Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli));
-  // stepper.linear_mov = linear_movement_per_step;
-  // Serial.println("set_velocity_stepper: stepper.linear_mov" + String(stepper.linear_mov));
 }
+
+// void set_velocity_stepper(stepper &stepper, int vel)
+// {
+//   Serial.println("set_velocity_stepper: axis" + String(stepper.axis));
+//   double steps_per_rev = (360.0 / stepper.full_rev_mm) * stepper.microstepping;
+//   Serial.println("set_velocity_stepper: steps_per_rev" + String(steps_per_rev));
+//   double linear_movement_per_step = double(stepper.full_rev_mm) / double(steps_per_rev * (stepper.microstepping));
+//   Serial.println("set_velocity_stepper: linear_movement_per_step" + String(linear_movement_per_step));
+//   double time_per_step = (linear_movement_per_step * stepper.microstepping) / (vel / 60.0); // convert velocity from mm/s to mm/min
+//   Serial.println("set_velocity_stepper: time_per_step" + String(time_per_step));
+//   stepper.step_sleep_milli = int(round(time_per_step * 1000.0 * stepper.microstepping)); // multiply by microstepping
+// }
 
 // ------ standby sequence ------
 
@@ -880,6 +882,8 @@ void loop()
   check_limits();
 
   rotate_steppers();
+
+  // print_elapsed_time(stepper_x);
 
   // send_info();
 
