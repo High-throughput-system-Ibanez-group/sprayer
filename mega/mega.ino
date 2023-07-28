@@ -210,7 +210,7 @@ void rotate_concurrent_mm(stepper &stepper, double mm)
   stepper.active = true;
 }
 
-int get_command_arg(String command, int argIndex)
+int get_command_arg(String command, int argIndex, bool isDecimal)
 {
   int separatorIndex = 0;
   for (int i = 0; i < argIndex; i++)
@@ -223,7 +223,15 @@ int get_command_arg(String command, int argIndex)
   }
   String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
   Serial.println("arg index " + String(argIndex) + " : " + arg);
-  return arg.toInt();
+
+  if (isDecimal)
+  {
+    return arg.toFloat();
+  }
+  else
+  {
+    return arg.toInt();
+  }
 }
 
 int stepper_concurrent_zeroing_start()
@@ -718,7 +726,7 @@ void set_velocity_stepper(stepper &stepper, double vel)
 {
   double step_sleep_milli = (stepper.full_rev_mm * stepper.microstepping) / (360.0 * vel);
   stepper.step_sleep_milli = int(round(step_sleep_milli));
-  Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli));
+  Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli) + " vel: " + String(vel));
 }
 
 // void set_velocity_stepper(stepper &stepper, int vel)
@@ -796,27 +804,27 @@ void read_serial_command()
     }
     else if (command.startsWith("mm_x"))
     {
-      rotate_concurrent_mm(stepper_x, get_command_arg(command, 1));
+      rotate_concurrent_mm(stepper_x, get_command_arg(command, 1, false));
     }
     else if (command.startsWith("mm_y"))
     {
-      rotate_concurrent_mm(stepper_y, get_command_arg(command, 1));
+      rotate_concurrent_mm(stepper_y, get_command_arg(command, 1, false));
     }
     else if (command.startsWith("mm_z"))
     {
-      rotate_concurrent_mm(stepper_z, get_command_arg(command, 1));
+      rotate_concurrent_mm(stepper_z, get_command_arg(command, 1, false));
     }
     else if (command.startsWith("set_sharpening_pressure"))
     {
-      set_pressure_regulator(get_command_arg(command, 1));
+      set_pressure_regulator(get_command_arg(command, 1, false));
     }
     else if (command.startsWith("set_solenoid_valve_syringe_1"))
     {
-      set_solenoid_valve_syringe_1(get_command_arg(command, 1));
+      set_solenoid_valve_syringe_1(get_command_arg(command, 1, false));
     }
     else if (command.startsWith("set_solenoid_valve_syringe_2"))
     {
-      set_solenoid_valve_syringe_2(get_command_arg(command, 1));
+      set_solenoid_valve_syringe_2(get_command_arg(command, 1, false));
     }
     else if (command.startsWith("syringe_start"))
     {
@@ -836,7 +844,7 @@ void read_serial_command()
     }
     else if (command.startsWith("clean"))
     {
-      setup_clean_sequence(get_command_arg(command, 1));
+      setup_clean_sequence(get_command_arg(command, 1, false));
     }
     else if (command.startsWith("stop_clean"))
     {
@@ -848,7 +856,7 @@ void read_serial_command()
     }
     else if (command.startsWith("pattern"))
     {
-      setup_pattern_sequence(get_command_arg(command, 1), get_command_arg(command, 2));
+      setup_pattern_sequence(get_command_arg(command, 1, false), get_command_arg(command, 2, false));
     }
     else if (command.startsWith("pattern_stop"))
     {
@@ -864,7 +872,7 @@ void read_serial_command()
       set_velocity_stepper(command[17] == 'x' ? stepper_x : command[17] == 'y' ? stepper_y
                                                         : command[17] == 'z'   ? stepper_z
                                                                                : stepper_syringe,
-                           get_command_arg(command, 1));
+                           get_command_arg(command, 1, true));
     }
     else if (command.startsWith("standby_x_y_z"))
     {
