@@ -67,6 +67,8 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         console.log(data);
       } else if (data.startsWith("set_velocity_stepper:")) {
         console.log(data);
+      } else if (data.startsWith("arg")) {
+        console.log(data);
       }
     });
 

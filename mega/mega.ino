@@ -222,7 +222,7 @@ int get_command_arg(String command, int argIndex)
     }
   }
   String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
-  // Serial.println("arg index " + String(argIndex) + " : " + arg);
+  Serial.println("arg index " + String(argIndex) + " : " + arg);
   return arg.toInt();
 }
 
