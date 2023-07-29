@@ -32,15 +32,15 @@
 // commands
 #define STEPPER_COMMAND 0x41
 #define SET_PRESSURE_COMMAND 0x42
-#define SEND_PRESSURE_COMMAND 0x43
+#define GET_PRESSURE_COMMAND 0x43
 #define SET_VALVE_COMMMAND 0x44
-#define STEPPER_X_STOPPED 0x45
-#define STEPPER_Y_STOPPED 0x46
-#define STEPPER_Z_STOPPED 0x47
-#define STEPPER_S_STOPPED 0x48
+#define STEPPER_STOPPED_COMMAND 0x45
+#define STEPPER_DISABLED_COMMAND 0x46
+#define GET_STEPPER_STEPS_COMMAND 0x47
 
 struct stepper
 {
+  int name; // 0->x, 1->y, 2->z, 3->s
   int stp;
   int dir;
   int pow;
@@ -53,12 +53,16 @@ struct stepper
   int pending_steps;
   int toggle;
   unsigned long next_step_time;
+  int count_steps;
+  int total_steps;
 };
 
 stepper stepper_x;
 stepper stepper_y;
 stepper stepper_z;
 stepper stepper_s; // syringe
+
+stepper steppers[] = {stepper_x, stepper_y, stepper_z, stepper_s};
 
 void setup()
 {
@@ -121,29 +125,25 @@ void setup_stepper(stepper stepper)
   pinMode(stepper.limit_end, INPUT);
 }
 
-int get_command_arg(String command, int argIndex)
+void disable_stepper(stepper &stepper)
 {
-  int separatorIndex = 0;
-  for (int i = 0; i < argIndex; i++)
-  {
-    separatorIndex = command.indexOf(':', separatorIndex + 1);
-    if (separatorIndex == -1)
-    {
-      return 0;
-    }
-  }
-  String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
-  // Serial.println("arg index " + String(argIndex) + " : " + arg);
-  return arg.toInt();
+  stepper.disable = 0;
+  stop_stepper(stepper);
+  digitalWrite(stepper.pow, LOW);
+
+  // send message
+  byte message[3];
+  message[0] = STEPPER_DISABLED_COMMAND;
+  message[1] = (stepper.name >> 8) & 0xFF; // high byte
+  message[2] = stepper.name & 0xFF;        // low byte
+  Serial.write(message, sizeof(message));
 }
 
 void rotate_stepper(stepper &stepper)
 {
   if (stepper.disable)
   {
-    stepper.pending_steps = 0;
-    stepper.free_rotate = 0;
-    digitalWrite(stepper.pow, LOW);
+    disable_stepper(stepper);
   }
   else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < millis()))
   {
@@ -153,9 +153,9 @@ void rotate_stepper(stepper &stepper)
 
     stepper.toggle = !stepper.toggle;
 
-    if (stepper.free_rotate)
+    if (stepper.free_rotate && stepper.count_steps)
     {
-      // count_steps(stepper);
+      stepper.total_steps++;
     }
     else
     {
@@ -164,26 +164,25 @@ void rotate_stepper(stepper &stepper)
   }
 }
 
-// void count_steps(stepper &stepper)
-// {
-//   if (active_sequence.startsWith("wspace_"))
-//   {
-//     sequence *wspace_ptr = stepper.axis == 'x' ? &wspace_x : stepper.axis == 'y' ? &wspace_y
-//                                                                                  : &wspace_z;
-
-//     if (wspace_ptr->current_move == 3)
-//     {
-//       wspace_ptr->steps++;
-//     }
-//   }
-// }
-
 void check_limits()
 {
   check_limit(stepper_x);
   check_limit(stepper_y);
   check_limit(stepper_z);
   check_limit(stepper_s);
+}
+
+void stop_stepper(stepper &stepper)
+{
+  stepper.pending_steps = 0;
+  stepper.free_rotate = 0;
+
+  // send message
+  byte message[3];
+  message[0] = STEPPER_STOPPED_COMMAND;
+  message[1] = (stepper.name >> 8) & 0xFF; // high byte
+  message[2] = stepper.name & 0xFF;        // low byte
+  Serial.write(message, sizeof(message));
 }
 
 void check_limit(stepper &stepper)
@@ -194,8 +193,7 @@ void check_limit(stepper &stepper)
 
   if ((stepper.pending_steps > 0 || stepper.free_rotate) && ((!limit_start && !stepper_dir) || (!limit_end && stepper_dir)))
   {
-    stepper.pending_steps = 0;
-    stepper.free_rotate = false;
+    stop_stepper(stepper);
   }
 }
 
@@ -216,16 +214,18 @@ void set_solenoid_valve_syringe(int syringe, int val)
   }
 }
 
-void setup_stepper(int stepper_val, int dir, int free_rotate, int steps, int stop, int step_sleep_millis, int disable)
+void setup_stepper(int name, int dir, int free_rotate, int steps, int stop, int step_sleep_millis, int disable, int count_steps)
 {
-  stepper steppers[] = {stepper_x, stepper_y, stepper_z, stepper_s};
-  stepper *stepper_ptr = &steppers[stepper_val];
+  stepper *stepper_ptr = &steppers[name];
 
   digitalWrite(stepper_ptr->dir, dir);
+  stepper_ptr->name = name;
   stepper_ptr->free_rotate = free_rotate;
-  stepper_ptr->steps = steps;
+  stepper_ptr->pending_steps = steps;
+  stepper_ptr->total_steps = 0;
   stepper_ptr->step_sleep_millis = step_sleep_millis;
   stepper_ptr->disable = disable;
+  stepper_ptr->count_steps = count_steps;
 }
 
 void check_steppers()
@@ -240,13 +240,14 @@ void check_steppers()
 struct StepperCommand
 {
   byte command_code;
-  int stepper_val;
+  int name;
   int dir;
   int free_rotate;
   int steps;
   int stop;
   int step_sleep_millis;
   int disable;
+  int count_steps;
 };
 
 struct SetPressureCommand
@@ -258,13 +259,19 @@ struct SetPressureCommand
 struct SetValveCommand
 {
   byte command_code;
-  int valve;
+  int name;
   int val;
 };
 
 struct SendPressureCommand
 {
   byte command_code;
+};
+
+struct GetStepperStepsCommand
+{
+  byte command_code;
+  int name;
 };
 
 // Define command processing function
@@ -280,7 +287,7 @@ void process_command(byte command_code, byte *data, int length)
       return;
     }
     StepperCommand *cmd = (StepperCommand *)data;
-    setup_stepper(cmd->stepper_val, cmd->dir, cmd->free_rotate, cmd->steps, cmd->stop, cmd->step_sleep_millis, cmd->disable);
+    setup_stepper(cmd->name, cmd->dir, cmd->free_rotate, cmd->steps, cmd->stop, cmd->step_sleep_millis, cmd->disable, cmd->count_steps);
     break;
   }
   case SET_PRESSURE_COMMAND:
@@ -303,11 +310,11 @@ void process_command(byte command_code, byte *data, int length)
       return;
     }
     SetValveCommand *cmd = (SetValveCommand *)data;
-    set_solenoid_valve_syringe(cmd->valve, cmd->val);
+    set_solenoid_valve_syringe(cmd->name, cmd->val);
     break;
     // Add more commands as needed
   }
-  case SEND_PRESSURE_COMMAND:
+  case GET_PRESSURE_COMMAND:
   {
     if (length != sizeof(SendPressureCommand))
     {
@@ -315,7 +322,20 @@ void process_command(byte command_code, byte *data, int length)
       return;
     }
     int V2 = analogRead(PRESSURE_REGULATOR_IN);
-    byte message[] = {SEND_PRESSURE_COMMAND, (byte)(V2 >> 8), (byte)V2};
+    byte message[] = {GET_PRESSURE_COMMAND, (byte)(V2 >> 8), (byte)V2};
+    Serial.write(message, sizeof(message));
+    break;
+  }
+  case GET_STEPPER_STEPS_COMMAND:
+  {
+    if (length != sizeof(GetStepperStepsCommand))
+    {
+      // Invalid command length
+      return;
+    }
+    GetStepperStepsCommand *cmd = (GetStepperStepsCommand *)data;
+    stepper *stepper_ptr = &steppers[cmd->name];
+    byte message[] = {GET_STEPPER_STEPS_COMMAND, (byte)(stepper_ptr->steps >> 8), (byte)stepper_ptr->steps};
     Serial.write(message, sizeof(message));
     break;
   }
@@ -368,45 +388,6 @@ void process_serial_input()
     }
   }
 }
-
-// void read_serial_command()
-// {
-//   if (Serial.available() > 0)
-//   {
-//     String command = Serial.readStringUntil('\n');
-
-//     switch (command.charAt(0))
-//     {
-//     case STEPPER_COMMAND:
-//       setup_stepper(get_command_arg(command, 1),
-//                     get_command_arg(command, 2),
-//                     get_command_arg(command, 3),
-//                     get_command_arg(command, 4),
-//                     get_command_arg(command, 5),
-//                     get_command_arg(command, 6),
-//                     get_command_arg(command, 7));
-//       break;
-
-//     case SET_PRESSURE_COMMAND:
-//       set_pressure_regulator(get_command_arg(command, 1));
-//       break;
-
-//     case SET_SOLENOID_VALVE_SYRINGE:
-//       set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
-//       break;
-
-//     case SEND_PRESSURE_REGULATOR:
-//       int V2 = analogRead(PRESSURE_REGULATOR_IN);
-//       byte message[] = {SEND_PRESSURE_REGULATOR, (byte)(V2 >> 8), (byte)V2};
-//       Serial.write(message, sizeof(message));
-//       break;
-
-//     default:
-//       Serial.println("Unknown command");
-//       break;
-//     }
-//   }
-// }
 
 void loop()
 {
