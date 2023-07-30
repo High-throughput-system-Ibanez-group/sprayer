@@ -27,9 +27,8 @@ const Move = ({ stepper }: { stepper: Stepper }) => {
   const refMm = useRef<HTMLInputElement>(null);
 
   const onSpecificMove = (stepper: Stepper, dir: DIR, mm: number) => {
-    if (socket) {
-      socket.emit("command", stepperMoveMM(stepper, mm, dir));
-    }
+    if (!socket) return;
+    socket.emit("command", stepperMoveMM(stepper, mm, dir));
   };
 
   return (

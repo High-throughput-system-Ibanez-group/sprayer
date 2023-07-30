@@ -1,15 +1,22 @@
 import { setupStepperCommand } from "~/lib/setupCommands";
-import { type Stepper, type DIR } from "~/lib/types";
+import {
+  type Stepper,
+  DIR,
+  FREE_ROTATE,
+  DISABLE,
+  COUNT_STEPS,
+  STEPPER_NAME,
+} from "~/lib/types";
 
-export const steperNameToString = (name: number) => {
+export const steperNameToString = (name: STEPPER_NAME) => {
   switch (name) {
-    case 0:
+    case STEPPER_NAME.X:
       return "X";
-    case 1:
+    case STEPPER_NAME.Y:
       return "Y";
-    case 2:
+    case STEPPER_NAME.Z:
       return "Z";
-    case 3:
+    case STEPPER_NAME.S:
       return "S";
     default:
       return "X";
@@ -18,13 +25,62 @@ export const steperNameToString = (name: number) => {
 
 export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
   const steps = Math.round((mm / stepper.full_rev_mm) * stepper.microstepping);
-  setupStepperCommand({
-    name: stepper.name,
+  return setupStepperCommand(
+    stepper.name,
     dir,
-    free_rotate: 0,
+    FREE_ROTATE.OFF,
     steps,
-    step_sleep_millis: stepper.step_sleep_millis,
-    disable: 0,
-    count_steps: 0,
-  });
+    stepper.step_sleep_millis,
+    DISABLE.OFF,
+    COUNT_STEPS.OFF
+  );
+};
+
+export const zeroingStart = (stepper: Stepper) => {
+  return setupStepperCommand(
+    stepper.name,
+    DIR.BACKWARD,
+    FREE_ROTATE.ON,
+    0,
+    stepper.step_sleep_millis,
+    DISABLE.OFF,
+    COUNT_STEPS.OFF
+  );
+};
+
+export const zeroingEnd = (stepper: Stepper) => {
+  return setupStepperCommand(
+    stepper.name,
+    DIR.FORWARD,
+    FREE_ROTATE.ON,
+    0,
+    stepper.step_sleep_millis,
+    DISABLE.OFF,
+    COUNT_STEPS.OFF
+  );
+};
+
+export const stepperStop = (stepper: Stepper) => {
+  return setupStepperCommand(
+    stepper.name,
+    DIR.FORWARD,
+    FREE_ROTATE.OFF,
+    0,
+    stepper.step_sleep_millis,
+    DISABLE.OFF,
+    COUNT_STEPS.OFF
+  );
+};
+
+export const stepperDisable = (stepper: Stepper) => {
+  // TODO: Await zeroing start to end and then disable
+  return setupStepperCommand(
+    stepper.name,
+    DIR.FORWARD,
+    FREE_ROTATE.OFF,
+    0,
+    stepper.step_sleep_millis,
+    DISABLE.ON,
+    COUNT_STEPS.OFF
+  );
 };

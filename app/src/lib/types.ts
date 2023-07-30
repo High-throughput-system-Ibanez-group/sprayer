@@ -10,6 +10,21 @@ export enum STEPPER_NAME {
   S = 3,
 }
 
+export enum FREE_ROTATE {
+  OFF = 0,
+  ON = 1,
+}
+
+export enum DISABLE {
+  OFF = 0,
+  ON = 1,
+}
+
+export enum COUNT_STEPS {
+  OFF = 0,
+  ON = 1,
+}
+
 export type Stepper = {
   name: STEPPER_NAME;
   microstepping: number;
