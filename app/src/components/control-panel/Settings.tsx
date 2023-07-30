@@ -48,7 +48,7 @@ export const Settings = () => {
           <option value="x">x</option>
           <option value="y">y</option>
           <option value="z">z</option>
-          <option value="syringe">Syringe</option>
+          <option value="s">Syringe</option>
         </select>
         <div className="h-4" />
         <Element stepper={selectedStepper} />

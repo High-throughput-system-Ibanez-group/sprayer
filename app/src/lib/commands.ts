@@ -1,0 +1,7 @@
+export const STEPPER_COMMAND = 0x41;
+export const SET_PRESSURE_COMMAND = 0x42;
+export const GET_PRESSURE_COMMAND = 0x43;
+export const SET_VALVE_COMMMAND = 0x44;
+export const STEPPER_STOPPED_COMMAND = 0x45;
+export const STEPPER_DISABLED_COMMAND = 0x46;
+export const GET_STEPPER_STEPS_COMMAND = 0x47;

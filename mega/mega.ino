@@ -214,7 +214,7 @@ void set_solenoid_valve_syringe(int syringe, int val)
   }
 }
 
-void setup_stepper(int name, int dir, int free_rotate, int steps, int stop, int step_sleep_millis, int disable, int count_steps)
+void setup_stepper(int name, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
 {
   stepper *stepper_ptr = &steppers[name];
 
@@ -244,7 +244,6 @@ struct StepperCommand
   int dir;
   int free_rotate;
   int steps;
-  int stop;
   int step_sleep_millis;
   int disable;
   int count_steps;
@@ -287,7 +286,7 @@ void process_command(byte command_code, byte *data, int length)
       return;
     }
     StepperCommand *cmd = (StepperCommand *)data;
-    setup_stepper(cmd->name, cmd->dir, cmd->free_rotate, cmd->steps, cmd->stop, cmd->step_sleep_millis, cmd->disable, cmd->count_steps);
+    setup_stepper(cmd->name, cmd->dir, cmd->free_rotate, cmd->steps, cmd->step_sleep_millis, cmd->disable, cmd->count_steps);
     break;
   }
   case SET_PRESSURE_COMMAND:

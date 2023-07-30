@@ -47,32 +47,9 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     );
 
     arduinoParser.on("data", function (data: string) {
-      if (data.startsWith("pressure_regulator_in")) {
-        const val = data.split(":")[1];
-        io.emit("pressure_regulator_in", val);
-      } else if (data.startsWith("solenoid_valve_syringe_1")) {
-        const val = data.split(":")[1];
-        io.emit("solenoid_valve_syringe_1", val);
-      } else if (data.startsWith("solenoid_valve_syringe_2")) {
-        const val = data.split(":")[1];
-        io.emit("solenoid_valve_syringe_2", val);
-      } else if (data.startsWith("syringe_status")) {
-        const val = data.split(":")[1];
-        io.emit("syringe_status", val);
-      } else if (data.startsWith("wspace_")) {
-        const val = data.split(":")[1];
-        const axis = data[7] || "";
-        io.emit(`wspace_${axis}`, val);
-      } else if (data.startsWith("time:")) {
-        console.log(data);
-      } else if (data.startsWith("set_velocity_stepper:")) {
-        console.log(data);
-      } else {
-        console.log(data)
-      }
+      io.emit("data", data);
     });
 
-    
     io.on("connection", (socket) => {
       console.log("Socket connected");
       socket.on("command", (command: string) => {
