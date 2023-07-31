@@ -22,7 +22,7 @@ const arduinoSerialPort = new SerialPort({
   baudRate: 9600,
 });
 
-const arduinoReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
+const arduinoReadlineParser = new ReadlineParser();
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {
@@ -47,13 +47,13 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     );
 
     arduinoParser.on("data", function (data: string) {
-      io.emit("data", data);
+      io.emit("data from board: ", data);
     });
 
     io.on("connection", (socket) => {
       console.log("Socket connected");
       socket.on("command", (command: string) => {
-        arduinoSerialPort.write(`${command}\n`, (err) => {
+        arduinoSerialPort.write(command, (err) => {
           if (err) {
             return console.log("err on write.. ", err?.message);
           }

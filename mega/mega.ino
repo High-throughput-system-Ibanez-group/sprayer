@@ -276,12 +276,14 @@ struct GetStepperStepsCommand
 // Define command processing function
 void process_command(byte command_code, byte *data, int length)
 {
+  Serial.print("Processing command");
   switch (command_code)
   {
   case STEPPER_COMMAND:
   {
     if (length != sizeof(StepperCommand))
     {
+      Serial.print("Invalid command length");
       // Invalid command length
       return;
     }
@@ -351,8 +353,10 @@ int serial_buffer_pos = 0;
 // Define serial input processing function
 void process_serial_input()
 {
+  Serial.print("Entering process_serial_input");
   while (Serial.available() > 0)
   {
+    Serial.print("Serial available");
     byte b = Serial.read();
     if (serial_buffer_pos == 0 && b != 0xFF)
     {
@@ -363,6 +367,7 @@ void process_serial_input()
     if (serial_buffer_pos == 3)
     {
       // Command header received
+      Serial.print("Command header received");
       byte command_code = serial_buffer[1];
       int length = serial_buffer[2];
       if (length > 0)
@@ -377,10 +382,12 @@ void process_serial_input()
     else if (serial_buffer_pos > 3)
     {
       // Command data received
+      Serial.print("Command data received");
       int length = serial_buffer[2];
       if (serial_buffer_pos == length + 3)
       {
         // All command data received
+        Serial.print("All command data received");
         process_command(serial_buffer[1], &serial_buffer[3], length);
         serial_buffer_pos = 0;
       }

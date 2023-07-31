@@ -11,7 +11,8 @@ export const Moves = observer(() => {
   return (
     <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Moves</div>
-      <div className="flex flex-col py-6">
+      <div className="flex flex-col items-center justify-center py-6">
+        <div>(mm)</div>
         <Move stepper={components.stepperX} />
         <Move stepper={components.stepperY} />
         <Move stepper={components.stepperZ} />
@@ -21,13 +22,14 @@ export const Moves = observer(() => {
   );
 });
 
-const Move = ({ stepper }: { stepper: Stepper }) => {
+const Move = observer(({ stepper }: { stepper: Stepper }) => {
   const app = appStore();
   const socket = app.socket;
   const refMm = useRef<HTMLInputElement>(null);
 
   const onSpecificMove = (stepper: Stepper, dir: DIR, mm: number) => {
     if (!socket) return;
+    console.log("onSpecificMove", dir, mm);
     socket.emit("command", stepperMoveMM(stepper, mm, dir));
   };
 
@@ -59,9 +61,6 @@ const Move = ({ stepper }: { stepper: Stepper }) => {
             ref={refMm}
             min="0"
           />
-          <div className="absolute -top-8 left-0 flex w-full justify-center">
-            (mm)
-          </div>
         </div>
         <button
           type="button"
@@ -79,4 +78,4 @@ const Move = ({ stepper }: { stepper: Stepper }) => {
       </div>
     </>
   );
-};
+});
