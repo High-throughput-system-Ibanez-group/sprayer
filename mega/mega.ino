@@ -210,7 +210,7 @@ void rotate_concurrent_mm(stepper &stepper, double mm)
   stepper.active = true;
 }
 
-int get_command_arg(String command, int argIndex, bool isDecimal)
+double get_command_arg(String command, int argIndex, bool isDecimal)
 {
   int separatorIndex = 0;
   for (int i = 0; i < argIndex; i++)
@@ -222,14 +222,15 @@ int get_command_arg(String command, int argIndex, bool isDecimal)
     }
   }
   String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
-  Serial.println("arg index " + String(argIndex) + " : " + arg);
 
   if (isDecimal)
   {
-    return arg.toFloat();
+    Serial.println("arg index " + String(argIndex) + " : " + String(arg.toDouble()) + " double");
+    return arg.toDouble();
   }
   else
   {
+    Serial.println("arg index " + String(argIndex) + " : " + String(arg.toInt()) + " int");
     return arg.toInt();
   }
 }
@@ -724,9 +725,10 @@ void check_sequences()
 
 void set_velocity_stepper(stepper &stepper, double vel)
 {
+  Serial.println("set_velocity_stepper: vel " + String(vel));
   double step_sleep_milli = (stepper.full_rev_mm * stepper.microstepping) / (360.0 * vel);
   stepper.step_sleep_milli = int(round(step_sleep_milli));
-  Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli) + " vel: " + String(vel));
+  Serial.println("set_velocity_stepper: stepper.step_sleep_milli" + String(stepper.step_sleep_milli) + " vel: " + vel);
 }
 
 // void set_velocity_stepper(stepper &stepper, int vel)
