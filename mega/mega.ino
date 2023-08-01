@@ -599,11 +599,25 @@ void pattern_sequence_check()
       }
       else if (pattern_sequence.current_move == 2 && !xyz_steppers_active())
       {
-        rotate_concurrent_mm(stepper_x, 100);
-        rotate_concurrent_mm(stepper_y, 100);
+        rotate_concurrent_mm(stepper_x, 70);
+        rotate_concurrent_mm(stepper_y, 70);
         pattern_sequence.current_move = 3;
       }
-      else if (pattern_sequence.current_move == 3 && !xyz_steppers_active()) // do the pattern
+      else if (pattern_sequence.current_move == 3 && !xyz_steppers_active())
+      {
+        rotate_concurrent_mm(stepper_x, 30);
+        rotate_concurrent_mm(stepper_y, 30);
+        digitalWrite(SOLENOID_VALVE_SYRINGE_2, HIGH);
+        syringe_end();
+        pattern_sequence.current_move = 5;
+      }
+      else if (pattern_sequence.current_move == 4 && !xyz_steppers_active())
+      {
+        digitalWrite(SOLENOID_VALVE_SYRINGE_2, HIGH);
+        syringe_end();
+        pattern_sequence.current_move = 5;
+      }
+      else if (pattern_sequence.current_move == 5 && !xyz_steppers_active()) // do the pattern
       {
         if (pattern_sequence.should_move_horizontal)
         {
@@ -631,10 +645,12 @@ void pattern_sequence_check()
         }
         else
         {
-          pattern_sequence.current_move = 4;
+          digitalWrite(SOLENOID_VALVE_SYRINGE_2, LOW);
+          stop_stepper(stepper_syringe);
+          pattern_sequence.current_move = 6;
         }
       }
-      else if (pattern_sequence.current_move == 4 && !xyz_steppers_active())
+      else if (pattern_sequence.current_move == 6 && !xyz_steppers_active())
       {
         if (digitalRead(STEPPER_X_DIR) == HIGH) // to check the direction of the stepper // HIGH
         {
@@ -643,14 +659,14 @@ void pattern_sequence_check()
         rotate_concurrent_mm(stepper_y, -10);
         pattern_sequence.should_move_horizontal = true;
         pattern_sequence.current_vertical_mm = 0;
-        pattern_sequence.current_move = 5;
+        pattern_sequence.current_move = 7;
       }
-      else if (pattern_sequence.current_move == 5 && !xyz_steppers_active())
+      else if (pattern_sequence.current_move == 7 && !xyz_steppers_active())
       {
         pattern_sequence.should_move_horizontal = true;
         pattern_sequence.current_vertical_mm = 0;
         pattern_sequence.current_repetition++;
-        pattern_sequence.current_move = 3;
+        pattern_sequence.current_move = 4;
       }
     }
     else if (pattern_sequence.current_repetition >= pattern_sequence.number_of_repetitions)
