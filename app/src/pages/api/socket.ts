@@ -47,7 +47,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     );
 
     arduinoParser.on("data", function (data: string) {
-      io.emit("data from board: ", data);
+      console.log("data from board: ", data);
     });
 
     io.on("connection", (socket) => {

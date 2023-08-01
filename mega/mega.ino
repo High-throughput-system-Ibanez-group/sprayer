@@ -274,78 +274,85 @@ struct GetStepperStepsCommand
 };
 
 // Define command processing function
-void process_command(byte command_code, byte *data, int length)
+void process_command(int command_code, int num_args)
 {
-  Serial.print("Processing command");
+  // Process the command received from Node.js based on command code and number of arguments
   switch (command_code)
   {
   case STEPPER_COMMAND:
-  {
-    if (length != sizeof(StepperCommand))
+    if (num_args == 7)
     {
-      Serial.print("Invalid command length");
-      // Invalid command length
-      return;
+      int arg1 = Serial.parseInt();
+      int arg2 = Serial.parseInt();
+      int arg3 = Serial.parseInt();
+      int arg4 = Serial.parseInt();
+      int arg5 = Serial.parseInt();
+      int arg6 = Serial.parseInt();
+      int arg7 = Serial.parseInt();
+
+      // Handle Command 0x41 with 2 arguments (arg1 and arg2)
+      // Add your code here to perform specific actions
+      Serial.print("Received Command 0x41 - Argument 1: ");
+      Serial.print(arg1);
+      Serial.print(", Argument 2: ");
+      Serial.println(arg2);
+      Serial.print(", Argument 3: ");
+      Serial.println(arg3);
+      Serial.print(", Argument 4: ");
+      Serial.println(arg4);
+      Serial.print(", Argument 5: ");
+      Serial.println(arg5);
+      Serial.print(", Argument 6: ");
+      Serial.println(arg6);
+      Serial.print(", Argument 7: ");
+      Serial.println(arg7);
     }
-    StepperCommand *cmd = (StepperCommand *)data;
-    setup_stepper(cmd->name, cmd->dir, cmd->free_rotate, cmd->steps, cmd->step_sleep_millis, cmd->disable, cmd->count_steps);
+    else
+    {
+      // Invalid number of arguments for Command 0x41
+      Serial.println("Invalid number of arguments for Command 0x41");
+    }
     break;
-  }
   case SET_PRESSURE_COMMAND:
-  {
-    if (length != sizeof(SetPressureCommand))
+    if (num_args == 1)
     {
-      // Invalid command length
-      return;
+      int arg1 = Serial.parseInt();
+      // Handle Command 0x42 with 1 argument (arg1)
+      // Add your code here to perform specific actions
+      Serial.print("Received Command 0x42 - Argument 1: ");
+      Serial.println(arg1);
     }
-    SetPressureCommand *cmd = (SetPressureCommand *)data;
-    set_pressure_regulator(cmd->val);
-    // Handle pressure regulator command
+    else
+    {
+      // Invalid number of arguments for Command 0x42
+      Serial.println("Invalid number of arguments for Command 0x42");
+    }
     break;
-  }
   case SET_VALVE_COMMMAND:
-  {
-    if (length != sizeof(SetValveCommand))
+    if (num_args == 2)
     {
-      // Invalid command length
-      return;
+      int arg1 = Serial.parseInt();
+      int arg2 = Serial.parseInt();
+      // Handle Command 0x43 with 2 arguments (arg1 and arg2)
+      // Add your code here to perform specific actions
+      Serial.print("Received Command 0x43 - Argument 1: ");
+      Serial.print(arg1);
+      Serial.print(", Argument 2: ");
+      Serial.println(arg2);
     }
-    SetValveCommand *cmd = (SetValveCommand *)data;
-    set_solenoid_valve_syringe(cmd->name, cmd->val);
-    break;
-    // Add more commands as needed
-  }
-  case GET_PRESSURE_COMMAND:
-  {
-    if (length != sizeof(SendPressureCommand))
+    else
     {
-      // Invalid command length
-      return;
+      // Invalid number of arguments for Command 0x43
+      Serial.println("Invalid number of arguments for Command 0x43");
     }
-    int V2 = analogRead(PRESSURE_REGULATOR_IN);
-    byte message[] = {GET_PRESSURE_COMMAND, (byte)(V2 >> 8), (byte)V2};
-    Serial.write(message, sizeof(message));
     break;
-  }
-  case GET_STEPPER_STEPS_COMMAND:
-  {
-    if (length != sizeof(GetStepperStepsCommand))
-    {
-      // Invalid command length
-      return;
-    }
-    GetStepperStepsCommand *cmd = (GetStepperStepsCommand *)data;
-    stepper *stepper_ptr = &steppers[cmd->name];
-    byte message[] = {GET_STEPPER_STEPS_COMMAND, (byte)(stepper_ptr->steps >> 8), (byte)stepper_ptr->steps};
-    Serial.write(message, sizeof(message));
-    break;
-  }
+
   default:
-    // Invalid command
+    // Invalid command code
+    Serial.println("Invalid command code");
     break;
   }
 }
-
 // Define serial input buffer
 byte serial_buffer[256];
 int serial_buffer_pos = 0;
@@ -353,45 +360,43 @@ int serial_buffer_pos = 0;
 // Define serial input processing function
 void process_serial_input()
 {
-  Serial.print("Entering process_serial_input");
-  while (Serial.available() > 0)
+  if (Serial.available())
   {
-    Serial.print("Serial available");
-    byte b = Serial.read();
-    if (serial_buffer_pos == 0 && b != 0xFF)
+    int command_code;
+    int num_args;
+
+    if (Serial.peek() == '0' && Serial.read() == 'x')
     {
-      // Discard invalid data
-      continue;
-    }
-    serial_buffer[serial_buffer_pos++] = b;
-    if (serial_buffer_pos == 3)
-    {
-      // Command header received
-      Serial.print("Command header received");
-      byte command_code = serial_buffer[1];
-      int length = serial_buffer[2];
-      if (length > 0)
+      // Read the hexadecimal value as a string
+      char hexString[9]; // Assuming 8-bit integers (4 characters for 32-bit integers + 1 for null terminator)
+      for (int i = 0; i < sizeof(hexString) - 1; i++)
       {
-        // Wait for command data
-        continue;
+        char c = Serial.peek();
+        if (isHexadecimalDigit(c))
+        {
+          hexString[i] = Serial.read();
+        }
+        else
+        {
+          // Invalid hexadecimal format
+          return;
+        }
       }
-      // Process command with no data
-      process_command(command_code, NULL, 0);
-      serial_buffer_pos = 0;
+      hexString[sizeof(hexString) - 1] = '\0';
+
+      // Convert the hexadecimal string to an integer
+      command_code = strtol(hexString, NULL, 16);
     }
-    else if (serial_buffer_pos > 3)
+    else
     {
-      // Command data received
-      Serial.print("Command data received");
-      int length = serial_buffer[2];
-      if (serial_buffer_pos == length + 3)
-      {
-        // All command data received
-        Serial.print("All command data received");
-        process_command(serial_buffer[1], &serial_buffer[3], length);
-        serial_buffer_pos = 0;
-      }
+      // Invalid command format
+      return;
     }
+
+    num_args = Serial.parseInt();
+
+    // Process the command with the appropriate number of arguments
+    process_command(command_code, num_args);
   }
 }
 
