@@ -62,7 +62,7 @@ stepper stepper_y;
 stepper stepper_z;
 stepper stepper_s; // syringe
 
-stepper steppers[] = {stepper_x, stepper_y, stepper_z, stepper_s};
+stepper *steppers[] = {&stepper_x, &stepper_y, &stepper_z, &stepper_s};
 
 void setup()
 {
@@ -177,12 +177,7 @@ void stop_stepper(stepper &stepper)
   stepper.pending_steps = 0;
   stepper.free_rotate = 0;
 
-  // send message
-  byte message[3];
-  message[0] = STEPPER_STOPPED_COMMAND;
-  message[1] = (stepper.name >> 8) & 0xFF; // high byte
-  message[2] = stepper.name & 0xFF;        // low byte
-  Serial.write(message, sizeof(message));
+  // TODO: Send stop message
 }
 
 void check_limit(stepper &stepper)
@@ -214,18 +209,17 @@ void set_solenoid_valve_syringe(int syringe, int val)
   }
 }
 
-void setup_stepper(int name, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
+void set_stepper(stepper *stepper, int name, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
 {
-  stepper *stepper_ptr = &steppers[name];
-
-  digitalWrite(stepper_ptr->dir, dir);
-  stepper_ptr->name = name;
-  stepper_ptr->free_rotate = free_rotate;
-  stepper_ptr->pending_steps = steps;
-  stepper_ptr->total_steps = 0;
-  stepper_ptr->step_sleep_millis = step_sleep_millis;
-  stepper_ptr->disable = disable;
-  stepper_ptr->count_steps = count_steps;
+  Serial.println("set_stepper");
+  digitalWrite(stepper->dir, dir);
+  stepper->name = name;
+  stepper->free_rotate = free_rotate;
+  stepper->pending_steps = steps;
+  stepper->total_steps = 0;
+  stepper->step_sleep_millis = step_sleep_millis;
+  stepper->disable = disable;
+  stepper->count_steps = count_steps;
 }
 
 void check_steppers()
@@ -236,167 +230,46 @@ void check_steppers()
   rotate_stepper(stepper_s);
 }
 
-// Define command structures
-struct StepperCommand
+int get_command_arg(String command, int argIndex)
 {
-  byte command_code;
-  int name;
-  int dir;
-  int free_rotate;
-  int steps;
-  int step_sleep_millis;
-  int disable;
-  int count_steps;
-};
-
-struct SetPressureCommand
-{
-  byte command_code;
-  int val;
-};
-
-struct SetValveCommand
-{
-  byte command_code;
-  int name;
-  int val;
-};
-
-struct SendPressureCommand
-{
-  byte command_code;
-};
-
-struct GetStepperStepsCommand
-{
-  byte command_code;
-  int name;
-};
-
-// Define command processing function
-void process_command(int command_code, int num_args)
-{
-  // Process the command received from Node.js based on command code and number of arguments
-  switch (command_code)
+  int separatorIndex = 0;
+  for (int i = 0; i < argIndex; i++)
   {
-  case STEPPER_COMMAND:
-    if (num_args == 7)
+    separatorIndex = command.indexOf(':', separatorIndex + 1);
+    if (separatorIndex == -1)
     {
-      int arg1 = Serial.parseInt();
-      int arg2 = Serial.parseInt();
-      int arg3 = Serial.parseInt();
-      int arg4 = Serial.parseInt();
-      int arg5 = Serial.parseInt();
-      int arg6 = Serial.parseInt();
-      int arg7 = Serial.parseInt();
-
-      // Handle Command 0x41 with 2 arguments (arg1 and arg2)
-      // Add your code here to perform specific actions
-      Serial.print("Received Command 0x41 - Argument 1: ");
-      Serial.print(arg1);
-      Serial.print(", Argument 2: ");
-      Serial.println(arg2);
-      Serial.print(", Argument 3: ");
-      Serial.println(arg3);
-      Serial.print(", Argument 4: ");
-      Serial.println(arg4);
-      Serial.print(", Argument 5: ");
-      Serial.println(arg5);
-      Serial.print(", Argument 6: ");
-      Serial.println(arg6);
-      Serial.print(", Argument 7: ");
-      Serial.println(arg7);
+      return 0;
     }
-    else
-    {
-      // Invalid number of arguments for Command 0x41
-      Serial.println("Invalid number of arguments for Command 0x41");
-    }
-    break;
-  case SET_PRESSURE_COMMAND:
-    if (num_args == 1)
-    {
-      int arg1 = Serial.parseInt();
-      // Handle Command 0x42 with 1 argument (arg1)
-      // Add your code here to perform specific actions
-      Serial.print("Received Command 0x42 - Argument 1: ");
-      Serial.println(arg1);
-    }
-    else
-    {
-      // Invalid number of arguments for Command 0x42
-      Serial.println("Invalid number of arguments for Command 0x42");
-    }
-    break;
-  case SET_VALVE_COMMMAND:
-    if (num_args == 2)
-    {
-      int arg1 = Serial.parseInt();
-      int arg2 = Serial.parseInt();
-      // Handle Command 0x43 with 2 arguments (arg1 and arg2)
-      // Add your code here to perform specific actions
-      Serial.print("Received Command 0x43 - Argument 1: ");
-      Serial.print(arg1);
-      Serial.print(", Argument 2: ");
-      Serial.println(arg2);
-    }
-    else
-    {
-      // Invalid number of arguments for Command 0x43
-      Serial.println("Invalid number of arguments for Command 0x43");
-    }
-    break;
-
-  default:
-    // Invalid command code
-    Serial.println("Invalid command code");
-    break;
   }
+  String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
+  // Serial.println("arg index " + String(argIndex) + " : " + arg);
+  return arg.toInt();
 }
-// Define serial input buffer
-byte serial_buffer[256];
-int serial_buffer_pos = 0;
 
 // Define serial input processing function
 void process_serial_input()
 {
-  if (Serial.available())
+  if (Serial.available() > 0)
   {
-    int command_code;
-    int num_args;
+    String command = Serial.readStringUntil('\n');
 
-    if (Serial.peek() == '0' && Serial.read() == 'x')
+    switch (command.charAt(0))
     {
-      // Read the hexadecimal value as a string
-      char hexString[9]; // Assuming 8-bit integers (4 characters for 32-bit integers + 1 for null terminator)
-      for (int i = 0; i < sizeof(hexString) - 1; i++)
-      {
-        char c = Serial.peek();
-        if (isHexadecimalDigit(c))
-        {
-          hexString[i] = Serial.read();
-        }
-        else
-        {
-          // Invalid hexadecimal format
-          return;
-        }
-      }
-      hexString[sizeof(hexString) - 1] = '\0';
-
-      // Convert the hexadecimal string to an integer
-      command_code = strtol(hexString, NULL, 16);
+    case STEPPER_COMMAND:
+      int name = get_command_arg(command, 1);
+      set_stepper(steppers[name], name, get_command_arg(command, 2), get_command_arg(command, 3), get_command_arg(command, 4), get_command_arg(command, 5), get_command_arg(command, 6), get_command_arg(command, 7));
+      break;
+    case SET_PRESSURE_COMMAND:
+      set_pressure_regulator(get_command_arg(command, 1));
+      break;
+    case SET_VALVE_COMMMAND:
+      set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
+      break;
+    case GET_STEPPER_STEPS_COMMAND:
+      int stepper_name = get_command_arg(command, 1);
+      // TODO: send stepper steps
+      break;
     }
-    else
-    {
-      // Invalid command format
-      return;
-    }
-
-    num_args = Serial.parseInt();
-
-    // Process the command with the appropriate number of arguments
-    process_command(command_code, num_args);
   }
 }
 

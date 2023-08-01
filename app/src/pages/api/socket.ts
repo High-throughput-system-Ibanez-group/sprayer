@@ -22,7 +22,7 @@ const arduinoSerialPort = new SerialPort({
   baudRate: 9600,
 });
 
-const arduinoReadlineParser = new ReadlineParser();
+const arduinoReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {

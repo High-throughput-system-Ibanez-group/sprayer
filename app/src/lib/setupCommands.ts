@@ -26,6 +26,8 @@ export const setupStepperCommand = (
   disable: DISABLE,
   count_steps: COUNT_STEPS
 ) => {
-  const command = `${STEPPER_COMMAND.toString(16)} ${name} ${dir} ${free_rotate} ${steps} ${step_sleep_millis} ${disable} ${count_steps}`;
+  const command = `${String.fromCharCode(
+    STEPPER_COMMAND
+  )}:${name}:${dir}:${free_rotate}:${steps}:${step_sleep_millis}:${disable}:${count_steps}`;
   return command;
 };
