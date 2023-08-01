@@ -53,7 +53,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     io.on("connection", (socket) => {
       console.log("Socket connected");
       socket.on("command", (command: string) => {
-        arduinoSerialPort.write(command, (err) => {
+        arduinoSerialPort.write(`${command}\n`, (err) => {
           if (err) {
             return console.log("err on write.. ", err?.message);
           }
