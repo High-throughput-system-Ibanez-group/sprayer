@@ -1,3 +1,10 @@
+import {
+  type Command,
+  STEPPER_COMMAND_S,
+  STEPPER_COMMAND_X,
+  STEPPER_COMMAND_Y,
+  STEPPER_COMMAND_Z,
+} from "~/lib/commands";
 import { setupStepperCommand } from "~/lib/setupCommands";
 import {
   type Stepper,
@@ -5,18 +12,17 @@ import {
   FREE_ROTATE,
   DISABLE,
   COUNT_STEPS,
-  STEPPER_NAME,
 } from "~/lib/types";
 
-export const steperNameToString = (name: STEPPER_NAME) => {
-  switch (name) {
-    case STEPPER_NAME.X:
+export const steperCommandToString = (command: Command) => {
+  switch (command) {
+    case STEPPER_COMMAND_X:
       return "X";
-    case STEPPER_NAME.Y:
+    case STEPPER_COMMAND_Y:
       return "Y";
-    case STEPPER_NAME.Z:
+    case STEPPER_COMMAND_Z:
       return "Z";
-    case STEPPER_NAME.S:
+    case STEPPER_COMMAND_S:
       return "S";
     default:
       return "X";
@@ -26,7 +32,7 @@ export const steperNameToString = (name: STEPPER_NAME) => {
 export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
   const steps = Math.round((mm / stepper.full_rev_mm) * stepper.microstepping);
   return setupStepperCommand(
-    stepper.name,
+    stepper.command,
     dir,
     FREE_ROTATE.OFF,
     steps,
@@ -38,7 +44,7 @@ export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
 
 export const zeroingStart = (stepper: Stepper) => {
   return setupStepperCommand(
-    stepper.name,
+    stepper.command,
     DIR.BACKWARD,
     FREE_ROTATE.ON,
     0,
@@ -50,7 +56,7 @@ export const zeroingStart = (stepper: Stepper) => {
 
 export const zeroingEnd = (stepper: Stepper) => {
   return setupStepperCommand(
-    stepper.name,
+    stepper.command,
     DIR.FORWARD,
     FREE_ROTATE.ON,
     0,
@@ -62,7 +68,7 @@ export const zeroingEnd = (stepper: Stepper) => {
 
 export const stepperStop = (stepper: Stepper) => {
   return setupStepperCommand(
-    stepper.name,
+    stepper.command,
     DIR.FORWARD,
     FREE_ROTATE.OFF,
     0,
@@ -75,7 +81,7 @@ export const stepperStop = (stepper: Stepper) => {
 export const stepperDisable = (stepper: Stepper) => {
   // TODO: Await zeroing start to end and then disable
   return setupStepperCommand(
-    stepper.name,
+    stepper.command,
     DIR.FORWARD,
     FREE_ROTATE.OFF,
     0,

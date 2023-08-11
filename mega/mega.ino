@@ -30,17 +30,21 @@
 #define SOLENOID_VALVE_SYRINGE_2 39
 
 // commands
-#define STEPPER_COMMAND 0x41
-#define SET_PRESSURE_COMMAND 0x42
-#define GET_PRESSURE_COMMAND 0x43
-#define SET_VALVE_COMMMAND 0x44
-#define STEPPER_STOPPED_COMMAND 0x45
-#define STEPPER_DISABLED_COMMAND 0x46
-#define GET_STEPPER_STEPS_COMMAND 0x47
+#define STEPPER_COMMAND_X 0x41
+#define STEPPER_COMMAND_Y 0x42
+#define STEPPER_COMMAND_Z 0x43
+#define STEPPER_COMMAND_S 0x44
+#define SET_PRESSURE_COMMAND 0x45
+#define GET_PRESSURE_COMMAND 0x46
+#define SET_VALVE_COMMMAND_1 0x47
+#define SET_VALVE_COMMMAND_2 0x48
+#define STEPPER_DISABLED_COMMAND 0x49
+#define GET_STEPPER_STEPS_COMMAND 0x4A
+#define FINISH_COMMAND 0x4B
 
 struct stepper
 {
-  int name; // 0->x, 1->y, 2->z, 3->s
+  int command;
   int stp;
   int dir;
   int pow;
@@ -71,6 +75,7 @@ void setup()
   stepper_x.pow = STEPPER_X_POW;
   stepper_x.limit_start = STEPPER_X_LIMIT_START;
   stepper_x.limit_end = STEPPER_X_LIMIT_END;
+  stepper_x.command = STEPPER_COMMAND_X;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -78,6 +83,7 @@ void setup()
   stepper_y.pow = STEPPER_Y_POW;
   stepper_y.limit_start = STEPPER_Y_LIMIT_START;
   stepper_y.limit_end = STEPPER_Y_LIMIT_END;
+  stepper_y.command = STEPPER_COMMAND_Y;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -85,6 +91,7 @@ void setup()
   stepper_z.pow = STEPPER_Z_POW;
   stepper_z.limit_start = STEPPER_Z_LIMIT_START;
   stepper_z.limit_end = STEPPER_Z_LIMIT_END;
+  stepper_z.command = STEPPER_COMMAND_Z;
   setup_stepper(stepper_z);
 
   stepper_s.stp = STEPPER_SYRINGE_STP;
@@ -92,6 +99,7 @@ void setup()
   stepper_s.pow = STEPPER_SYRINGE_POW;
   stepper_s.limit_start = STEPPER_SYRINGE_LIMIT_START;
   stepper_s.limit_end = STEPPER_SYRINGE_LIMIT_END;
+  stepper_s.command = STEPPER_COMMAND_S;
   setup_stepper(stepper_s);
 
   // config pressure regulator
@@ -130,13 +138,6 @@ void disable_stepper(stepper &stepper)
   stepper.disable = 0;
   stop_stepper(stepper);
   digitalWrite(stepper.pow, LOW);
-
-  // send message
-  byte message[3];
-  message[0] = STEPPER_DISABLED_COMMAND;
-  message[1] = (stepper.name >> 8) & 0xFF; // high byte
-  message[2] = stepper.name & 0xFF;        // low byte
-  Serial.write(message, sizeof(message));
 }
 
 void rotate_stepper(stepper &stepper)
@@ -144,6 +145,7 @@ void rotate_stepper(stepper &stepper)
   if (stepper.disable)
   {
     disable_stepper(stepper);
+    Serial.println(STEPPER_DISABLED_COMMAND + ":" + stepper.command);
   }
   else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < millis()))
   {
@@ -160,6 +162,11 @@ void rotate_stepper(stepper &stepper)
     else
     {
       stepper.pending_steps -= 1;
+      if (stepper.pending_steps == 0)
+      {
+        // send finish command based on stepper name
+        Serial.println(FINISH_COMMAND + ":" + stepper.command);
+      }
     }
   }
 }
@@ -176,8 +183,7 @@ void stop_stepper(stepper &stepper)
 {
   stepper.pending_steps = 0;
   stepper.free_rotate = 0;
-
-  // TODO: Send stop message
+  Serial.println(FINISH_COMMAND + stepper.command);
 }
 
 void check_limit(stepper &stepper)
@@ -195,6 +201,7 @@ void check_limit(stepper &stepper)
 void set_pressure_regulator(int val)
 {
   analogWrite(PRESSURE_REGULATOR_OUT, val);
+  Serial.println(FINISH_COMMAND + ":" + SET_PRESSURE_COMMAND);
 }
 
 void set_solenoid_valve_syringe(int syringe, int val)
@@ -209,11 +216,9 @@ void set_solenoid_valve_syringe(int syringe, int val)
   }
 }
 
-void set_stepper(stepper *stepper, int name, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
+void set_stepper(stepper *stepper, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
 {
-  Serial.println("set_stepper");
   digitalWrite(stepper->dir, dir);
-  stepper->name = name;
   stepper->free_rotate = free_rotate;
   stepper->pending_steps = steps;
   stepper->total_steps = 0;
@@ -255,14 +260,26 @@ void process_serial_input()
 
     switch (command.charAt(0))
     {
-    case STEPPER_COMMAND:
-      int name = get_command_arg(command, 1);
-      set_stepper(steppers[name], name, get_command_arg(command, 2), get_command_arg(command, 3), get_command_arg(command, 4), get_command_arg(command, 5), get_command_arg(command, 6), get_command_arg(command, 7));
+    case STEPPER_COMMAND_X:
+      set_stepper(&stepper_x, get_command_arg(command, 1), get_command_arg(command, 2), get_command_arg(command, 3), get_command_arg(command, 4), get_command_arg(command, 5), get_command_arg(command, 6));
+      break;
+    case STEPPER_COMMAND_Y:
+      set_stepper(&stepper_y, get_command_arg(command, 1), get_command_arg(command, 2), get_command_arg(command, 3), get_command_arg(command, 4), get_command_arg(command, 5), get_command_arg(command, 6));
+      break;
+    case STEPPER_COMMAND_Z:
+      set_stepper(&stepper_z, get_command_arg(command, 1), get_command_arg(command, 2), get_command_arg(command, 3), get_command_arg(command, 4), get_command_arg(command, 5), get_command_arg(command, 6));
+      break;
+    case STEPPER_COMMAND_S:
+      set_stepper(&stepper_s, get_command_arg(command, 1), get_command_arg(command, 2), get_command_arg(command, 3), get_command_arg(command, 4), get_command_arg(command, 5), get_command_arg(command, 6));
       break;
     case SET_PRESSURE_COMMAND:
       set_pressure_regulator(get_command_arg(command, 1));
       break;
-    case SET_VALVE_COMMMAND:
+    case SET_VALVE_COMMMAND_1:
+      set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
+      break;
+
+    case SET_VALVE_COMMMAND_2:
       set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
       break;
     case GET_STEPPER_STEPS_COMMAND:

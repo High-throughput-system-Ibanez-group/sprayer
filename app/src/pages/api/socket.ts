@@ -46,25 +46,28 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       console.log("err with board connection..", err)
     );
 
-    arduinoParser.on("data", function (data: string) {
-      console.log("data from board: ", data);
+    arduinoParser.on("data", function (receivedCommand: string) {
+      io.emit("receivedCommand", receivedCommand);
+      console.log("receivedCommand: ", receivedCommand);
     });
 
     io.on("connection", (socket) => {
       console.log("Socket connected");
-      socket.on("command", (command: string) => {
-        arduinoSerialPort.write(`${command}\n`, (err) => {
-          if (err) {
-            return console.log("err on write.. ", err?.message);
-          }
-        });
-        console.log("Command: ", command);
+      socket.on("sendCommand", (command: string) => {
+        arduinoSerialPort.write(`${command}\n`, handlePortError);
+        console.log("sendCommand: ", command);
       });
     });
 
     io.on("error", (err) => console.log("err with socket connection.. ", err));
   }
   res.end();
+};
+
+const handlePortError = (err: Error | null | undefined) => {
+  if (err) {
+    return console.log("err on write.. ", err?.message);
+  }
 };
 
 export default SocketHandler;

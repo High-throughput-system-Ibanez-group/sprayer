@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import createSingleton from "~/stores/utils/createSingleton";
 import { io, type Socket } from "socket.io-client";
+import { executeCommand } from "~/lib/commandExecutionManager";
 
 class AppStore {
   socket: Socket | undefined = undefined;
@@ -21,6 +22,12 @@ class AppStore {
       });
     } catch (e) {
       console.log("error: ", e);
+    }
+  };
+
+  executeCommand = (command: string) => {
+    if (this.socket) {
+      return executeCommand(this.socket, command);
     }
   };
 }

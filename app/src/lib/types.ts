@@ -1,13 +1,8 @@
+import { type Command } from "~/lib/commands";
+
 export enum DIR {
   FORWARD = 0,
   BACKWARD = 1,
-}
-
-export enum STEPPER_NAME {
-  X = 0,
-  Y = 1,
-  Z = 2,
-  S = 3,
 }
 
 export enum FREE_ROTATE {
@@ -26,7 +21,7 @@ export enum COUNT_STEPS {
 }
 
 export type Stepper = {
-  name: STEPPER_NAME;
+  command: Command;
   microstepping: number;
   full_rev_mm: number;
   free_rotate: boolean;

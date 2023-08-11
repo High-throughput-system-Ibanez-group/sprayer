@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useRef } from "react";
-import { steperNameToString, stepperMoveMM } from "~/lib/functions";
+import { steperCommandToString, stepperMoveMM } from "~/lib/functions";
 import { DIR, type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
 import { componentsStore } from "~/stores/components";
@@ -23,14 +23,11 @@ export const Moves = observer(() => {
 });
 
 const Move = observer(({ stepper }: { stepper: Stepper }) => {
-  const app = appStore();
-  const socket = app.socket;
+  const { executeCommand } = appStore();
   const refMm = useRef<HTMLInputElement>(null);
 
-  const onSpecificMove = (stepper: Stepper, dir: DIR, mm: number) => {
-    if (!socket) return;
-    console.log("onSpecificMove", dir, mm);
-    socket.emit("command", stepperMoveMM(stepper, mm, dir));
+  const onSpecificMove = async (stepper: Stepper, dir: DIR, mm: number) => {
+    await executeCommand(stepperMoveMM(stepper, mm, dir));
   };
 
   return (
@@ -38,13 +35,13 @@ const Move = observer(({ stepper }: { stepper: Stepper }) => {
       <div className="h-4" />
       <div className="relative flex items-center space-x-4">
         <label htmlFor="number-input" className="absolute -left-4 font-medium">
-          {steperNameToString(stepper.name)}:
+          {steperCommandToString(stepper.command)}:
         </label>
         <button
           type="button"
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
-            onSpecificMove(
+            void onSpecificMove(
               stepper,
               DIR.BACKWARD,
               refMm.current?.valueAsNumber || 0
@@ -66,7 +63,7 @@ const Move = observer(({ stepper }: { stepper: Stepper }) => {
           type="button"
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
-            onSpecificMove(
+            void onSpecificMove(
               stepper,
               DIR.FORWARD,
               refMm.current?.valueAsNumber || 0
