@@ -1,21 +1,28 @@
 import { observer } from "mobx-react-lite";
+import { SATAND_BY_MOTORS_SEQUENCE, Step } from "~/lib/sequences";
 import { appStore } from "~/stores/app";
 
 export const Zeroing = observer(() => {
-  const app = appStore();
-  const socket = app.socket;
+  const { handleSequenceStep, executeCommandSequence } = appStore();
 
-  const handleZeroingClick = (type: "start" | "end") => {
+  const handleZeroingClick = async (type: "start" | "end") => {
     console.log("ZeroingClick button clicked");
-    socket?.emit("command", `zeroing_${type}`);
+    switch (type) {
+      case "start":
+        await handleSequenceStep(Step.ZEROING_START);
+        break;
+      case "end":
+        await handleSequenceStep(Step.ZEROING_END);
+        break;
+    }
   };
 
-  const standbyMotors = () => {
-    socket?.emit("command", "standby_x_y_z");
+  const standbyMotors = async () => {
+    await executeCommandSequence(SATAND_BY_MOTORS_SEQUENCE);
   };
 
-  const onStopMotors = () => {
-    socket?.emit("command", "stop_x_y_z");
+  const onStopMotors = async () => {
+    await handleSequenceStep(Step.STOP_MOTORS);
   };
 
   return (
@@ -26,7 +33,7 @@ export const Zeroing = observer(() => {
         <button
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
-            handleZeroingClick("start");
+            void handleZeroingClick("start");
           }}
         >
           Zeroing start
@@ -35,7 +42,7 @@ export const Zeroing = observer(() => {
         <button
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
-            handleZeroingClick("end");
+            void handleZeroingClick("end");
           }}
         >
           Zeroing end
@@ -47,7 +54,7 @@ export const Zeroing = observer(() => {
         className={
           "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
         }
-        onClick={standbyMotors}
+        onClick={void standbyMotors}
       >
         Stand-By Motors
       </button>
@@ -57,7 +64,7 @@ export const Zeroing = observer(() => {
         className={
           "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
         }
-        onClick={onStopMotors}
+        onClick={void onStopMotors}
       >
         Stop motors
       </button>

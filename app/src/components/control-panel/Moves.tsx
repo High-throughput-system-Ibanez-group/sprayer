@@ -3,20 +3,19 @@ import { useRef } from "react";
 import { steperCommandToString, stepperMoveMM } from "~/lib/functions";
 import { DIR, type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
-import { componentsStore } from "~/stores/components";
 
 export const Moves = observer(() => {
-  const components = componentsStore();
+  const app = appStore();
 
   return (
     <div className=" border- flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Moves</div>
       <div className="flex flex-col items-center justify-center py-6">
         <div>(mm)</div>
-        <Move stepper={components.stepperX} />
-        <Move stepper={components.stepperY} />
-        <Move stepper={components.stepperZ} />
-        <Move stepper={components.stepperS} />
+        <Move stepper={app.stepperX} />
+        <Move stepper={app.stepperY} />
+        <Move stepper={app.stepperZ} />
+        <Move stepper={app.stepperS} />
       </div>
     </div>
   );

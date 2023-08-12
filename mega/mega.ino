@@ -39,8 +39,10 @@
 #define SET_VALVE_COMMMAND_1 0x47
 #define SET_VALVE_COMMMAND_2 0x48
 #define STEPPER_DISABLED_COMMAND 0x49
-#define GET_STEPPER_STEPS_COMMAND 0x4A
+#define GET_STEPPER_STEPS_COMMAND_X 0x4A
 #define FINISH_COMMAND 0x4B
+#define GET_STEPPER_STEPS_COMMAND_Y 0x4C
+#define GET_STEPPER_STEPS_COMMAND_Z 0x4D
 
 struct stepper
 {
@@ -278,13 +280,17 @@ void process_serial_input()
     case SET_VALVE_COMMMAND_1:
       set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
       break;
-
     case SET_VALVE_COMMMAND_2:
       set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
       break;
-    case GET_STEPPER_STEPS_COMMAND:
-      int stepper_name = get_command_arg(command, 1);
-      // TODO: send stepper steps
+    case GET_STEPPER_STEPS_COMMAND_X:
+      Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_X + ':' + stepper_x.total_steps);
+      break;
+    case GET_STEPPER_STEPS_COMMAND_Y:
+      Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_Y + ':' + stepper_y.total_steps);
+      break;
+    case GET_STEPPER_STEPS_COMMAND_Z:
+      Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_Z + ':' + stepper_z.total_steps);
       break;
     }
   }

@@ -1,11 +1,15 @@
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
+import {
+  WORKING_SPACE_X_SEQUENCE,
+  WORKING_SPACE_Y_SEQUENCE,
+  WORKING_SPACE_Z_SEQUENCE,
+} from "~/lib/sequences";
 import { appStore } from "~/stores/app";
 import { type Axis } from "~/utils/types";
 
 export const WorkingSpace = observer(() => {
-  const app = appStore();
-  const socket = app.socket;
+  const { executeCommandSequence } = appStore();
 
   const [state, setState] = useState({
     x: {
@@ -22,49 +26,30 @@ export const WorkingSpace = observer(() => {
     },
   });
 
-  const handleStepperSubmit = (stepperAxis: Axis) => {
+  const handleStepperSubmit = async (stepperAxis: Axis) => {
     setState((prev) => ({
       ...prev,
       [stepperAxis]: {
-        ...prev.x,
+        ...prev[stepperAxis],
         loading: true,
       },
     }));
-    socket?.emit("command", `wspace_${stepperAxis}`);
+    const value = await executeCommandSequence(
+      stepperAxis === "x"
+        ? WORKING_SPACE_X_SEQUENCE
+        : stepperAxis === "y"
+        ? WORKING_SPACE_Y_SEQUENCE
+        : WORKING_SPACE_Z_SEQUENCE
+    );
+    setState((prev) => ({
+      ...prev,
+      [stepperAxis]: {
+        ...prev[stepperAxis],
+        loading: false,
+        value,
+      },
+    }));
   };
-
-  socket?.on("wspace_x", (data: string) => {
-    setState((prev) => ({
-      ...prev,
-      x: {
-        ...prev.x,
-        loading: false,
-        value: data,
-      },
-    }));
-  });
-
-  socket?.on("wspace_y", (data: string) => {
-    setState((prev) => ({
-      ...prev,
-      y: {
-        ...prev.y,
-        loading: false,
-        value: data,
-      },
-    }));
-  });
-
-  socket?.on("wspace_z", (data: string) => {
-    setState((prev) => ({
-      ...prev,
-      z: {
-        ...prev.z,
-        loading: false,
-        value: data,
-      },
-    }));
-  });
 
   return (
     <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -92,7 +77,7 @@ export const WorkingSpace = observer(() => {
             type="button"
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
-              handleStepperSubmit("x");
+              void handleStepperSubmit("x");
             }}
           >
             {state.x.loading ? "Loading.." : "Update x"}
@@ -114,7 +99,7 @@ export const WorkingSpace = observer(() => {
             type="button"
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
-              handleStepperSubmit("y");
+              void handleStepperSubmit("y");
             }}
           >
             {state.y.loading ? "Loading.." : "Update y"}
@@ -136,7 +121,7 @@ export const WorkingSpace = observer(() => {
             type="button"
             className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
             onClick={() => {
-              handleStepperSubmit("z");
+              void handleStepperSubmit("z");
             }}
           >
             {state.z.loading ? "Loading.." : "Update z"}

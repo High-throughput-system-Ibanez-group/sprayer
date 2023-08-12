@@ -1,40 +1,34 @@
 import { observer } from "mobx-react-lite";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { steperCommandToString } from "~/lib/functions";
+import { type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
 import { type Steppers } from "~/utils/types";
 
 export const Settings = () => {
+  const app = appStore();
   const [selectedStepper, setSelectedStepper] = useState<Steppers>("x");
 
   const handleStepperChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedStepper(event.target.value as Steppers);
   };
 
-  const testByteCommand = () => {
-    const COMMAND_ZEROING_END = 0x41;
-    const app = appStore();
-    const socket = app.socket;
-    socket?.emit(
-      "command",
-      [String.fromCharCode(COMMAND_ZEROING_END), 11, 22].join(":")
-    );
+  const getStepper = () => {
+    switch (selectedStepper) {
+      case "x":
+        return app.stepperX;
+      case "y":
+        return app.stepperY;
+      case "z":
+        return app.stepperZ;
+      case "s":
+        return app.stepperS;
+    }
   };
 
   return (
     <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Settings</div>
-      <div className="h-4" />
-      <button
-        type="button"
-        className={
-          "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-        }
-        onClick={() => {
-          testByteCommand();
-        }}
-      >
-        Test byte command
-      </button>
       <div className="h-4" />
       <div className="flex flex-col py-6">
         <label htmlFor="stepper-select" className="mb-2 text-lg font-medium">
@@ -51,30 +45,27 @@ export const Settings = () => {
           <option value="s">Syringe</option>
         </select>
         <div className="h-4" />
-        <Element stepper={selectedStepper} />
+        <Element stepper={getStepper()} />
       </div>
     </div>
   );
 };
 
-const Element = observer(({ stepper }: { stepper: Steppers }) => {
+const Element = observer(({ stepper }: { stepper: Stepper }) => {
   const app = appStore();
-  const socket = app.socket;
 
-  const refInputVel = useRef<HTMLInputElement>(null);
+  const [val, setVal] = useState(app.getStepperVelocity(stepper));
 
   const handleStepperSubmit = () => {
-    if (!refInputVel.current?.value) return;
-    socket?.emit(
-      "command",
-      `stepper_velocity_${stepper}:${refInputVel.current?.value}`
-    );
+    app.setStepperVelocity(stepper, val);
   };
+
+  const stepperName = steperCommandToString(stepper.command);
 
   return (
     <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <label htmlFor="number-input" className="font-medium">
-        {stepper}:
+        {stepperName}:
       </label>
       <div className="relative flex flex-col">
         <div>Velocity in mm/s</div>
@@ -82,7 +73,10 @@ const Element = observer(({ stepper }: { stepper: Steppers }) => {
           type="number"
           id="number-input"
           className="w-32 rounded-md border border-gray-300 px-3 py-2"
-          ref={refInputVel}
+          value={val}
+          onChange={(e) => {
+            setVal(Number(e.target.value));
+          }}
         />
       </div>
 
@@ -95,7 +89,7 @@ const Element = observer(({ stepper }: { stepper: Steppers }) => {
           handleStepperSubmit();
         }}
       >
-        Update {stepper}
+        Update {stepperName}
       </button>
     </div>
   );
