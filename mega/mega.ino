@@ -608,13 +608,13 @@ void pattern_sequence_check()
         rotate_concurrent_mm(stepper_x, 30);
         rotate_concurrent_mm(stepper_y, 30);
         digitalWrite(SOLENOID_VALVE_SYRINGE_2, HIGH);
-        syringe_end();
+        syringe_start();
         pattern_sequence.current_move = 5;
       }
       else if (pattern_sequence.current_move == 4 && !xyz_steppers_active())
       {
         digitalWrite(SOLENOID_VALVE_SYRINGE_2, HIGH);
-        syringe_end();
+        syringe_start();
         pattern_sequence.current_move = 5;
       }
       else if (pattern_sequence.current_move == 5 && !xyz_steppers_active()) // do the pattern
