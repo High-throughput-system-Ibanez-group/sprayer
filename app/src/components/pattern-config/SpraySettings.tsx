@@ -1,12 +1,20 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
+import { stepperZeroingStart } from "~/lib/setupCommands";
+import { VALVE_STATE } from "~/lib/types";
 import { appStore } from "~/stores/app";
 
 type ActiveButtonType = "Recharge" | "Spray" | "Flux nozzle";
 
 export const Settings = observer(() => {
-  const app = appStore();
-  const socket = app.socket;
+  const {
+    stepperStartS,
+    stepperEndS,
+    stepperStopS,
+    setValveState,
+    setPressure,
+  } = appStore();
+  // const socket = app.socket;
   const refInputSharpeningPressure = useRef<HTMLInputElement>(null);
 
   const [valve, setValve] = useState(false);
@@ -23,11 +31,11 @@ export const Settings = observer(() => {
 
   const onTogglePumping = () => {
     const command = pumping
-      ? "stop_syringe"
+      ? stepperStopS
       : activeButton === "Spray" || activeButton === "Flux nozzle"
-      ? "syringe_start"
-      : "syringe_end";
-    socket?.emit("command", command);
+      ? stepperStartS
+      : stepperEndS;
+    void command();
     setPumping(!pumping);
   };
 
@@ -39,66 +47,33 @@ export const Settings = observer(() => {
     const pressure = refInputSharpeningPressure.current?.valueAsNumber;
     if (pressure && !wrongPressure(pressure)) {
       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
-      socket?.emit("command", `set_sharpening_pressure:${value}`);
+      void setPressure(value);
+      // socket?.emit("command", `set_sharpening_pressure:${value}`);
     }
   };
 
   const onClickSetValve = () => {
-    socket?.emit(
-      "command",
-      `set_solenoid_valve_syringe_1:${valve ? "0" : "1"}`
-    );
+    void setValveState(1, valve ? VALVE_STATE.CLOSED : VALVE_STATE.OPEN);
     setValve(!valve);
   };
 
   const onClickSetValve2 = () => {
-    socket?.emit(
-      "command",
-      `set_solenoid_valve_syringe_2:${valve2 ? "0" : "1"}`
-    );
+    void setValveState(2, valve ? VALVE_STATE.CLOSED : VALVE_STATE.OPEN);
     setValve2(!valve2);
   };
 
-  useEffect(() => {
-    socket?.on("pressure_regulator_in", (data: string) => {
-      const value = parseInt(data);
-      // convert value from 0 to 1023 to pressure from 0.005 to 1
-      const pressure = (value / 1023) * (1 - 0.005) + 0.005;
-      // const pressure = ((value / 255) * (1 - 0.005)) + 0.005;
-      // three decimals max
-      setPressureInput(pressure.toFixed(3).toString());
-    });
-
-    socket?.on("solenoid_valve_syringe_1", (data) => {
-      const dataString = data as string;
-
-      setValve(dataString === "1" ? true : false);
-    });
-
-    socket?.on("solenoid_valve_syringe_2", (data) => {
-      const dataString = data as string;
-
-      setValve2(dataString === "1" ? true : false);
-    });
-
-    socket?.on("syringe_status", (data) => {
-      const dataString = data as string;
-
-      setPumping(dataString === "1" ? true : false);
-    });
-  }, [socket]);
-
   const onSyringeStart = () => {
-    socket?.emit("command", "syringe_start");
+    void stepperStartS();
+    // socket?.emit("command", "syringe_start");
   };
 
   const onSyringeEnd = () => {
-    socket?.emit("command", "syringe_end");
+    void stepperEndS();
   };
 
-  const onStopStyringe = () => {
-    socket?.emit("command", "stop_syringe");
-  };
+  // const onStopStyringe = () => {
+  //   socket?.emit("command", "stop_syringe");
+  // };
 
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -266,7 +241,7 @@ export const Settings = observer(() => {
         >
           Calibrate syringe end
         </button>
-        <div className="h-4" />
+        {/* <div className="h-4" />
         <button
           type="button"
           className={
@@ -275,7 +250,7 @@ export const Settings = observer(() => {
           onClick={onStopStyringe}
         >
           Stop syringe motor
-        </button>
+        </button> */}
       </div>
     </div>
   );

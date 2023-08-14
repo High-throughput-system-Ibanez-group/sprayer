@@ -3,20 +3,24 @@ import createSingleton from "~/stores/utils/createSingleton";
 import { io, type Socket } from "socket.io-client";
 import { executeCommand } from "~/lib/commandExecutionManager";
 import {
+  getPressureCommand,
   getStepperStepsCommand,
+  setPressureCommand,
+  setValve2Command,
   stepperCountSteps,
   stepperDisable,
   stepperStop,
   stepperZeroingEnd,
   stepperZeroingStart,
-} from "~/lib/functions";
+  setValve1Command,
+} from "~/lib/setupCommands";
 import {
   defStepperX,
   defStepperY,
   defStepperZ,
   defStepperS,
 } from "~/lib/defaults";
-import { type Stepper } from "~/lib/types";
+import { type VALVE_STATE, type Stepper } from "~/lib/types";
 import { Step } from "~/lib/sequences";
 
 class AppStore {
@@ -59,42 +63,56 @@ class AppStore {
     return res;
   };
 
+  executeSequenceLoop = async (sequence: Step[], reps: number) => {
+    for (let i = 0; i < reps; i++) {
+      await this.executeCommandSequence(sequence);
+    }
+  };
+
+  stepperStartS = () => {
+    return this.executeCommand(stepperZeroingStart(this.stepperS));
+  };
+
+  stepperEndS = () => {
+    return this.executeCommand(stepperZeroingEnd(this.stepperS));
+  };
+
+  executeStepperOperation = (
+    steppers: Stepper[],
+    operation: (stepper: Stepper) => string
+  ) => {
+    const commands = steppers.map((stepper) => operation(stepper));
+    return Promise.all(commands.map((command) => this.executeCommand(command)));
+  };
+
+  get steppers() {
+    return [this.stepperX, this.stepperY, this.stepperZ];
+  }
+
   zeroingStart = (stepper?: Stepper) => {
     if (!stepper) {
-      return Promise.all([
-        this.executeCommand(stepperZeroingStart(this.stepperX)),
-        this.executeCommand(stepperZeroingStart(this.stepperY)),
-        this.executeCommand(stepperZeroingStart(this.stepperZ)),
-      ]);
+      return this.executeStepperOperation(this.steppers, stepperZeroingStart);
     }
     return this.executeCommand(stepperZeroingStart(stepper));
   };
 
   zeroingEnd = (stepper?: Stepper) => {
     if (!stepper) {
-      return Promise.all([
-        this.executeCommand(stepperZeroingEnd(this.stepperX)),
-        this.executeCommand(stepperZeroingEnd(this.stepperY)),
-        this.executeCommand(stepperZeroingEnd(this.stepperZ)),
-      ]);
+      return this.executeStepperOperation(this.steppers, stepperZeroingEnd);
     }
     return this.executeCommand(stepperZeroingEnd(stepper));
   };
 
   disableSteppers = () => {
-    return Promise.all([
-      this.executeCommand(stepperDisable(this.stepperX)),
-      this.executeCommand(stepperDisable(this.stepperY)),
-      this.executeCommand(stepperDisable(this.stepperZ)),
-    ]);
+    return this.executeStepperOperation(this.steppers, stepperDisable);
   };
 
   stopMotors = () => {
-    return Promise.all([
-      this.executeCommand(stepperStop(this.stepperX)),
-      this.executeCommand(stepperStop(this.stepperY)),
-      this.executeCommand(stepperStop(this.stepperZ)),
-    ]);
+    return this.executeStepperOperation(this.steppers, stepperStop);
+  };
+
+  stepperStopS = () => {
+    return this.executeCommand(stepperStop(this.stepperS));
   };
 
   countSteps = (stepper: Stepper) => {
@@ -103,6 +121,10 @@ class AppStore {
 
   getStepperSteps = (stepper: Stepper) => {
     return this.executeCommand(getStepperStepsCommand(stepper));
+  };
+
+  getPressure = () => {
+    return this.executeCommand(getPressureCommand());
   };
 
   handleSequenceStep = (step: Step) => {
@@ -145,16 +167,23 @@ class AppStore {
   };
 
   setStepperVelocity = (stepper: Stepper, velocity: number) => {
-    const step_sleep_milli =
-      (stepper.full_rev_mm * stepper.microstepping) / (360.0 * velocity);
+    const { full_rev_mm, microstepping } = stepper;
+    const step_sleep_milli = (full_rev_mm * microstepping) / (360.0 * velocity);
     stepper.step_sleep_millis = Math.round(step_sleep_milli);
   };
 
   getStepperVelocity = (stepper: Stepper) => {
-    return (
-      (stepper.full_rev_mm * stepper.microstepping) /
-      (360.0 * stepper.step_sleep_millis)
-    );
+    const { full_rev_mm, microstepping, step_sleep_millis } = stepper;
+    return (full_rev_mm * microstepping) / (360.0 * step_sleep_millis);
+  };
+
+  setValveState = (number: 1 | 2, state: VALVE_STATE) => {
+    const command = number === 1 ? setValve1Command : setValve2Command;
+    return this.executeCommand(command(state));
+  };
+
+  setPressure = (val: number) => {
+    return this.executeCommand(setPressureCommand(val));
   };
 }
 

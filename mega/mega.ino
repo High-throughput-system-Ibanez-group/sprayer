@@ -26,8 +26,8 @@
 #define PRESSURE_REGULATOR_OUT 6
 #define PRESSURE_REGULATOR_IN 54
 
-#define SOLENOID_VALVE_SYRINGE_1 40
-#define SOLENOID_VALVE_SYRINGE_2 39
+#define VALVE_SYRINGE_1 40
+#define VALVE_SYRINGE_2 39
 
 // commands
 #define STEPPER_COMMAND_X 0x41
@@ -38,11 +38,10 @@
 #define GET_PRESSURE_COMMAND 0x46
 #define SET_VALVE_COMMMAND_1 0x47
 #define SET_VALVE_COMMMAND_2 0x48
-#define STEPPER_DISABLED_COMMAND 0x49
-#define GET_STEPPER_STEPS_COMMAND_X 0x4A
-#define FINISH_COMMAND 0x4B
-#define GET_STEPPER_STEPS_COMMAND_Y 0x4C
-#define GET_STEPPER_STEPS_COMMAND_Z 0x4D
+#define GET_STEPPER_STEPS_COMMAND_X 0x49
+#define GET_STEPPER_STEPS_COMMAND_Y 0x4A
+#define GET_STEPPER_STEPS_COMMAND_Z 0x4B
+#define FINISH_COMMAND 0xFF
 
 struct stepper
 {
@@ -109,13 +108,13 @@ void setup()
   pinMode(PRESSURE_REGULATOR_OUT, OUTPUT);
   analogWrite(PRESSURE_REGULATOR_OUT, 0);
 
-  // config solenoid valve syringe 1
-  pinMode(SOLENOID_VALVE_SYRINGE_1, OUTPUT);
-  digitalWrite(SOLENOID_VALVE_SYRINGE_1, LOW);
+  // config valve syringe 1
+  pinMode(VALVE_SYRINGE_1, OUTPUT);
+  digitalWrite(VALVE_SYRINGE_1, LOW);
 
-  // config solenoid valve syringe 2
-  pinMode(SOLENOID_VALVE_SYRINGE_2, OUTPUT);
-  digitalWrite(SOLENOID_VALVE_SYRINGE_2, LOW);
+  // config valve syringe 2
+  pinMode(VALVE_SYRINGE_2, OUTPUT);
+  digitalWrite(VALVE_SYRINGE_2, LOW);
 
   Serial.begin(9600);
 }
@@ -147,7 +146,7 @@ void rotate_stepper(stepper &stepper)
   if (stepper.disable)
   {
     disable_stepper(stepper);
-    Serial.println(STEPPER_DISABLED_COMMAND + ":" + stepper.command);
+    Serial.println(FINISH_COMMAND + ":" + stepper.command);
   }
   else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < millis()))
   {
@@ -166,7 +165,6 @@ void rotate_stepper(stepper &stepper)
       stepper.pending_steps -= 1;
       if (stepper.pending_steps == 0)
       {
-        // send finish command based on stepper name
         Serial.println(FINISH_COMMAND + ":" + stepper.command);
       }
     }
@@ -206,16 +204,16 @@ void set_pressure_regulator(int val)
   Serial.println(FINISH_COMMAND + ":" + SET_PRESSURE_COMMAND);
 }
 
-void set_solenoid_valve_syringe(int syringe, int val)
+void set_valve_syringe_1(int val)
 {
-  if (syringe == 1)
-  {
-    digitalWrite(SOLENOID_VALVE_SYRINGE_1, val);
-  }
-  else if (syringe == 2)
-  {
-    digitalWrite(SOLENOID_VALVE_SYRINGE_2, val);
-  }
+  digitalWrite(VALVE_SYRINGE_1, val);
+  Serial.println(FINISH_COMMAND + ":" + SET_VALVE_COMMMAND_1);
+}
+
+void set_valve_syringe_2(int val)
+{
+  digitalWrite(VALVE_SYRINGE_2, val);
+  Serial.println(FINISH_COMMAND + ":" + SET_VALVE_COMMMAND_2);
 }
 
 void set_stepper(stepper *stepper, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
@@ -278,10 +276,10 @@ void process_serial_input()
       set_pressure_regulator(get_command_arg(command, 1));
       break;
     case SET_VALVE_COMMMAND_1:
-      set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
+      set_valve_syringe_1(get_command_arg(command, 1));
       break;
     case SET_VALVE_COMMMAND_2:
-      set_solenoid_valve_syringe(get_command_arg(command, 1), get_command_arg(command, 2));
+      set_valve_syringe_2(get_command_arg(command, 1));
       break;
     case GET_STEPPER_STEPS_COMMAND_X:
       Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_X + ':' + stepper_x.total_steps);

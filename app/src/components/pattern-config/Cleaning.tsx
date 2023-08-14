@@ -1,27 +1,27 @@
 import { observer } from "mobx-react-lite";
 import React from "react";
+import { CLEAN_SEQUENCE } from "~/lib/sequences";
 import { appStore } from "~/stores/app";
 
 export const Cleaning = observer(() => {
-  const app = appStore();
-  const socket = app.socket;
+  const { executeSequenceLoop } = appStore();
 
   const cleaningRepetitionsRef = React.useRef<HTMLInputElement>(null);
 
-  const onClean = () => {
-    const cleaningRepetitions = cleaningRepetitionsRef.current?.value;
+  const onClean = async () => {
+    const cleaningRepetitions = cleaningRepetitionsRef.current?.valueAsNumber;
     if (cleaningRepetitions) {
-      socket?.emit("command", `clean:${cleaningRepetitions}`);
+      await executeSequenceLoop(CLEAN_SEQUENCE, cleaningRepetitions);
     }
   };
 
-  const onStop = () => {
-    socket?.emit("command", "stop_clean");
-  };
+  // const onStop = () => {
+  //   socket?.emit("command", "stop_clean");
+  // };
 
-  const onResume = () => {
-    socket?.emit("command", "resume_clean");
-  };
+  // const onResume = () => {
+  //   socket?.emit("command", "resume_clean");
+  // };
 
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -38,8 +38,8 @@ export const Cleaning = observer(() => {
           ref={cleaningRepetitionsRef}
         />
       </div>
-      <div className="h-4" />
-      <div className="flex items-center space-x-4">
+      {/* <div className="h-4" /> */}
+      {/* <div className="flex items-center space-x-4">
         <label htmlFor="number-input" className="w-44 font-medium">
           Ultrasonic generator syringe power:
         </label>
@@ -50,8 +50,8 @@ export const Cleaning = observer(() => {
           // value={horizontalDistance}
           // onChange={(e) => setHorizontalDistance(Number(e.target.value))}
         />
-      </div>
-      <div className="h-4" />
+      </div> */}
+      {/* <div className="h-4" />
       <div className="flex items-center space-x-4">
         <label htmlFor="number-input" className="w-44 font-medium">
           Ultrasonic generator syringe time (seconds):
@@ -63,16 +63,16 @@ export const Cleaning = observer(() => {
           // value={verticalDistance}
           // onChange={(e) => setVerticalDistance(Number(e.target.value))}
         />
-      </div>
+      </div> */}
       <div className="h-4" />
       <button
         type="button"
         className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-        onClick={onClean}
+        onClick={void onClean}
       >
         Clean
       </button>
-      <div className="h-4" />
+      {/* <div className="h-4" />
       <button
         type="button"
         className="rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
@@ -87,7 +87,7 @@ export const Cleaning = observer(() => {
         onClick={onResume}
       >
         Resume clean sequence
-      </button>
+      </button> */}
     </div>
   );
 });
