@@ -14,15 +14,13 @@ export const Settings = observer(() => {
     setPressure,
     getPressure,
   } = appStore();
-  // const socket = app.socket;
-  const refInputSharpeningPressure = useRef<HTMLInputElement>(null);
 
+  const refInputSharpeningPressure = useRef<HTMLInputElement>(null);
   const [valve, setValve] = useState(false);
   const [valve2, setValve2] = useState(false);
   const [pumping, setPumping] = useState(false);
   const [pressureInput, setPressureInput] = useState("");
   const [sharpeningPressure, setSharpeningPressure] = useState(0.07);
-
   const [activeButton, setActiveButton] = useState<ActiveButtonType>("Spray");
 
   const handleButtonClick = (buttonName: ActiveButtonType) => {
@@ -77,9 +75,9 @@ export const Settings = observer(() => {
     setPressureInput(val);
   };
 
-  // const onStopStyringe = () => {
-  //   socket?.emit("command", "stop_syringe");
-  // };
+  const onStopStyringe = () => {
+    void stepperStopS();
+  };
 
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -255,7 +253,7 @@ export const Settings = observer(() => {
         >
           Calibrate syringe end
         </button>
-        {/* <div className="h-4" />
+        <div className="h-4" />
         <button
           type="button"
           className={
@@ -264,7 +262,7 @@ export const Settings = observer(() => {
           onClick={onStopStyringe}
         >
           Stop syringe motor
-        </button> */}
+        </button>
       </div>
     </div>
   );
