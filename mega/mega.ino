@@ -290,6 +290,9 @@ void process_serial_input()
     case GET_STEPPER_STEPS_COMMAND_Z:
       Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_Z + ':' + stepper_z.total_steps);
       break;
+    case GET_PRESSURE_COMMAND:
+      Serial.println(FINISH_COMMAND + ':' + GET_PRESSURE_COMMAND + ':' + String(analogRead(PRESSURE_REGULATOR_IN)));
+      break;
     }
   }
 }

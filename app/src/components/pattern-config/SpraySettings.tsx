@@ -1,6 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
-import { stepperZeroingStart } from "~/lib/setupCommands";
+import { useRef, useState } from "react";
 import { VALVE_STATE } from "~/lib/types";
 import { appStore } from "~/stores/app";
 
@@ -13,6 +12,7 @@ export const Settings = observer(() => {
     stepperStopS,
     setValveState,
     setPressure,
+    getPressure,
   } = appStore();
   // const socket = app.socket;
   const refInputSharpeningPressure = useRef<HTMLInputElement>(null);
@@ -48,7 +48,6 @@ export const Settings = observer(() => {
     if (pressure && !wrongPressure(pressure)) {
       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
       void setPressure(value);
-      // socket?.emit("command", `set_sharpening_pressure:${value}`);
     }
   };
 
@@ -64,11 +63,18 @@ export const Settings = observer(() => {
 
   const onSyringeStart = () => {
     void stepperStartS();
-    // socket?.emit("command", "syringe_start");
   };
 
   const onSyringeEnd = () => {
     void stepperEndS();
+  };
+
+  const onGetPressure = async () => {
+    const pressureRes = await getPressure();
+    if (!pressureRes) return;
+    const val = pressureRes[pressureRes.length - 1];
+    if (!val) return;
+    setPressureInput(val);
   };
 
   // const onStopStyringe = () => {
@@ -105,6 +111,14 @@ export const Settings = observer(() => {
             Set sharpening pressure
           </button>
         </div>
+        <div className="h-4" />
+        <button
+          type="button"
+          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          onClick={void onGetPressure}
+        >
+          Get sharpening pressure
+        </button>
         <div className="h-4" />
         {wrongPressure(sharpeningPressure) && (
           <div className="text-red-400">
