@@ -1,3 +1,4 @@
+import { runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 import { steperCommandToString } from "~/lib/setupCommands";
@@ -54,43 +55,82 @@ export const Settings = () => {
 const Element = observer(({ stepper }: { stepper: Stepper }) => {
   const app = appStore();
 
-  const [val, setVal] = useState(app.getStepperVelocity(stepper));
+  const [vel, setVel] = useState(app.getStepperVelocity(stepper));
+  const [microStepping, setMicroStepping] = useState(stepper.microstepping);
 
-  const handleStepperSubmit = () => {
-    app.setStepperVelocity(stepper, val);
+  const handleVelSubmit = () => {
+    app.setStepperVelocity(stepper, vel);
+  };
+
+  const handleMicroSteppingSubmit = () => {
+    runInAction(() => {
+      stepper.microstepping = microStepping;
+      setVel(app.getStepperVelocity(stepper));
+    });
   };
 
   const stepperName = steperCommandToString(stepper.command);
 
   return (
-    <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
-      <label htmlFor="number-input" className="font-medium">
-        {stepperName}:
-      </label>
-      <div className="relative flex flex-col">
-        <div>Velocity in mm/s</div>
-        <input
-          type="number"
-          id="number-input"
-          className="w-32 rounded-md border border-gray-300 px-3 py-2"
-          value={val}
-          onChange={(e) => {
-            setVal(Number(e.target.value));
-          }}
-        />
-      </div>
+    <>
+      <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
+        <label htmlFor="number-input" className="font-medium">
+          {stepperName}:
+        </label>
+        <div className="relative flex flex-col">
+          <div>Velocity in mm/s</div>
+          <input
+            type="number"
+            id="number-input"
+            className="w-32 rounded-md border border-gray-300 px-3 py-2"
+            value={vel}
+            onChange={(e) => {
+              setVel(Number(e.target.value));
+            }}
+          />
+        </div>
 
-      <button
-        type="button"
-        className={
-          "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-        }
-        onClick={() => {
-          handleStepperSubmit();
-        }}
-      >
-        Update {stepperName}
-      </button>
-    </div>
+        <button
+          type="button"
+          className={
+            "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          }
+          onClick={() => {
+            handleVelSubmit();
+          }}
+        >
+          Update {stepperName}
+        </button>
+      </div>
+      <div className="h-4" />
+      <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
+        <label htmlFor="number-input" className="font-medium">
+          {stepperName}:
+        </label>
+        <div className="relative flex flex-col">
+          <div>Miscrostepping</div>
+          <input
+            type="number"
+            id="number-input"
+            className="w-32 rounded-md border border-gray-300 px-3 py-2"
+            value={microStepping}
+            onChange={(e) => {
+              setMicroStepping(Number(e.target.value));
+            }}
+          />
+        </div>
+        <button
+          type="button"
+          className={
+            "rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
+          }
+          onClick={() => {
+            handleMicroSteppingSubmit();
+          }}
+        >
+          Update {stepperName}
+        </button>
+      </div>
+    </>
   );
 });
