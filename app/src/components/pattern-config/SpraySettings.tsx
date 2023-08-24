@@ -1,7 +1,8 @@
 import { observer } from "mobx-react-lite";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VALVE_STATE } from "~/lib/types";
 import { appStore } from "~/stores/app";
+import { Card, Title, LineChart } from "@tremor/react";
 
 type ActiveButtonType = "Recharge" | "Spray" | "Flux nozzle";
 
@@ -79,6 +80,52 @@ export const Settings = observer(() => {
     void stepperStopS();
   };
 
+  const [chartdata, setChartData] = useState([
+    {
+      time: new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+      Pressure: 0,
+    },
+  ]);
+
+  const [pause, setPause] = useState(false);
+
+  const dataFormatter = (number: number) =>
+    `${Intl.NumberFormat("es").format(number).toString()} Bar`;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newTime = new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+
+      // new pressure between 0,005 and 1 Bar
+      const newPressure = Math.random() * (1 - 0.005) + 0.005;
+
+      setChartData((prev) => {
+        if (pause) return prev;
+        if (prev.length > 4) {
+          prev.shift();
+        }
+        return [
+          ...prev,
+          {
+            time: newTime,
+            Pressure: newPressure,
+          },
+        ];
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [chartdata, pause]);
+
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Spray Settings</div>
@@ -126,6 +173,36 @@ export const Settings = observer(() => {
         <div className="text-gray-400">
           Recommended pressure between 0.06 to 0.5 Bar
         </div>
+        <div className="h-4" />
+        <Card>
+          <Title>Timeline pressure</Title>
+          <LineChart
+            className="mt-6"
+            data={chartdata}
+            index="time"
+            categories={["Pressure"]}
+            colors={["emerald"]}
+            valueFormatter={dataFormatter}
+            yAxisWidth={40}
+            minValue={0}
+            maxValue={1}
+          />
+        </Card>
+        <div className="h-4" />
+        {/* Pause button */}
+        <button
+          type="button"
+          className={
+            !pause
+              ? "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
+              : "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          }
+          onClick={() => {
+            setPause(!pause);
+          }}
+        >
+          {pause ? "Resume" : "Pause"}
+        </button>
         <div className="h-4" />
         <div>
           Real Pressure reading: {pressureInput ? pressureInput : "NaN"} Bar

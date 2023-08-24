@@ -127,14 +127,6 @@ export const WorkingSpace = observer(() => {
             {state.z.loading ? "Loading.." : "Update z"}
           </button>
         </div>
-        {/* <div className="h-6" /> */}
-        {/* <button
-          type="button"
-          className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-          onClick={updateAll}
-        >
-          Update all
-        </button> */}
       </div>
     </div>
   );
