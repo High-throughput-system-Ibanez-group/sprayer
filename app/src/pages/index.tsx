@@ -17,11 +17,11 @@ const Home: NextPage = () => {
         <div className="h-12" />
         <Zeroing />
         <div className="h-6" />
+        <Settings />
+        <div className="h-6" />
         <Moves />
         <div className="h-6" />
         <WorkingSpace />
-        <div className="h-6" />
-        <Settings />
         <div className="h-4" />
       </main>
     </>

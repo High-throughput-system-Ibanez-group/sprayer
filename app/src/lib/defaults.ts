@@ -1,13 +1,8 @@
-import {
-  STEPPER_COMMAND_S,
-  STEPPER_COMMAND_X,
-  STEPPER_COMMAND_Y,
-  STEPPER_COMMAND_Z,
-} from "~/lib/commands";
+import { Command } from "~/lib/commands";
 import { DIR, type Stepper } from "~/lib/types";
 
 export const defStepperX: Stepper = {
-  command: STEPPER_COMMAND_X,
+  command: Command.STEPPER_COMMAND_X,
   dir: DIR.FORWARD,
   microstepping: 400,
   full_rev_mm: 54,
@@ -19,7 +14,7 @@ export const defStepperX: Stepper = {
 };
 
 export const defStepperY: Stepper = {
-  command: STEPPER_COMMAND_Y,
+  command: Command.STEPPER_COMMAND_Y,
   dir: DIR.FORWARD,
   microstepping: 400,
   full_rev_mm: 54,
@@ -31,7 +26,7 @@ export const defStepperY: Stepper = {
 };
 
 export const defStepperZ: Stepper = {
-  command: STEPPER_COMMAND_Z,
+  command: Command.STEPPER_COMMAND_Z,
   dir: DIR.FORWARD,
   microstepping: 400,
   full_rev_mm: 44,
@@ -43,7 +38,7 @@ export const defStepperZ: Stepper = {
 };
 
 export const defStepperS: Stepper = {
-  command: STEPPER_COMMAND_S,
+  command: Command.STEPPER_COMMAND_S,
   dir: DIR.FORWARD,
   microstepping: 200,
   full_rev_mm: 1,
