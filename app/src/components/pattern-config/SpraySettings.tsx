@@ -241,7 +241,7 @@ export const Settings = observer(() => {
           }
           onClick={onSyringeStart}
         >
-          Calibrate syringe start
+          Inject
         </button>
         <div className="h-4" />
         <button
@@ -251,7 +251,7 @@ export const Settings = observer(() => {
           }
           onClick={onSyringeEnd}
         >
-          Calibrate syringe end
+          Recharge
         </button>
         <div className="h-4" />
         <button
