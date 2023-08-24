@@ -6,7 +6,6 @@ export const Zeroing = observer(() => {
   const { handleSequenceStep, executeCommandSequence } = appStore();
 
   const handleZeroingClick = async (type: "start" | "end") => {
-    console.log("ZeroingClick button clicked");
     switch (type) {
       case "start":
         await handleSequenceStep(Step.ZEROING_START);

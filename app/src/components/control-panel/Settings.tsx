@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
-import { steperCommandToString } from "~/lib/functions";
+import { steperCommandToString } from "~/lib/setupCommands";
 import { type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
 import { type Steppers } from "~/utils/types";

@@ -3,10 +3,10 @@ import { Command } from "~/lib/commands";
 import { sendCommand, subscribeToReceivedCommand } from "~/lib/communication";
 
 export const executeCommand = async (socket: Socket, command: string) => {
-  // Send the command to the Arduino
+  // send the command
   sendCommand(socket, command);
 
-  // Wait for the finish command from the Arduino
+  // wait for the finish command
   return await new Promise<string[]>((resolve) => {
     const finishCommandHandler = (receivedCommand: string) => {
       const finishingCommand = `${Command.FINISH_COMMAND}:${command}`;

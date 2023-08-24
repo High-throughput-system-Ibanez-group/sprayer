@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useRef } from "react";
-import { steperCommandToString, stepperMoveMM } from "~/lib/functions";
+import { steperCommandToString, stepperMoveMM } from "~/lib/setupCommands";
 import { DIR, type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
 
