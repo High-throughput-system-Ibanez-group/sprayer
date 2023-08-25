@@ -146,7 +146,7 @@ void rotate_stepper(stepper &stepper)
   if (stepper.disable)
   {
     disable_stepper(stepper);
-    Serial.println(FINISH_COMMAND + ":" + stepper.command);
+    Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
   }
   else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < millis()))
   {
@@ -165,7 +165,7 @@ void rotate_stepper(stepper &stepper)
       stepper.pending_steps -= 1;
       if (stepper.pending_steps == 0)
       {
-        Serial.println(FINISH_COMMAND + ":" + stepper.command);
+        Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
       }
     }
   }
@@ -183,7 +183,7 @@ void stop_stepper(stepper &stepper)
 {
   stepper.pending_steps = 0;
   stepper.free_rotate = 0;
-  Serial.println(FINISH_COMMAND + stepper.command);
+  Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
 }
 
 void check_limit(stepper &stepper)
@@ -201,19 +201,19 @@ void check_limit(stepper &stepper)
 void set_pressure_regulator(int val)
 {
   analogWrite(PRESSURE_REGULATOR_OUT, val);
-  Serial.println(FINISH_COMMAND + ":" + SET_PRESSURE_COMMAND);
+  Serial.println(String(FINISH_COMMAND) + ":" + String(SET_PRESSURE_COMMAND));
 }
 
 void set_valve_syringe_1(int val)
 {
   digitalWrite(VALVE_SYRINGE_1, val);
-  Serial.println(FINISH_COMMAND + ":" + SET_VALVE_COMMMAND_1);
+  Serial.println(String(FINISH_COMMAND) + ":" + String(SET_VALVE_COMMMAND_1));
 }
 
 void set_valve_syringe_2(int val)
 {
   digitalWrite(VALVE_SYRINGE_2, val);
-  Serial.println(FINISH_COMMAND + ":" + SET_VALVE_COMMMAND_2);
+  Serial.println(String(FINISH_COMMAND) + ":" + String(SET_VALVE_COMMMAND_2));
 }
 
 void set_stepper(stepper *stepper, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
@@ -282,16 +282,16 @@ void process_serial_input()
       set_valve_syringe_2(get_command_arg(command, 1));
       break;
     case GET_STEPPER_STEPS_COMMAND_X:
-      Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_X + ':' + stepper_x.total_steps);
+      Serial.println(String(FINISH_COMMAND) + ':' + String(GET_STEPPER_STEPS_COMMAND_X) + ':' + String(stepper_x.total_steps));
       break;
     case GET_STEPPER_STEPS_COMMAND_Y:
-      Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_Y + ':' + stepper_y.total_steps);
+      Serial.println(String(FINISH_COMMAND) + ':' + String(GET_STEPPER_STEPS_COMMAND_Y) + ':' + String(stepper_y.total_steps));
       break;
     case GET_STEPPER_STEPS_COMMAND_Z:
-      Serial.println(FINISH_COMMAND + ':' + GET_STEPPER_STEPS_COMMAND_Z + ':' + stepper_z.total_steps);
+      Serial.println(String(FINISH_COMMAND) + ':' + String(GET_STEPPER_STEPS_COMMAND_Z) + ':' + String(stepper_z.total_steps));
       break;
     case GET_PRESSURE_COMMAND:
-      Serial.println(FINISH_COMMAND + ':' + GET_PRESSURE_COMMAND + ':' + String(analogRead(PRESSURE_REGULATOR_IN)));
+      Serial.println(String(FINISH_COMMAND) + ':' + String(GET_PRESSURE_COMMAND) + ':' + String(analogRead(PRESSURE_REGULATOR_IN)));
       break;
     }
   }
