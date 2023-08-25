@@ -160,7 +160,9 @@ export const Settings = observer(() => {
         <button
           type="button"
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-          onClick={void onGetPressure}
+          onClick={() => {
+            void onGetPressure();
+          }}
         >
           Get sharpening pressure
         </button>

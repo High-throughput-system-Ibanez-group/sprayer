@@ -9,6 +9,7 @@ export const executeCommand = async (socket: Socket, command: string) => {
   // wait for the finish command
   return await new Promise<string[]>((resolve) => {
     const finishCommandHandler = (receivedCommand: string) => {
+      console.log("receivedCommand info:", receivedCommand);
       const finishingCommand = `${Command.FINISH_COMMAND}:${command}`;
       if (receivedCommand.includes(finishingCommand)) {
         const args = receivedCommand.split(":").slice(2);

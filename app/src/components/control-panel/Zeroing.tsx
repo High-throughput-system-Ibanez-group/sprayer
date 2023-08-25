@@ -53,7 +53,9 @@ export const Zeroing = observer(() => {
         className={
           "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
         }
-        onClick={void standbyMotors}
+        onClick={() => {
+          void standbyMotors();
+        }}
       >
         Stand-By Motors
       </button>
@@ -63,7 +65,9 @@ export const Zeroing = observer(() => {
         className={
           "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
         }
-        onClick={void onStopMotors}
+        onClick={() => {
+          void onStopMotors();
+        }}
       >
         Stop motors
       </button>

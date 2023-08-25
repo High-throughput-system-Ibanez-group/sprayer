@@ -1,5 +1,5 @@
 import { Command } from "~/lib/commands";
-import { DIR, type Stepper } from "~/lib/types";
+import { COUNT_STEPS, DIR, type Stepper } from "~/lib/types";
 
 export const defStepperX: Stepper = {
   command: Command.STEPPER_COMMAND_X,
@@ -10,7 +10,7 @@ export const defStepperX: Stepper = {
   steps: 0,
   step_sleep_millis: 8,
   disable: false,
-  count_steps: false,
+  count_steps: COUNT_STEPS.OFF,
 };
 
 export const defStepperY: Stepper = {
@@ -22,7 +22,7 @@ export const defStepperY: Stepper = {
   steps: 0,
   step_sleep_millis: 8,
   disable: false,
-  count_steps: false,
+  count_steps: COUNT_STEPS.OFF,
 };
 
 export const defStepperZ: Stepper = {
@@ -34,7 +34,7 @@ export const defStepperZ: Stepper = {
   steps: 0,
   step_sleep_millis: 8,
   disable: false,
-  count_steps: false,
+  count_steps: COUNT_STEPS.OFF,
 };
 
 export const defStepperS: Stepper = {
@@ -46,5 +46,5 @@ export const defStepperS: Stepper = {
   steps: 0,
   step_sleep_millis: 8,
   disable: false,
-  count_steps: false,
+  count_steps: COUNT_STEPS.OFF,
 };

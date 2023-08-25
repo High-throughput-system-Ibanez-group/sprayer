@@ -32,7 +32,7 @@ export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
     steps,
     stepper.step_sleep_millis,
     DISABLE.OFF,
-    COUNT_STEPS.OFF
+    stepper.count_steps
   );
 };
 
@@ -44,7 +44,7 @@ export const stepperZeroingStart = (stepper: Stepper) => {
     0,
     stepper.step_sleep_millis,
     DISABLE.OFF,
-    COUNT_STEPS.OFF
+    stepper.count_steps
   );
 };
 
@@ -56,7 +56,7 @@ export const stepperZeroingEnd = (stepper: Stepper) => {
     0,
     stepper.step_sleep_millis,
     DISABLE.OFF,
-    COUNT_STEPS.OFF
+    stepper.count_steps
   );
 };
 
@@ -68,7 +68,7 @@ export const stepperStop = (stepper: Stepper) => {
     0,
     stepper.step_sleep_millis,
     DISABLE.OFF,
-    COUNT_STEPS.OFF
+    stepper.count_steps
   );
 };
 
@@ -80,7 +80,7 @@ export const stepperDisable = (stepper: Stepper) => {
     0,
     stepper.step_sleep_millis,
     DISABLE.ON,
-    COUNT_STEPS.OFF
+    stepper.count_steps
   );
 };
 

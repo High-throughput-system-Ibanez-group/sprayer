@@ -20,7 +20,7 @@ import {
   defStepperZ,
   defStepperS,
 } from "~/lib/defaults";
-import { type VALVE_STATE, type Stepper } from "~/lib/types";
+import { type VALVE_STATE, type Stepper, COUNT_STEPS } from "~/lib/types";
 import { Step } from "~/lib/sequences";
 
 class AppStore {
@@ -57,8 +57,12 @@ class AppStore {
   executeCommandSequence = async (sequence: Step[]) => {
     let res;
     if (!this.socket) return;
+    let count = 0;
     for (const step of sequence) {
+      console.log("await count: ", count);
       res = await this.handleSequenceStep(step);
+      console.log("finish count: ", count);
+      count++;
     }
     return res;
   };
@@ -150,11 +154,17 @@ class AppStore {
       case Step.STOP_MOTORS:
         return this.stopMotors();
       case Step.COUNT_STEPS_X:
-        return this.countSteps(this.stepperX);
+        return (this.stepperX.count_steps = COUNT_STEPS.ON);
       case Step.COUNT_STEPS_Y:
-        return this.countSteps(this.stepperY);
+        return (this.stepperY.count_steps = COUNT_STEPS.ON);
       case Step.COUNT_STEPS_Z:
-        return this.countSteps(this.stepperZ);
+        return (this.stepperZ.count_steps = COUNT_STEPS.ON);
+      case Step.COUNT_STEPS_X_OFF:
+        return (this.stepperX.count_steps = COUNT_STEPS.OFF);
+      case Step.COUNT_STEPS_Y_OFF:
+        return (this.stepperY.count_steps = COUNT_STEPS.OFF);
+      case Step.COUNT_STEPS_Z_OFF:
+        return (this.stepperZ.count_steps = COUNT_STEPS.OFF);
       case Step.GET_STEPPER_STEPS_X:
         return this.getStepperSteps(this.stepperX);
       case Step.GET_STEPPER_STEPS_Y:
