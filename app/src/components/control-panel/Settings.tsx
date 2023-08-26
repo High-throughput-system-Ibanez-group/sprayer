@@ -1,6 +1,6 @@
 import { runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { steperCommandToString } from "~/lib/setupCommands";
 import { type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
@@ -14,7 +14,7 @@ export const Settings = () => {
     setSelectedStepper(event.target.value as Steppers);
   };
 
-  const getStepper = () => {
+  const getStepper = (selectedStepper: Steppers) => {
     switch (selectedStepper) {
       case "x":
         return app.stepperX;
@@ -26,6 +26,8 @@ export const Settings = () => {
         return app.stepperS;
     }
   };
+
+  const stepper = getStepper(selectedStepper);
 
   return (
     <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -46,7 +48,7 @@ export const Settings = () => {
           <option value="s">Syringe</option>
         </select>
         <div className="h-4" />
-        <Element stepper={getStepper()} />
+        <Element stepper={stepper} />
       </div>
     </div>
   );
@@ -71,6 +73,11 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
 
   const stepperName = steperCommandToString(stepper.command);
 
+  useEffect(() => {
+    setVel(app.getStepperVelocity(stepper));
+    setMicroStepping(stepper.microstepping);
+  }, [app, stepper]);
+
   return (
     <>
       <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -83,7 +90,8 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
-            value={vel}
+            // value if has decimals toFixed(3) if not just value
+            value={vel % 1 !== 0 ? vel.toFixed(3) : vel}
             onChange={(e) => {
               setVel(Number(e.target.value));
             }}
