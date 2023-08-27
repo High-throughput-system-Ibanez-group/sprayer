@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { VALVE_STATE } from "~/lib/types";
 import { appStore } from "~/stores/app";
 import { Card, Title, LineChart } from "@tremor/react";
@@ -68,13 +68,13 @@ export const Settings = observer(() => {
     void stepperEndS();
   };
 
-  const onGetPressure = async () => {
-    const pressureRes = await getPressure();
-    if (!pressureRes) return;
-    const val = pressureRes[pressureRes.length - 1];
-    if (!val) return;
-    setPressureInput(val);
-  };
+  // const onGetPressure = async () => {
+  //   const pressureRes = await getPressure();
+  //   if (!pressureRes) return;
+  //   const val = pressureRes[pressureRes.length - 1];
+  //   if (!val) return;
+  //   setPressureInput(val);
+  // };
 
   const onStopStyringe = () => {
     void stepperStopS();
@@ -97,34 +97,39 @@ export const Settings = observer(() => {
   const dataFormatter = (number: number) =>
     `${Intl.NumberFormat("es").format(number).toString()} Bar`;
 
+  const handlePressureInterval = useCallback(async () => {
+    if (pause) return;
+    const newTime = new Date().toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    // new pressure between 0,005 and 1 Bar
+    const newPressure = await getPressure();
+    setPressureInput(newPressure);
+    setChartData((prev) => {
+      if (pause) return prev;
+      if (prev.length > 4) {
+        prev.shift();
+      }
+      return [
+        ...prev,
+        {
+          time: newTime,
+          Pressure: parseFloat(newPressure),
+        },
+      ];
+    });
+  }, [getPressure, pause]);
+
   useEffect(() => {
     const interval = setInterval(() => {
-      const newTime = new Date().toLocaleTimeString("en-US", {
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-
-      // new pressure between 0,005 and 1 Bar
-      const newPressure = Math.random() * (1 - 0.005) + 0.005;
-
-      setChartData((prev) => {
-        if (pause) return prev;
-        if (prev.length > 4) {
-          prev.shift();
-        }
-        return [
-          ...prev,
-          {
-            time: newTime,
-            Pressure: newPressure,
-          },
-        ];
-      });
-    }, 1000);
+      void handlePressureInterval();
+    }, 3000);
     return () => clearInterval(interval);
-  }, [chartdata, pause]);
+  }, [chartdata, pause, handlePressureInterval]);
 
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -157,7 +162,7 @@ export const Settings = observer(() => {
           </button>
         </div>
         <div className="h-4" />
-        <button
+        {/* <button
           type="button"
           className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
           onClick={() => {
@@ -166,7 +171,7 @@ export const Settings = observer(() => {
         >
           Get sharpening pressure
         </button>
-        <div className="h-4" />
+        <div className="h-4" /> */}
         {wrongPressure(sharpeningPressure) && (
           <div className="text-red-400">
             Wrong pressure, please enter a value between 0.005 and 1 Bar
@@ -270,7 +275,7 @@ export const Settings = observer(() => {
             Flux nozzle
           </button>
         </div>
-        <div className="h-4" />
+        {/* <div className="h-4" />
         <div className="flex flex-1 items-center space-x-4">
           <input
             type="number"
@@ -284,8 +289,8 @@ export const Settings = observer(() => {
           >
             Set Radius syringe
           </button>
-        </div>
-        <div className="h-4" />
+        </div> */}
+        {/* <div className="h-4" />
         <div className="flex flex-1 items-center space-x-4">
           <input
             type="number"
@@ -299,7 +304,7 @@ export const Settings = observer(() => {
           >
             Set Flow rate
           </button>
-        </div>
+        </div> */}
         <div className="h-4" />
         <button
           type="button"

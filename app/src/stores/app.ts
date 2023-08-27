@@ -20,7 +20,7 @@ import {
   defStepperZ,
   defStepperS,
 } from "~/lib/defaults";
-import { type VALVE_STATE, type Stepper, COUNT_STEPS } from "~/lib/types";
+import { VALVE_STATE, type Stepper, COUNT_STEPS } from "~/lib/types";
 import { Step } from "~/lib/sequences";
 
 class AppStore {
@@ -57,12 +57,8 @@ class AppStore {
   executeCommandSequence = async (sequence: Step[]) => {
     let res;
     if (!this.socket) return;
-    let count = 0;
     for (const step of sequence) {
-      console.log("await count: ", count);
       res = await this.handleSequenceStep(step);
-      console.log("finish count: ", count);
-      count++;
     }
     return res;
   };
@@ -127,8 +123,16 @@ class AppStore {
     return this.executeCommand(getStepperStepsCommand(stepper));
   };
 
-  getPressure = () => {
-    return this.executeCommand(getPressureCommand());
+  getPressure = async () => {
+    const data = (await this.executeCommand(
+      getPressureCommand()
+    )) as unknown as string;
+    const value = parseInt(data);
+    // convert value from 0 to 1023 to pressure from 0.005 to 1
+    const pressure = (value / 1023) * (1 - 0.005) + 0.005;
+    // const pressure = ((value / 255) * (1 - 0.005)) + 0.005;
+    // three decimals max
+    return pressure.toFixed(3).toString();
   };
 
   handleSequenceStep = (step: Step) => {
@@ -171,6 +175,18 @@ class AppStore {
         return this.getStepperSteps(this.stepperY);
       case Step.GET_STEPPER_STEPS_Z:
         return this.getStepperSteps(this.stepperZ);
+      case Step.SET_VALVE_1_OFF:
+        return this.setValveState(1, VALVE_STATE.CLOSED);
+      case Step.SET_VALVE_1_ON:
+        return this.setValveState(1, VALVE_STATE.OPEN);
+      case Step.SET_VALVE_2_OFF:
+        return this.setValveState(2, VALVE_STATE.CLOSED);
+      case Step.SET_VALVE_2_ON:
+        return this.setValveState(2, VALVE_STATE.OPEN);
+      case Step.ZEROING_END_S:
+        return this.stepperEndS();
+      case Step.ZEROING_START_S:
+        return this.stepperStartS();
       default:
         return;
     }

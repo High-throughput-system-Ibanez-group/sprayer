@@ -15,6 +15,8 @@ export const Cleaning = observer(() => {
     }
   };
 
+  // TODO: Stop / Resume
+
   // const onStop = () => {
   //   socket?.emit("command", "stop_clean");
   // };

@@ -26,6 +26,8 @@ export enum Step {
   ZEROING_START_Z = 24,
 }
 
+// type StepType = Step | [Step, number];
+
 export const SATAND_BY_MOTORS_SEQUENCE: Step[] = [
   Step.ZEROING_START,
   Step.DISABLE_STEPPERS,
