@@ -56,7 +56,7 @@ export const Settings = observer(() => {
   };
 
   const onClickSetValve2 = () => {
-    void setValveState(2, valve ? VALVE_STATE.CLOSED : VALVE_STATE.OPEN);
+    void setValveState(2, valve2 ? VALVE_STATE.CLOSED : VALVE_STATE.OPEN);
     setValve2(!valve2);
   };
 
