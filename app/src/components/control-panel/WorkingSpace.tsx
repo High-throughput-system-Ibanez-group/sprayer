@@ -15,7 +15,7 @@ export const WorkingSpace = observer(() => {
 
   return (
     <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
-      <div className="mb-2 text-xl font-bold">Moves</div>
+      <div className="mb-2 text-xl font-bold">Working space</div>
       <div className="flex flex-col items-center justify-center py-6">
         <div>(mm)</div>
         <Space stepper={app.stepperX} />
@@ -77,7 +77,7 @@ const Space = observer(({ stepper }: { stepper: Stepper }) => {
             void handleStepperSubmit();
           }}
         >
-          {loading ? "Loading.." : "Update x"}
+          {loading ? "Loading.." : `Update ${stepperName}`}
         </button>
       </div>
     </>

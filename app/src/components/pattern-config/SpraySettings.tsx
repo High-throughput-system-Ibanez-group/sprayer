@@ -229,19 +229,24 @@ export const Settings = observer(() => {
           {valve ? "Activate Spray channel" : "Recharge/Clean channel"}
         </button>
         <div className="h-4" />
-        <button
-          type="button"
-          className={
-            valve2
-              ? "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
-              : "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
-          }
-          onClick={() => {
-            onClickSetValve2();
-          }}
-        >
-          {valve2 ? "Stop Solenoid Syringe 2" : "Start Solenoid Syringe 2"}
-        </button>
+        <div className="flex flex-row items-center">
+          <button
+            type="button"
+            className={
+              valve2
+                ? "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+                : "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
+            }
+            onClick={() => {
+              onClickSetValve2();
+            }}
+          >
+            {valve2 ? "Close Air" : "OPEN Air"}
+          </button>
+          <div className="w-4" />
+          <div>Sharpening Air State: {valve2 ? "OPENED" : "CLOSED"}</div>
+        </div>
+
         <div className="h-4" />
         <div className="flex overflow-hidden rounded-md">
           <button
