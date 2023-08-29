@@ -1,8 +1,14 @@
+export enum Mode {
+  Standby = 0,
+  Running = 1,
+}
+
 export type DataTypeUltra = {
   standbyPower: number;
   runningPower: number;
-  mode: number;
+  mode: Mode;
 };
+
 // Function to format data based on given instructions
 export const formatSendDataUltrasonic = (data: DataTypeUltra) => {
   // Assuming data is an object with the required parameters
@@ -26,17 +32,15 @@ export const formatSendDataUltrasonic = (data: DataTypeUltra) => {
 
   // Calculate the final data to be sent
   const addressCode = 0x03;
-  const modeBit = data.mode === 0 ? 0x11 : 0x00;
-  const verificationBit = 0xaa ^ modeBit ^ addressCode;
+  const modeBit = data.mode === Mode.Standby ? 0x11 : 0x00;
 
   const sendData = [
     0xaa, // Bit0: 0xAA
-    verificationBit, // Bit7: verification of data transfer
     modeBit, // Bit1: mode (pause/standby or running)
     ...standbyPowerBits, // Bit2 and Bit3: standby power
     ...runningPowerBits, // Bit4 and Bit5: running power
     addressCode, // Bit6: address code
-    0xdd, // Bit8: 0xDD
+    0xdd, // Bit7: 0xDD
   ];
 
   return Buffer.from(sendData);

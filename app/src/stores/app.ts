@@ -23,6 +23,7 @@ import {
 import { VALVE_STATE, type Stepper, COUNT_STEPS } from "~/lib/types";
 import { Step } from "~/lib/sequences";
 import { Steppers } from "~/utils/types";
+import { Mode } from "~/utils/ultrasonicSensor/functions";
 
 class AppStore {
   socket: Socket | undefined = undefined;
@@ -32,6 +33,9 @@ class AppStore {
   stepperS: Stepper = defStepperS;
   isPressureIntervalActive = false;
   settingsSelectedStepper: Steppers = Steppers.X;
+  ultrasonicSensorMode: Mode = Mode.Standby;
+  ultrasonicSensorRunningPower = 0;
+  ultrasonicSensorStandByPower = 0;
 
   constructor() {
     makeAutoObservable(this);

@@ -40,6 +40,7 @@ const parserUltra = serialPortUltra.pipe(new ReadlineParser());
 
 // Function to send data through SerialPort
 const sendDataUltra = (data: Buffer) => {
+  console.log(data);
   serialPortUltra.write(data, (err) => {
     if (err) {
       console.error("Error sending data:", err);

@@ -4,6 +4,7 @@ import { Cleaning } from "~/components/pattern-config/Cleaning";
 import { PatternArea } from "~/components/pattern-config/PatternArea";
 import { Sidebar } from "~/components/pattern-config/Sidebar";
 import { Settings } from "~/components/pattern-config/SpraySettings";
+import { UltrasonicController } from "~/components/pattern-config/UltrasonicController";
 import { patternConfigStore } from "~/stores/patternConfig";
 import { api } from "~/utils/api";
 
@@ -28,6 +29,8 @@ const PatternConfig = () => {
       <div className="h-8" />
       <div className="flex flex-1 flex-col items-center justify-start p-8">
         <Settings />
+        <div className="h-8" />
+        <UltrasonicController />
         <div className="h-8" />
         <Cleaning />
         <div className="h-8" />
