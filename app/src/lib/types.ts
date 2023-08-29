@@ -1,8 +1,8 @@
 import { type Command } from "~/lib/commands";
 
 export enum DIR {
-  FORWARD = 0,
-  BACKWARD = 1,
+  BACKWARD = 0,
+  FORWARD = 1,
 }
 
 export enum FREE_ROTATE {

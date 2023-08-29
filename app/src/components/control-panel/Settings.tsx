@@ -4,30 +4,31 @@ import { useEffect, useState } from "react";
 import { steperCommandToString } from "~/lib/setupCommands";
 import { type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
-import { type Steppers } from "~/utils/types";
+import { Steppers } from "~/utils/types";
 
-export const Settings = () => {
+export const Settings = observer(() => {
   const app = appStore();
-  const [selectedStepper, setSelectedStepper] = useState<Steppers>("x");
 
   const handleStepperChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedStepper(event.target.value as Steppers);
+    runInAction(() => {
+      app.settingsSelectedStepper = event.target.value as Steppers;
+    });
   };
 
   const getStepper = (selectedStepper: Steppers) => {
     switch (selectedStepper) {
-      case "x":
+      case Steppers.X:
         return app.stepperX;
-      case "y":
+      case Steppers.Y:
         return app.stepperY;
-      case "z":
+      case Steppers.Z:
         return app.stepperZ;
-      case "s":
+      case Steppers.S:
         return app.stepperS;
     }
   };
 
-  const stepper = getStepper(selectedStepper);
+  const stepper = getStepper(app.settingsSelectedStepper);
 
   return (
     <div className="flex w-[650px] flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -39,20 +40,25 @@ export const Settings = () => {
         </label>
         <select
           className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          value={selectedStepper}
+          value={app.settingsSelectedStepper}
           onChange={handleStepperChange}
         >
-          <option value="x">x</option>
-          <option value="y">y</option>
-          <option value="z">z</option>
-          <option value="s">Syringe</option>
+          {Object.values(Steppers).map((stepper) => (
+            <option key={stepper} value={stepper}>
+              {stepper}
+            </option>
+          ))}
+          {/* <option value={Steppers.X}>x</option>
+          <option value={Steppers.Y}>y</option>
+          <option value={Steppers.Z}>z</option>
+          <option value={Steppers.S}>Syringe</option> */}
         </select>
         <div className="h-4" />
         <Element stepper={stepper} />
       </div>
     </div>
   );
-};
+});
 
 const Element = observer(({ stepper }: { stepper: Stepper }) => {
   const app = appStore();
@@ -67,7 +73,9 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
   const handleMicroSteppingSubmit = () => {
     runInAction(() => {
       stepper.microstepping = microStepping;
-      setVel(app.getStepperVelocity(stepper));
+      const vel = app.getStepperVelocity(stepper);
+      app.setStepperVelocity(stepper, vel);
+      setVel(vel);
     });
   };
 
@@ -121,6 +129,8 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
+            min={1}
+            max={9999999}
             value={microStepping}
             onChange={(e) => {
               setMicroStepping(Number(e.target.value));

@@ -22,6 +22,7 @@ import {
 } from "~/lib/defaults";
 import { VALVE_STATE, type Stepper, COUNT_STEPS } from "~/lib/types";
 import { Step } from "~/lib/sequences";
+import { Steppers } from "~/utils/types";
 
 class AppStore {
   socket: Socket | undefined = undefined;
@@ -29,6 +30,8 @@ class AppStore {
   stepperY: Stepper = defStepperY;
   stepperZ: Stepper = defStepperZ;
   stepperS: Stepper = defStepperS;
+  isPressureIntervalActive = false;
+  settingsSelectedStepper: Steppers = Steppers.X;
 
   constructor() {
     makeAutoObservable(this);

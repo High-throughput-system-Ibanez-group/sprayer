@@ -3,10 +3,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { VALVE_STATE } from "~/lib/types";
 import { appStore } from "~/stores/app";
 import { Card, Title, LineChart } from "@tremor/react";
+import { runInAction } from "mobx";
 
 type ActiveButtonType = "Recharge" | "Spray" | "Flux nozzle";
 
 export const Settings = observer(() => {
+  const app = appStore();
   const {
     stepperStartS,
     stepperEndS,
@@ -14,7 +16,7 @@ export const Settings = observer(() => {
     setValveState,
     setPressure,
     getPressure,
-  } = appStore();
+  } = app;
 
   const refInputSharpeningPressure = useRef<HTMLInputElement>(null);
   const [valve, setValve] = useState(false);
@@ -92,13 +94,11 @@ export const Settings = observer(() => {
     },
   ]);
 
-  const [pause, setPause] = useState(false);
-
   const dataFormatter = (number: number) =>
     `${Intl.NumberFormat("es").format(number).toString()} Bar`;
 
   const handlePressureInterval = useCallback(async () => {
-    if (pause) return;
+    if (!app.isPressureIntervalActive) return;
     const newTime = new Date().toLocaleTimeString("en-US", {
       hour12: false,
       hour: "2-digit",
@@ -110,7 +110,7 @@ export const Settings = observer(() => {
     const newPressure = await getPressure();
     setPressureInput(newPressure);
     setChartData((prev) => {
-      if (pause) return prev;
+      if (!app.isPressureIntervalActive) return prev;
       if (prev.length > 4) {
         prev.shift();
       }
@@ -122,14 +122,14 @@ export const Settings = observer(() => {
         },
       ];
     });
-  }, [getPressure, pause]);
+  }, [getPressure, app.isPressureIntervalActive]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       void handlePressureInterval();
     }, 3000);
     return () => clearInterval(interval);
-  }, [chartdata, pause, handlePressureInterval]);
+  }, [chartdata, handlePressureInterval]);
 
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
@@ -200,15 +200,17 @@ export const Settings = observer(() => {
         <button
           type="button"
           className={
-            !pause
+            !app.isPressureIntervalActive
               ? "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
               : "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
           }
           onClick={() => {
-            setPause(!pause);
+            runInAction(() => {
+              app.isPressureIntervalActive = !app.isPressureIntervalActive;
+            });
           }}
         >
-          {pause ? "Resume" : "Pause"}
+          {app.isPressureIntervalActive ? "Stop" : "Start"}
         </button>
         <div className="h-4" />
         <div>

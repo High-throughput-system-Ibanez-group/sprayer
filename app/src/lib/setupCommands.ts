@@ -39,7 +39,7 @@ export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
 export const stepperZeroingStart = (stepper: Stepper) => {
   return setupStepperCommand(
     stepper.command,
-    DIR.FORWARD,
+    DIR.BACKWARD,
     FREE_ROTATE.ON,
     0,
     stepper.step_sleep_millis,
@@ -51,7 +51,7 @@ export const stepperZeroingStart = (stepper: Stepper) => {
 export const stepperZeroingEnd = (stepper: Stepper) => {
   return setupStepperCommand(
     stepper.command,
-    DIR.BACKWARD,
+    DIR.FORWARD,
     FREE_ROTATE.ON,
     0,
     stepper.step_sleep_millis,
