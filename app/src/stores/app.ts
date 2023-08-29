@@ -203,7 +203,12 @@ class AppStore {
 
   getStepperVelocity = (stepper: Stepper) => {
     const { full_rev_mm, microstepping, step_sleep_millis } = stepper;
-    return (full_rev_mm * microstepping) / (360.0 * step_sleep_millis);
+    // return (full_rev_mm * microstepping) / (360.0 * step_sleep_millis);
+    const stepsPerRevolution = microstepping * 2;
+    const distancePerStep = full_rev_mm / stepsPerRevolution;
+    const stepTimeMillis = step_sleep_millis;
+    const velocity = (distancePerStep / stepTimeMillis) * 1000; // convert to millimeters per second
+    return velocity;
   };
 
   setValveState = (number: 1 | 2, state: VALVE_STATE) => {
