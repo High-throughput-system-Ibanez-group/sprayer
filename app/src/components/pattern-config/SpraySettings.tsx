@@ -23,7 +23,9 @@ export const Settings = observer(() => {
   const [valve2, setValve2] = useState(false);
   const [pumping, setPumping] = useState(false);
   const [pressureInput, setPressureInput] = useState("");
-  const [sharpeningPressure, setSharpeningPressure] = useState(0.07);
+  const [sharpeningPressure, setSharpeningPressure] = useState(
+    parseInt(pressureInput || "0.07")
+  );
   const [activeButton, setActiveButton] = useState<ActiveButtonType>("Spray");
 
   const handleButtonClick = (buttonName: ActiveButtonType) => {
@@ -96,6 +98,10 @@ export const Settings = observer(() => {
 
   const dataFormatter = (number: number) =>
     `${Intl.NumberFormat("es").format(number).toString()} Bar`;
+
+  useEffect(() => {
+    setSharpeningPressure(parseInt(pressureInput));
+  }, [pressureInput]);
 
   const handlePressureInterval = useCallback(async () => {
     if (!app.isPressureIntervalActive) return;
