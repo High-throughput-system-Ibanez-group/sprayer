@@ -24,7 +24,9 @@ export const steperCommandToString = (command: Command) => {
 };
 
 export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
-  const steps = Math.round((mm / stepper.full_rev_mm) * stepper.microstepping);
+  const steps = Math.round(
+    (mm / stepper.full_rev_mm) * (2 * stepper.microstepping)
+  );
   return setupStepperCommand(
     stepper.command,
     dir,

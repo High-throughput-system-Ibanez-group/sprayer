@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { steperCommandToString, stepperMoveMM } from "~/lib/setupCommands";
 import { DIR, type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
@@ -24,9 +24,27 @@ export const Moves = observer(() => {
 const Move = observer(({ stepper }: { stepper: Stepper }) => {
   const { executeCommand } = appStore();
   const refMm = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+
+  const [time, setTime] = useState(0);
+
+  useEffect(() => {
+    if (loading) {
+      setTime(0);
+      const interval = setInterval(() => {
+        setTime((t) => t + 0.1);
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [loading]);
 
   const onSpecificMove = async (stepper: Stepper, dir: DIR, mm: number) => {
-    await executeCommand(stepperMoveMM(stepper, mm, dir));
+    try {
+      setLoading(true);
+      await executeCommand(stepperMoveMM(stepper, mm, dir));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,6 +89,13 @@ const Move = observer(({ stepper }: { stepper: Stepper }) => {
         >
           +
         </button>
+        <div className="relative">
+          <div className="absolute w-48 flex-1 items-center">
+            <div className="text-sm text-gray-400">
+              Time: {!loading ? `${time.toFixed(1)}s` : "Loading.."}
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

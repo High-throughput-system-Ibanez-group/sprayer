@@ -51,6 +51,7 @@ export const Settings = observer(() => {
     if (pressure && !wrongPressure(pressure)) {
       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
       void setPressure(value);
+      // toast.success(`Velocity for ${stepperName} setted to ${vel} mm/s`);
     }
   };
 

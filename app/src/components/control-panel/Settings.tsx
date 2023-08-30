@@ -5,6 +5,7 @@ import { steperCommandToString } from "~/lib/setupCommands";
 import { type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
 import { Steppers } from "~/utils/types";
+import toast from "react-hot-toast";
 
 export const Settings = observer(() => {
   const app = appStore();
@@ -62,28 +63,27 @@ export const Settings = observer(() => {
 
 const Element = observer(({ stepper }: { stepper: Stepper }) => {
   const app = appStore();
+  const stepperName = steperCommandToString(stepper.command);
 
   const [vel, setVel] = useState(app.getStepperVelocity(stepper));
-  const [microStepping, setMicroStepping] = useState(stepper.microstepping);
+  // const [microStepping, setMicroStepping] = useState(stepper.microstepping);
 
   const handleVelSubmit = () => {
     app.setStepperVelocity(stepper, vel);
+    toast.success(`Velocity for ${stepperName} setted to ${vel} mm/s`);
   };
 
-  const handleMicroSteppingSubmit = () => {
-    runInAction(() => {
-      stepper.microstepping = microStepping;
-      const vel = app.getStepperVelocity(stepper);
-      app.setStepperVelocity(stepper, vel);
-      setVel(vel);
-    });
-  };
-
-  const stepperName = steperCommandToString(stepper.command);
+  // const handleMicroSteppingSubmit = () => {
+  //   runInAction(() => {
+  //     stepper.microstepping = microStepping;
+  //     const vel = app.getStepperVelocity(stepper);
+  //     app.setStepperVelocity(stepper, vel);
+  //     setVel(vel);
+  //   });
+  // };
 
   useEffect(() => {
     setVel(app.getStepperVelocity(stepper));
-    setMicroStepping(stepper.microstepping);
   }, [app, stepper]);
 
   return (
@@ -99,9 +99,9 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
             // value if has decimals toFixed(3) if not just value
-            value={vel % 1 !== 0 ? vel.toFixed(3) : vel}
+            value={vel % 1 !== 0 ? Number(vel.toFixed(3)) : vel}
             onChange={(e) => {
-              setVel(Number(e.target.value));
+              setVel(Number(e.target.valueAsNumber.toFixed(3)));
             }}
           />
         </div>
@@ -118,7 +118,7 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
           Update {stepperName}
         </button>
       </div>
-      <div className="h-4" />
+      {/* <div className="h-4" />
       <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
         <label htmlFor="number-input" className="font-medium">
           {stepperName}:
@@ -148,7 +148,7 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
         >
           Update {stepperName}
         </button>
-      </div>
+      </div> */}
     </>
   );
 });

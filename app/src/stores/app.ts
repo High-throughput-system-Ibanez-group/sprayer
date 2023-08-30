@@ -212,7 +212,7 @@ class AppStore {
     const distancePerStep = full_rev_mm / stepsPerRevolution;
     const stepTimeMillis = step_sleep_millis;
     const velocity = (distancePerStep / stepTimeMillis) * 1000; // convert to millimeters per second
-    return velocity;
+    return Number(velocity.toFixed(3));
   };
 
   setValveState = (number: 1 | 2, state: VALVE_STATE) => {

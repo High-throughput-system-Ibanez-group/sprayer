@@ -36,14 +36,11 @@ const serialPortUltra = new SerialPort({
   stopBits: 1,
 });
 
-const parserUltra = serialPortUltra.pipe(new ReadlineParser());
-
 // Function to send data through SerialPort
 const sendDataUltra = (data: Buffer) => {
-  console.log(data);
   serialPortUltra.write(data, (err) => {
     if (err) {
-      console.error("Error sending data:", err);
+      console.log("Error sending ultrasonic data:", err);
     } else {
       console.log("Data sent:", data);
     }
@@ -61,6 +58,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     res.socket.server.io = io;
 
     const arduinoParser = arduinoSerialPort.pipe(arduinoReadlineParser);
+    const parserUltra = serialPortUltra.pipe(new ReadlineParser());
 
     arduinoParser.on("open", function () {
       console.log("arduino connection is opened");
@@ -74,12 +72,15 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       console.log("err with board connection..", err)
     );
 
+    serialPortUltra.on("error", (err) =>
+      console.log("err with ultrasonic connection..", err)
+    );
+
     arduinoParser.on("data", function (receivedCommand: string) {
       io.emit("receivedCommand", receivedCommand);
       console.log("receivedCommand: ", receivedCommand);
     });
 
-    // Event handler for receiving data from the SerialPort
     parserUltra.on("data", (data: Buffer) => {
       // Process the received data following the given instructions
       const parsedData = parseReceivedDataUltrasonic(data);
@@ -96,6 +97,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       // Event handler for sending data from the client to the RS485 device
       socket.on("sendDataToRS485", (data: DataTypeUltra) => {
         // Format the data based on the given instructions
+        console.log("Data to send:", data);
         const formattedData = formatSendDataUltrasonic(data);
         sendDataUltra(formattedData);
       });
