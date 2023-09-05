@@ -24,7 +24,7 @@ export const Settings = observer(() => {
   const [pumping, setPumping] = useState(false);
   const [pressureInput, setPressureInput] = useState("");
   const [sharpeningPressure, setSharpeningPressure] = useState(
-    parseInt(pressureInput || "0.07")
+    app.pressureInput
   );
   const [activeButton, setActiveButton] = useState<ActiveButtonType>("Spray");
 
@@ -47,6 +47,9 @@ export const Settings = observer(() => {
   };
 
   const onSetSharpeningPressure = () => {
+    runInAction(() => {
+      app.pressureInput = sharpeningPressure;
+    });
     const pressure = refInputSharpeningPressure.current?.valueAsNumber;
     if (pressure && !wrongPressure(pressure)) {
       const value = Math.round((pressure - 0.005) * (255 / (1 - 0.005)));
@@ -100,9 +103,9 @@ export const Settings = observer(() => {
   const dataFormatter = (number: number) =>
     `${Intl.NumberFormat("es").format(number).toString()} Bar`;
 
-  useEffect(() => {
-    setSharpeningPressure(parseInt(pressureInput));
-  }, [pressureInput]);
+  // useEffect(() => {
+  //   setSharpeningPressure(parseInt(pressureInput));
+  // }, [pressureInput]);
 
   const handlePressureInterval = useCallback(async () => {
     if (!app.isPressureIntervalActive) return;

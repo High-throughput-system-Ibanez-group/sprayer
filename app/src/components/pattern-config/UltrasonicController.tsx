@@ -45,7 +45,7 @@ export const UltrasonicController = observer(() => {
         {modeLabel}
       </button>
       <div className="h-4" />
-      <div className="flex items-center space-x-4">
+      {/* <div className="flex items-center space-x-4">
         <label htmlFor="number-input" className="w-44 font-medium">
           Power (0-100)
         </label>
@@ -65,7 +65,7 @@ export const UltrasonicController = observer(() => {
         }}
       >
         Set Power
-      </button>
+      </button> */}
     </div>
   );
 });

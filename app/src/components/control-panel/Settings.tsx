@@ -65,25 +65,26 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
   const app = appStore();
   const stepperName = steperCommandToString(stepper.command);
 
-  const [vel, setVel] = useState(app.getStepperVelocity(stepper));
-  // const [microStepping, setMicroStepping] = useState(stepper.microstepping);
+  const [vel, setVel] = useState(stepper.velocity);
+  const [microStepping, setMicroStepping] = useState(stepper.microstepping);
 
   const handleVelSubmit = () => {
     app.setStepperVelocity(stepper, vel);
     toast.success(`Velocity for ${stepperName} setted to ${vel} mm/s`);
   };
 
-  // const handleMicroSteppingSubmit = () => {
-  //   runInAction(() => {
-  //     stepper.microstepping = microStepping;
-  //     const vel = app.getStepperVelocity(stepper);
-  //     app.setStepperVelocity(stepper, vel);
-  //     setVel(vel);
-  //   });
-  // };
+  const handleMicroSteppingSubmit = () => {
+    runInAction(() => {
+      app.setStepperMicrostepping(stepper, microStepping);
+      toast.success(
+        `Microstepping for ${stepperName} setted to ${microStepping}`
+      );
+    });
+  };
 
   useEffect(() => {
-    setVel(app.getStepperVelocity(stepper));
+    setVel(stepper.velocity);
+    setMicroStepping(stepper.microstepping);
   }, [app, stepper]);
 
   return (
@@ -98,7 +99,6 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
-            // value if has decimals toFixed(3) if not just value
             value={vel % 1 !== 0 ? Number(vel.toFixed(3)) : vel}
             onChange={(e) => {
               setVel(Number(e.target.valueAsNumber.toFixed(3)));
@@ -118,7 +118,7 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
           Update {stepperName}
         </button>
       </div>
-      {/* <div className="h-4" />
+      <div className="h-4" />
       <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
         <label htmlFor="number-input" className="font-medium">
           {stepperName}:
@@ -148,7 +148,7 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
         >
           Update {stepperName}
         </button>
-      </div> */}
+      </div>
     </>
   );
 });

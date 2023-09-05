@@ -11,6 +11,7 @@ export const defStepperX: Stepper = {
   step_sleep_millis: 8,
   disable: false,
   count_steps: COUNT_STEPS.OFF,
+  velocity: 10,
 };
 
 export const defStepperY: Stepper = {
@@ -23,6 +24,7 @@ export const defStepperY: Stepper = {
   step_sleep_millis: 8,
   disable: false,
   count_steps: COUNT_STEPS.OFF,
+  velocity: 10,
 };
 
 export const defStepperZ: Stepper = {
@@ -35,6 +37,7 @@ export const defStepperZ: Stepper = {
   step_sleep_millis: 8,
   disable: false,
   count_steps: COUNT_STEPS.OFF,
+  velocity: 10,
 };
 
 export const defStepperS: Stepper = {
@@ -47,4 +50,5 @@ export const defStepperS: Stepper = {
   step_sleep_millis: 8,
   disable: false,
   count_steps: COUNT_STEPS.OFF,
+  velocity: 0.1,
 };

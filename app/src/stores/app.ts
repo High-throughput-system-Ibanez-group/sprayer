@@ -36,6 +36,7 @@ class AppStore {
   ultrasonicSensorMode: Mode = Mode.Standby;
   ultrasonicSensorRunningPower = 0;
   ultrasonicSensorStandByPower = 0;
+  pressureInput = 0.005;
 
   constructor() {
     makeAutoObservable(this);
@@ -200,19 +201,18 @@ class AppStore {
   };
 
   setStepperVelocity = (stepper: Stepper, velocity: number) => {
+    stepper.velocity = velocity;
     const { full_rev_mm, microstepping } = stepper;
     const step_sleep_milli = (full_rev_mm * microstepping) / (360.0 * velocity);
     stepper.step_sleep_millis = Math.round(step_sleep_milli);
   };
 
-  getStepperVelocity = (stepper: Stepper) => {
-    const { full_rev_mm, microstepping, step_sleep_millis } = stepper;
-    // return (full_rev_mm * microstepping) / (360.0 * step_sleep_millis);
-    const stepsPerRevolution = microstepping * 2;
-    const distancePerStep = full_rev_mm / stepsPerRevolution;
-    const stepTimeMillis = step_sleep_millis;
-    const velocity = (distancePerStep / stepTimeMillis) * 1000; // convert to millimeters per second
-    return Number(velocity.toFixed(3));
+  setStepperMicrostepping = (stepper: Stepper, microstepping: number) => {
+    stepper.microstepping = microstepping;
+    const { full_rev_mm } = stepper;
+    const step_sleep_milli =
+      (full_rev_mm * microstepping) / (360.0 * stepper.velocity);
+    stepper.step_sleep_millis = Math.round(step_sleep_milli);
   };
 
   setValveState = (number: 1 | 2, state: VALVE_STATE) => {

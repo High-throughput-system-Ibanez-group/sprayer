@@ -30,6 +30,7 @@ export type Stepper = {
   step_sleep_millis: number;
   disable: boolean;
   count_steps: COUNT_STEPS;
+  velocity: number;
 };
 
 export enum VALVE_STATE {
