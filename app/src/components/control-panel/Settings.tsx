@@ -99,8 +99,14 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
             type="number"
             id="number-input"
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
-            value={vel % 1 !== 0 ? Number(vel.toFixed(3)) : vel}
+            value={
+              vel === 0 ? "" : vel % 1 !== 0 ? Number(vel.toFixed(3)) : vel
+            }
             onChange={(e) => {
+              if (e.target.value === "") {
+                setVel(0);
+                return;
+              }
               setVel(Number(e.target.valueAsNumber.toFixed(3)));
             }}
           />
@@ -131,8 +137,12 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
             className="w-32 rounded-md border border-gray-300 px-3 py-2"
             min={1}
             max={9999999}
-            value={microStepping}
+            value={microStepping === 0 ? "" : microStepping}
             onChange={(e) => {
+              if (e.target.value === "") {
+                setMicroStepping(0);
+                return;
+              }
               setMicroStepping(Number(e.target.value));
             }}
           />

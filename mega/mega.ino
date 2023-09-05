@@ -146,7 +146,6 @@ void rotate_stepper(stepper &stepper)
   if (stepper.disable)
   {
     disable_stepper(stepper);
-    Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
   }
   else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < millis()))
   {
@@ -247,11 +246,9 @@ int get_command_arg(String command, int argIndex)
     }
   }
   String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
-  // Serial.println("arg index " + String(argIndex) + " : " + arg);
   return arg.toInt();
 }
 
-// Define serial input processing function
 void process_serial_input()
 {
   if (Serial.available() > 0)
