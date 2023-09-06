@@ -4,6 +4,11 @@ import type { Socket as NetSocket } from "net";
 import { Server as IOServer } from "socket.io";
 import { SerialPort } from "serialport";
 import { ReadlineParser } from "@serialport/parser-readline";
+import {
+  type DataTypeUltra,
+  formatSendDataUltrasonic,
+  parseReceivedDataUltrasonic,
+} from "~/utils/ultrasonicSensor/functions";
 
 interface SocketServer extends HTTPServer {
   io?: IOServer | undefined;
@@ -22,6 +27,26 @@ const arduinoSerialPort = new SerialPort({
   baudRate: 9600,
 });
 
+// Configure SerialPort for RS485 ultrasonic sensor communication
+const serialPortUltra = new SerialPort({
+  path: process.env.ULTRASONIC_PORT_PATH || "COM10",
+  baudRate: 9600,
+  dataBits: 8,
+  parity: "none",
+  stopBits: 1,
+});
+
+// Function to send data through SerialPort
+const sendDataUltra = (data: Buffer) => {
+  serialPortUltra.write(data, (err) => {
+    if (err) {
+      console.log("Error sending ultrasonic data:", err);
+    } else {
+      console.log("Data sent:", data);
+    }
+  });
+};
+
 const arduinoReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
@@ -33,6 +58,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     res.socket.server.io = io;
 
     const arduinoParser = arduinoSerialPort.pipe(arduinoReadlineParser);
+    const parserUltra = serialPortUltra.pipe(new ReadlineParser());
 
     arduinoParser.on("open", function () {
       console.log("arduino connection is opened");
@@ -46,48 +72,46 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       console.log("err with board connection..", err)
     );
 
-    arduinoParser.on("data", function (data: string) {
-      if (data.startsWith("pressure_regulator_in")) {
-        const val = data.split(":")[1];
-        io.emit("pressure_regulator_in", val);
-      } else if (data.startsWith("solenoid_valve_syringe_1")) {
-        const val = data.split(":")[1];
-        io.emit("solenoid_valve_syringe_1", val);
-      } else if (data.startsWith("solenoid_valve_syringe_2")) {
-        const val = data.split(":")[1];
-        io.emit("solenoid_valve_syringe_2", val);
-      } else if (data.startsWith("syringe_status")) {
-        const val = data.split(":")[1];
-        io.emit("syringe_status", val);
-      } else if (data.startsWith("wspace_")) {
-        const val = data.split(":")[1];
-        const axis = data[7] || "";
-        io.emit(`wspace_${axis}`, val);
-      } else if (data.startsWith("time:")) {
-        console.log(data);
-      } else if (data.startsWith("set_velocity_stepper:")) {
-        console.log(data);
-      } else {
-        console.log(data)
-      }
+    serialPortUltra.on("error", (err) =>
+      console.log("err with ultrasonic connection..", err)
+    );
+
+    arduinoParser.on("data", function (receivedCommand: string) {
+      io.emit("receivedCommand", receivedCommand);
+      console.log("receivedCommand: ", receivedCommand);
     });
 
-    
+    parserUltra.on("data", (data: Buffer) => {
+      // Process the received data following the given instructions
+      const parsedData = parseReceivedDataUltrasonic(data);
+      console.log("Received Ultrasonic Data:", parsedData);
+    });
+
     io.on("connection", (socket) => {
       console.log("Socket connected");
-      socket.on("command", (command: string) => {
-        arduinoSerialPort.write(`${command}\n`, (err) => {
-          if (err) {
-            return console.log("err on write.. ", err?.message);
-          }
-        });
-        console.log("Command: ", command);
+      socket.on("sendCommand", (command: string) => {
+        arduinoSerialPort.write(`${command}\n`, handlePortError);
+        console.log("sendCommand: ", command);
+      });
+
+      // Event handler for sending data from the client to the RS485 device
+      socket.on("sendDataToRS485", (data: DataTypeUltra) => {
+        // Format the data based on the given instructions
+        console.log("Data to send:", data);
+        const formattedData = formatSendDataUltrasonic(data);
+        sendDataUltra(formattedData);
       });
     });
 
     io.on("error", (err) => console.log("err with socket connection.. ", err));
   }
   res.end();
+};
+
+const handlePortError = (err: Error | null | undefined) => {
+  if (err) {
+    return console.log("err on write.. ", err?.message);
+  }
 };
 
 export default SocketHandler;

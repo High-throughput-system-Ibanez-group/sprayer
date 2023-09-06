@@ -17,4 +17,9 @@ export type Area = {
   z2: number;
 };
 
-export type Steppers = "x" | "y" | "z" | "syringe";
+export enum Steppers {
+  X = "x",
+  Y = "y",
+  Z = "z",
+  S = "s",
+}

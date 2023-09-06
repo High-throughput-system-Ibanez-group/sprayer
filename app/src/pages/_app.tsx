@@ -1,4 +1,5 @@
 import { type AppType } from "next/dist/shared/lib/utils";
+import { Toaster } from "react-hot-toast";
 import { Footer } from "~/components/Footer";
 import { Nav } from "~/components/Nav";
 
@@ -11,6 +12,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       <Nav />
       <Component {...pageProps} />
       <Footer />
+      <Toaster />
     </div>
   );
 };
