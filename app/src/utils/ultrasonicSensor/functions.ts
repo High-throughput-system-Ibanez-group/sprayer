@@ -15,19 +15,28 @@ export const formatSendDataUltrasonic = (data: DataTypeUltra) => {
   // For example, data = { standbyPower: 300, runningPower: 500, mode: 0 }
 
   // Calculate the values of bit 2 and bit 3 (standby power)
-  const standbyPowerValue = Math.min(0.2, data.standbyPower / 100);
-  const standbyPowerHex = standbyPowerValue.toString(16).padStart(4, "0");
+  const standbyPowerToHex = Math.min(20, data.standbyPower)
+    .toString(16)
+    .padStart(4, "0");
+  const standbyPowerBitsHex = standbyPowerToHex.match(/.{1,2}/g) as [
+    string,
+    string
+  ];
   const standbyPowerBits = [
-    parseInt(standbyPowerHex.slice(0, 2), 16),
-    parseInt(standbyPowerHex.slice(2, 4), 16),
+    parseInt(standbyPowerBitsHex[0], 16),
+    parseInt(standbyPowerBitsHex[1], 16),
   ];
 
   // Calculate the values of bit 4 and bit 5 (running power)
-  const runningPowerValue = Math.min(0.2, data.runningPower / 100);
-  const runningPowerHex = runningPowerValue.toString(16).padStart(4, "0");
+  const runningPowerToHex = data.runningPower.toString(16).padStart(4, "0");
+  const runningPowerBitsRex = runningPowerToHex.match(/.{1,2}/g) as [
+    string,
+    string
+  ];
+
   const runningPowerBits = [
-    parseInt(runningPowerHex.slice(0, 2), 16),
-    parseInt(runningPowerHex.slice(2, 4), 16),
+    parseInt(runningPowerBitsRex[0], 16),
+    parseInt(runningPowerBitsRex[1], 16),
   ];
 
   // Calculate the final data to be sent

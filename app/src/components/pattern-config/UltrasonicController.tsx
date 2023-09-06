@@ -7,15 +7,16 @@ import { type DataTypeUltra, Mode } from "~/utils/ultrasonicSensor/functions";
 export const UltrasonicController = observer(() => {
   const app = appStore();
   const mode = app.ultrasonicSensorMode;
-  const runningPower = app.ultrasonicSensorMode;
-  const standbyPower = app.ultrasonicSensorMode;
 
   const toggleSwitch = () => {
-    const newMode = mode === Mode.Running ? Mode.Standby : Mode.Running;
+    const newMode = Mode.Running ? Mode.Standby : Mode.Running;
+    const newRunningPower = newMode === Mode.Running ? 100 : 0;
+    const newStandbyPower = newMode === Mode.Standby ? 10 : 0;
+
     const data: DataTypeUltra = {
-      mode: newMode,
-      runningPower,
-      standbyPower,
+      mode: Mode.Running,
+      runningPower: newRunningPower,
+      standbyPower: newStandbyPower,
     };
 
     app.socket?.emit("sendDataToRS485", data);
@@ -56,8 +57,8 @@ export const UltrasonicController = observer(() => {
           // ref={cleaningRepetitionsRef}
         />
       </div>
-      <div className="h-4" />
-      <button
+      <div className="h-4" /> */}
+      {/* <button
         type="button"
         className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
         onClick={() => {
