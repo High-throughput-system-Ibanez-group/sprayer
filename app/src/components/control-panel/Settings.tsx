@@ -89,8 +89,8 @@ const Element = observer(({ stepper }: { stepper: Stepper }) => {
 
   return (
     <>
+      <div>Step sleep micros: {stepper.step_sleep_micros}</div>
       <div className="flex items-center space-x-4 rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
-        <div>Step sleep micros: {stepper.step_sleep_micros}</div>
         <label htmlFor="number-input" className="font-medium">
           {stepperName}:
         </label>
