@@ -149,7 +149,7 @@ void rotate_stepper(stepper &stepper)
   }
   else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < millis()))
   {
-    stepper.next_step_time = millis() + stepper.step_sleep_millis;
+    stepper.next_step_time = stepper.next_step_time + stepper.step_sleep_millis;
 
     digitalWrite(stepper.stp, stepper.toggle);
 
