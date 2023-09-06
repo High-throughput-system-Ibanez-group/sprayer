@@ -9,15 +9,19 @@ export const UltrasonicController = observer(() => {
   const mode = app.ultrasonicSensorMode;
 
   const toggleSwitch = () => {
-    const newMode = Mode.Running ? Mode.Standby : Mode.Running;
-    const newRunningPower = newMode === Mode.Running ? 100 : 0;
-    const newStandbyPower = newMode === Mode.Standby ? 10 : 0;
+    const newMode =
+      app.ultrasonicSensorMode === Mode.Running ? Mode.Standby : Mode.Running;
+    // const newRunningPower = newMode === Mode.Running ? 200 : 0;
+    // const newStandbyPower = newMode === Mode.Standby ? 10 : 0;
 
     const data: DataTypeUltra = {
-      mode: Mode.Running,
-      runningPower: newRunningPower,
-      standbyPower: newStandbyPower,
+      mode: newMode,
+      runningPower: 200,
+      standbyPower: 10,
     };
+
+    console.log("mode -> ", newMode === Mode.Running ? "Running" : "Standby");
+    console.log("data -> ", data);
 
     app.socket?.emit("sendDataToRS485", data);
 
