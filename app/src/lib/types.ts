@@ -27,7 +27,7 @@ export type Stepper = {
   free_rotate: boolean;
   dir: DIR;
   steps: number;
-  step_sleep_millis: number;
+  step_sleep_micros: number;
   disable: boolean;
   count_steps: COUNT_STEPS;
   velocity: number;

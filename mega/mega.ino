@@ -54,7 +54,7 @@ struct stepper
   int steps;
   int free_rotate;
   int disable;
-  int step_sleep_millis;
+  int step_sleep_micros;
   int pending_steps;
   int toggle;
   unsigned long next_step_time;
@@ -147,9 +147,9 @@ void rotate_stepper(stepper &stepper)
   {
     disable_stepper(stepper);
   }
-  else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < millis()))
+  else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < micros()))
   {
-    stepper.next_step_time = stepper.next_step_time + stepper.step_sleep_millis;
+    stepper.next_step_time = stepper.next_step_time + stepper.step_sleep_micros;
 
     digitalWrite(stepper.stp, stepper.toggle);
 
@@ -215,13 +215,13 @@ void set_valve_syringe_2(int val)
   Serial.println(String(FINISH_COMMAND) + ":" + String(SET_VALVE_COMMMAND_2));
 }
 
-void set_stepper(stepper *stepper, int dir, int free_rotate, int steps, int step_sleep_millis, int disable, int count_steps)
+void set_stepper(stepper *stepper, int dir, int free_rotate, int steps, int step_sleep_micros, int disable, int count_steps)
 {
   digitalWrite(stepper->dir, dir);
   stepper->free_rotate = free_rotate;
   stepper->pending_steps = steps;
   stepper->total_steps = 0;
-  stepper->step_sleep_millis = step_sleep_millis;
+  stepper->step_sleep_micros = step_sleep_micros;
   stepper->disable = disable;
   stepper->count_steps = count_steps;
 }

@@ -32,7 +32,7 @@ export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
     dir,
     FREE_ROTATE.OFF,
     steps,
-    stepper.step_sleep_millis,
+    stepper.step_sleep_micros,
     DISABLE.OFF,
     stepper.count_steps
   );
@@ -44,7 +44,7 @@ export const stepperZeroingStart = (stepper: Stepper) => {
     DIR.BACKWARD,
     FREE_ROTATE.ON,
     0,
-    stepper.step_sleep_millis,
+    stepper.step_sleep_micros,
     DISABLE.OFF,
     stepper.count_steps
   );
@@ -56,7 +56,7 @@ export const stepperZeroingEnd = (stepper: Stepper) => {
     DIR.FORWARD,
     FREE_ROTATE.ON,
     0,
-    stepper.step_sleep_millis,
+    stepper.step_sleep_micros,
     DISABLE.OFF,
     stepper.count_steps
   );
@@ -68,7 +68,7 @@ export const stepperStop = (stepper: Stepper) => {
     DIR.FORWARD,
     FREE_ROTATE.OFF,
     0,
-    stepper.step_sleep_millis,
+    stepper.step_sleep_micros,
     DISABLE.OFF,
     stepper.count_steps
   );
@@ -80,7 +80,7 @@ export const stepperDisable = (stepper: Stepper) => {
     DIR.FORWARD,
     FREE_ROTATE.OFF,
     0,
-    stepper.step_sleep_millis,
+    stepper.step_sleep_micros,
     DISABLE.ON,
     stepper.count_steps
   );
@@ -92,7 +92,7 @@ export const stepperCountSteps = (stepper: Stepper) => {
     DIR.FORWARD,
     FREE_ROTATE.OFF,
     0,
-    stepper.step_sleep_millis,
+    stepper.step_sleep_micros,
     DISABLE.OFF,
     COUNT_STEPS.ON
   );
@@ -132,11 +132,11 @@ export const setupStepperCommand = (
   dir: DIR,
   free_rotate: FREE_ROTATE,
   steps: number,
-  step_sleep_millis: number,
+  step_sleep_micros: number,
   disable: DISABLE,
   count_steps: COUNT_STEPS
 ) => {
   return `${String.fromCharCode(
     command
-  )}:${dir}:${free_rotate}:${steps}:${step_sleep_millis}:${disable}:${count_steps}`;
+  )}:${dir}:${free_rotate}:${steps}:${step_sleep_micros}:${disable}:${count_steps}`;
 };

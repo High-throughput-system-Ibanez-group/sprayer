@@ -200,16 +200,17 @@ class AppStore {
   setStepperVelocity = (stepper: Stepper, velocity: number) => {
     stepper.velocity = velocity;
     const { full_rev_mm, microstepping } = stepper;
-    const step_sleep_milli = (full_rev_mm * microstepping) / (360.0 * velocity);
-    stepper.step_sleep_millis = Math.round(step_sleep_milli);
+    const step_sleep_micros =
+      ((full_rev_mm * microstepping) / (360.0 * velocity)) * 1000;
+    stepper.step_sleep_micros = Math.round(step_sleep_micros);
   };
 
   setStepperMicrostepping = (stepper: Stepper, microstepping: number) => {
     stepper.microstepping = microstepping;
     const { full_rev_mm } = stepper;
-    const step_sleep_milli =
-      (full_rev_mm * microstepping) / (360.0 * stepper.velocity);
-    stepper.step_sleep_millis = Math.round(step_sleep_milli);
+    const step_sleep_micros =
+      ((full_rev_mm * microstepping) / (360.0 * stepper.velocity)) * 1000;
+    stepper.step_sleep_micros = Math.round(step_sleep_micros);
   };
 
   setValveState = (number: 1 | 2, state: VALVE_STATE) => {
