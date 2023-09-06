@@ -136,10 +136,7 @@ class AppStore {
       getPressureCommand()
     )) as unknown as string;
     const value = parseInt(data);
-    // convert value from 0 to 1023 to pressure from 0.005 to 1
     const pressure = (value / 1023) * (1 - 0.005) + 0.005;
-    // const pressure = ((value / 255) * (1 - 0.005)) + 0.005;
-    // three decimals max
     return pressure.toFixed(3).toString();
   };
 
