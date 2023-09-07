@@ -6,18 +6,17 @@ import { type DataTypeUltra, Mode } from "~/utils/ultrasonicSensor/functions";
 
 export const UltrasonicController = observer(() => {
   const app = appStore();
-  const mode = app.ultrasonicSensorMode;
+  const refPower = React.useRef<HTMLInputElement>(null);
 
-  const toggleSwitch = () => {
-    const newMode =
-      app.ultrasonicSensorMode === Mode.Running ? Mode.Standby : Mode.Running;
-    // const newRunningPower = newMode === Mode.Running ? 200 : 0;
-    // const newStandbyPower = newMode === Mode.Standby ? 10 : 0;
+  // const runningPower = app.ultrasonicSensorMode;
+  // const standbyPower = app.ultrasonicSensorMode;
 
+  const toggleSwitch = (newMode: Mode) => {
     const data: DataTypeUltra = {
       mode: newMode,
-      runningPower: 200,
-      standbyPower: 10,
+      runningPower:
+        newMode === Mode.Running ? refPower.current?.valueAsNumber || 0 : 0,
+      standbyPower: 0,
     };
 
     console.log("mode -> ", newMode === Mode.Running ? "Running" : "Standby");
@@ -30,8 +29,6 @@ export const UltrasonicController = observer(() => {
     });
   };
 
-  const modeLabel = mode === Mode.Running ? "Stop" : "Start";
-
   return (
     <div className="flex flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-solid border-gray-200 px-6 py-4">
       <div className="mb-2 text-xl font-bold">Ultrasonic Controller</div>
@@ -39,38 +36,37 @@ export const UltrasonicController = observer(() => {
       <button
         type="button"
         className={
-          mode === Mode.Standby
-            ? "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
-            : "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+          "rounded-md bg-green-500 px-4 py-2 font-medium text-white hover:bg-green-600"
         }
         onClick={() => {
-          toggleSwitch();
+          toggleSwitch(Mode.Running);
         }}
       >
-        {modeLabel}
+        Start
+      </button>
+      <button
+        type="button"
+        className={
+          "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
+        }
+        onClick={() => {
+          toggleSwitch(Mode.Standby);
+        }}
+      >
+        Stop
       </button>
       <div className="h-4" />
-      {/* <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4">
         <label htmlFor="number-input" className="w-44 font-medium">
-          Power (0-100)
+          Running Power
         </label>
         <input
           type="number"
           id="number-input"
           className="w-32 rounded-md border border-gray-300 px-3 py-2"
-          // ref={cleaningRepetitionsRef}
+          ref={refPower}
         />
       </div>
-      <div className="h-4" /> */}
-      {/* <button
-        type="button"
-        className="rounded-md bg-blue-500 px-4 py-2 font-medium text-white hover:bg-blue-600"
-        onClick={() => {
-          // TODO: Set power
-        }}
-      >
-        Set Power
-      </button> */}
     </div>
   );
 });

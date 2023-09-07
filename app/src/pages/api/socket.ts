@@ -31,9 +31,6 @@ const arduinoSerialPort = new SerialPort({
 const serialPortUltra = new SerialPort({
   path: process.env.ULTRASONIC_PORT_PATH || "COM10",
   baudRate: 9600,
-  dataBits: 8,
-  parity: "none",
-  stopBits: 1,
 });
 
 // Function to send data through SerialPort
@@ -99,6 +96,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         // Format the data based on the given instructions
         console.log("Data to send:", data);
         const formattedData = formatSendDataUltrasonic(data);
+        console.log("Formatted data -> ", formattedData);
         sendDataUltra(formattedData);
       });
     });

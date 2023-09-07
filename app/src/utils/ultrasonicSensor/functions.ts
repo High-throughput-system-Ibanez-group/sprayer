@@ -9,35 +9,30 @@ export type DataTypeUltra = {
   mode: Mode;
 };
 
+export const shortToByteArray = (number: number) => {
+  const byteArray = Buffer.alloc(2);
+
+  for (let index = 0; index < byteArray.length; index++) {
+    const byte = number & 0xff;
+    byteArray[index] = byte;
+    number = (number - byte) / 256;
+  }
+
+  return byteArray.reverse();
+};
+
 // Function to format data based on given instructions
 export const formatSendDataUltrasonic = (data: DataTypeUltra) => {
   // Assuming data is an object with the required parameters
   // For example, data = { standbyPower: 300, runningPower: 500, mode: 0 }
 
   // Calculate the values of bit 2 and bit 3 (standby power)
-  const standbyPowerToHex = Math.min(20, data.standbyPower)
-    .toString(16)
-    .padStart(4, "0");
-  const standbyPowerBitsHex = standbyPowerToHex.match(/.{1,2}/g) as [
-    string,
-    string
-  ];
-  const standbyPowerBits = [
-    parseInt(standbyPowerBitsHex[0], 16),
-    parseInt(standbyPowerBitsHex[1], 16),
-  ];
+  const standbyPowerValue = Math.min(20, data.standbyPower);
+  const standbyPowerBits = shortToByteArray(standbyPowerValue);
 
   // Calculate the values of bit 4 and bit 5 (running power)
-  const runningPowerToHex = data.runningPower.toString(16).padStart(4, "0");
-  const runningPowerBitsRex = runningPowerToHex.match(/.{1,2}/g) as [
-    string,
-    string
-  ];
-
-  const runningPowerBits = [
-    parseInt(runningPowerBitsRex[0], 16),
-    parseInt(runningPowerBitsRex[1], 16),
-  ];
+  const runningPowerValue = data.runningPower;
+  const runningPowerBits = shortToByteArray(runningPowerValue);
 
   // Calculate the final data to be sent
   const addressCode = 0x03;
@@ -84,12 +79,12 @@ export const parseReceivedDataUltrasonic = (data: Buffer) => {
 
   // Returning the parsed data as an object
   return {
-    bit0,
-    realPowerValue,
-    operationFrequency,
-    operationTimeHours,
-    operationTimeMinutes,
-    totalOperationTime,
-    warningMode,
+    bit0: bit0?.toString(16),
+    realPowerValue: realPowerValue?.toString(16),
+    operationFrequency: operationFrequency?.toString(16),
+    operationTimeHours: operationTimeHours?.toString(16),
+    operationTimeMinutes: operationTimeMinutes?.toString(16),
+    totalOperationTime: totalOperationTime?.toString(16),
+    warningMode: warningMode?.toString(16),
   };
 };
