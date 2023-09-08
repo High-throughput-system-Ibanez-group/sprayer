@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { steperCommandToString, stepperMoveMM } from "~/lib/setupCommands";
 import { DIR, type Stepper } from "~/lib/types";
 import { appStore } from "~/stores/app";
@@ -85,7 +85,7 @@ const Move = observer(({ stepper }: { stepper: Stepper }) => {
         <div className="relative">
           <div className="absolute w-48 flex-1 items-center">
             <div className="text-sm text-gray-400">
-              Time: {!loading ? `${time.toFixed(3)}s` : "Loading.."}
+              Time: {!loading ? `${time.toFixed(1)}s` : "Loading.."}
             </div>
           </div>
         </div>
