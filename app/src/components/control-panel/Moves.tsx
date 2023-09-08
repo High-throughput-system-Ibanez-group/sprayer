@@ -85,7 +85,7 @@ const Move = observer(({ stepper }: { stepper: Stepper }) => {
         <div className="relative">
           <div className="absolute w-48 flex-1 items-center">
             <div className="text-sm text-gray-400">
-              Time: {!loading ? `${time.toFixed(1)}s` : "Loading.."}
+              Time: {!loading ? `${time.toFixed(3)}s` : "Loading.."}
             </div>
           </div>
         </div>
