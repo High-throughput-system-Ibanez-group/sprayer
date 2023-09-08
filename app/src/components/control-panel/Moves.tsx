@@ -28,20 +28,13 @@ const Move = observer(({ stepper }: { stepper: Stepper }) => {
 
   const [time, setTime] = useState(0);
 
-  useEffect(() => {
-    if (loading) {
-      setTime(0);
-      const interval = setInterval(() => {
-        setTime((t) => t + 0.1);
-      }, 100);
-      return () => clearInterval(interval);
-    }
-  }, [loading]);
-
   const onSpecificMove = async (stepper: Stepper, dir: DIR, mm: number) => {
     try {
       setLoading(true);
+      const start = performance.now();
       await executeCommand(stepperMoveMM(stepper, mm, dir));
+      const end = performance.now();
+      setTime((end - start) / 1000);
     } finally {
       setLoading(false);
     }
@@ -92,7 +85,7 @@ const Move = observer(({ stepper }: { stepper: Stepper }) => {
         <div className="relative">
           <div className="absolute w-48 flex-1 items-center">
             <div className="text-sm text-gray-400">
-              Time: {!loading ? `${time.toFixed(1)}s` : "Loading.."}
+              Time: {!loading ? `${time.toFixed(3)}s` : "Loading.."}
             </div>
           </div>
         </div>

@@ -54,9 +54,9 @@ struct stepper
   int steps;
   int free_rotate;
   int disable;
-  int step_sleep_micros;
   int pending_steps;
   int toggle;
+  unsigned long step_sleep_micros;
   unsigned long next_step_time;
   int count_steps;
   int total_steps;
@@ -77,6 +77,7 @@ void setup()
   stepper_x.limit_start = STEPPER_X_LIMIT_START;
   stepper_x.limit_end = STEPPER_X_LIMIT_END;
   stepper_x.command = STEPPER_COMMAND_X;
+  stepper_x.next_step_time = 0;
   setup_stepper(stepper_x);
 
   stepper_y.stp = STEPPER_Y_STP;
@@ -85,6 +86,7 @@ void setup()
   stepper_y.limit_start = STEPPER_Y_LIMIT_START;
   stepper_y.limit_end = STEPPER_Y_LIMIT_END;
   stepper_y.command = STEPPER_COMMAND_Y;
+  stepper_y.next_step_time = 0;
   setup_stepper(stepper_y);
 
   stepper_z.stp = STEPPER_Z_STP;
@@ -93,6 +95,7 @@ void setup()
   stepper_z.limit_start = STEPPER_Z_LIMIT_START;
   stepper_z.limit_end = STEPPER_Z_LIMIT_END;
   stepper_z.command = STEPPER_COMMAND_Z;
+  stepper_z.next_step_time = 0;
   setup_stepper(stepper_z);
 
   stepper_s.stp = STEPPER_SYRINGE_STP;
@@ -101,6 +104,7 @@ void setup()
   stepper_s.limit_start = STEPPER_SYRINGE_LIMIT_START;
   stepper_s.limit_end = STEPPER_SYRINGE_LIMIT_END;
   stepper_s.command = STEPPER_COMMAND_S;
+  stepper_s.next_step_time = 0;
   setup_stepper(stepper_s);
 
   // config pressure regulator
@@ -143,15 +147,23 @@ void disable_stepper(stepper &stepper)
 
 void rotate_stepper(stepper &stepper)
 {
+  unsigned long current_time = micros();
+
   if (stepper.disable)
   {
     disable_stepper(stepper);
   }
-  else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < micros()))
+  else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < current_time))
   {
+    // if (stepper.next_step_time < current_time - 5000)
+    if (stepper.next_step_time == 0)
+    {
+      stepper.next_step_time = current_time;
+    }
+
     stepper.next_step_time = stepper.next_step_time + stepper.step_sleep_micros;
 
-    digitalWrite(stepper.stp, stepper.toggle);
+    digitalWrite(stepper.stp, stepper.toggle); // 100
 
     stepper.toggle = !stepper.toggle;
 
@@ -164,6 +176,7 @@ void rotate_stepper(stepper &stepper)
       stepper.pending_steps -= 1;
       if (stepper.pending_steps == 0)
       {
+        stepper.next_step_time = 0;
         Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
       }
     }
@@ -182,6 +195,7 @@ void stop_stepper(stepper &stepper)
 {
   stepper.pending_steps = 0;
   stepper.free_rotate = 0;
+  stepper.next_step_time = 0;
   Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
 }
 

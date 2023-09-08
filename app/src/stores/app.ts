@@ -208,14 +208,14 @@ class AppStore {
   calcSettperStepSleepMicros = (stepper: Stepper) => {
     const { full_rev_mm, microstepping, velocity } = stepper;
     stepper.step_sleep_micros =
-      ((full_rev_mm * microstepping) / (360.0 * velocity)) * 1000;
+      ((full_rev_mm * microstepping) / (320 * velocity)) * 1000;
   };
 
   setStepperVelocity = (stepper: Stepper, velocity: number) => {
     stepper.velocity = velocity;
     const { full_rev_mm, microstepping } = stepper;
     const step_sleep_micros =
-      ((full_rev_mm * microstepping) / (360.0 * velocity)) * 1000;
+      ((full_rev_mm * microstepping) / (320 * velocity)) * 1000;
     stepper.step_sleep_micros = Math.round(step_sleep_micros);
   };
 
@@ -223,7 +223,7 @@ class AppStore {
     stepper.microstepping = microstepping;
     const { full_rev_mm } = stepper;
     const step_sleep_micros =
-      ((full_rev_mm * microstepping) / (360.0 * stepper.velocity)) * 1000;
+      ((full_rev_mm * microstepping) / (320 * stepper.velocity)) * 1000;
     stepper.step_sleep_micros = Math.round(step_sleep_micros);
   };
 
