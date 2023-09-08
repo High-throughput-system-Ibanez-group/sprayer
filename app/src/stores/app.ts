@@ -41,7 +41,15 @@ class AppStore {
   constructor() {
     makeAutoObservable(this);
     void this.startSocket();
+    this.setDefaultStepSleepValues();
   }
+
+  setDefaultStepSleepValues = () => {
+    this.calcSettperStepSleepMicros(this.stepperX);
+    this.calcSettperStepSleepMicros(this.stepperY);
+    this.calcSettperStepSleepMicros(this.stepperZ);
+    this.calcSettperStepSleepMicros(this.stepperS);
+  };
 
   startSocket = async () => {
     try {
@@ -195,6 +203,12 @@ class AppStore {
       default:
         return;
     }
+  };
+
+  calcSettperStepSleepMicros = (stepper: Stepper) => {
+    const { full_rev_mm, microstepping, velocity } = stepper;
+    stepper.step_sleep_micros =
+      ((full_rev_mm * microstepping) / (360.0 * velocity)) * 1000;
   };
 
   setStepperVelocity = (stepper: Stepper, velocity: number) => {
