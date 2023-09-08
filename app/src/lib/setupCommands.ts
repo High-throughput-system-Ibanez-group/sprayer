@@ -23,9 +23,15 @@ export const steperCommandToString = (command: Command) => {
   }
 };
 
+export const getDelayMicros = (stepper: Stepper) => {
+  return Math.round(
+    (1e6 * stepper.full_rev_mm) / (2 * stepper.velocity * stepper.microstepping)
+  );
+};
+
 export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
   const steps = Math.round(
-    (mm / stepper.full_rev_mm) * (2 * stepper.microstepping)
+    (2 * stepper.microstepping * mm) / stepper.full_rev_mm
   );
   return setupStepperCommand(
     stepper.command,

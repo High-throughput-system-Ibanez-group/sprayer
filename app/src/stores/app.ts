@@ -13,6 +13,7 @@ import {
   stepperZeroingEnd,
   stepperZeroingStart,
   setValve1Command,
+  getDelayMicros,
 } from "~/lib/setupCommands";
 import {
   defStepperX,
@@ -206,25 +207,17 @@ class AppStore {
   };
 
   calcSettperStepSleepMicros = (stepper: Stepper) => {
-    const { full_rev_mm, microstepping, velocity } = stepper;
-    stepper.step_sleep_micros =
-      ((full_rev_mm * microstepping) / (320 * velocity)) * 1000;
+    stepper.step_sleep_micros = getDelayMicros(stepper);
   };
 
-  setStepperVelocity = (stepper: Stepper, velocity: number) => {
-    stepper.velocity = velocity;
-    const { full_rev_mm, microstepping } = stepper;
-    const step_sleep_micros =
-      ((full_rev_mm * microstepping) / (320 * velocity)) * 1000;
-    stepper.step_sleep_micros = Math.round(step_sleep_micros);
+  setStepperVelocity = (stepper: Stepper, velocityMmSec: number) => {
+    stepper.velocity = velocityMmSec;
+    stepper.step_sleep_micros = getDelayMicros(stepper);
   };
 
   setStepperMicrostepping = (stepper: Stepper, microstepping: number) => {
     stepper.microstepping = microstepping;
-    const { full_rev_mm } = stepper;
-    const step_sleep_micros =
-      ((full_rev_mm * microstepping) / (320 * stepper.velocity)) * 1000;
-    stepper.step_sleep_micros = Math.round(step_sleep_micros);
+    stepper.step_sleep_micros = getDelayMicros(stepper);
   };
 
   setValveState = (number: 1 | 2, state: VALVE_STATE) => {
