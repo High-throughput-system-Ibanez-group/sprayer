@@ -5,6 +5,8 @@ import React from "react";
 const Nav = () => {
   const router = useRouter();
 
+  const [arduinoStatus, setArduinoStatus] = React.useState(false);
+
   return (
     <nav className="flex items-center bg-gray-800 p-4 text-white">
       <div className="text-xl font-bold">Sprayer</div>
@@ -36,6 +38,15 @@ const Nav = () => {
           Experiment Configuration
         </div>
       </Link>
+      <div className="flex flex-row items-center">
+        Arduino status
+        <div className="w-2" />
+        <div
+          className={`inline-block h-2 w-2 rounded-full ${
+            arduinoStatus ? "bg-green-500" : "bg-red-500"
+          }`}
+        />
+      </div>
     </nav>
   );
 };
