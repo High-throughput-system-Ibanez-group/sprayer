@@ -43,7 +43,7 @@ export const defStepperZ: Stepper = {
 export const defStepperS: Stepper = {
   command: Command.STEPPER_COMMAND_S,
   dir: DIR.FORWARD,
-  microstepping: 200,
+  microstepping: 3600,
   full_rev_mm: 1,
   free_rotate: false,
   steps: 0,
