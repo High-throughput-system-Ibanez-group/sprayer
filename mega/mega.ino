@@ -29,6 +29,8 @@
 #define VALVE_SYRINGE_1 40
 #define VALVE_SYRINGE_2 39
 
+#define MAX_CURRENT_TO_NEXT_STEP_TIME_GAP_US 5000
+
 // commands
 #define STEPPER_COMMAND_X 0x41
 #define STEPPER_COMMAND_Y 0x42
@@ -69,8 +71,14 @@ stepper stepper_s; // syringe
 
 stepper *steppers[] = {&stepper_x, &stepper_y, &stepper_z, &stepper_s};
 
+unsigned long next_heartbeat_us;
+unsigned long heartbeat_sleep_us;
+
 void setup()
 {
+  next_heartbeat_us = 0;
+  heartbeat_sleep_us = 2000000;
+
   stepper_x.stp = STEPPER_X_STP;
   stepper_x.dir = STEPPER_X_DIR;
   stepper_x.pow = STEPPER_X_POW;
@@ -155,15 +163,14 @@ void rotate_stepper(stepper &stepper)
   }
   else if ((stepper.pending_steps > 0 || stepper.free_rotate) && (stepper.next_step_time < current_time))
   {
-    // if (stepper.next_step_time < current_time - 5000)
-    if (stepper.next_step_time == 0)
+    if (abs(current_time - stepper.next_step_time) > MAX_CURRENT_TO_NEXT_STEP_TIME_GAP_US)
     {
       stepper.next_step_time = current_time;
     }
 
-    stepper.next_step_time = stepper.next_step_time + stepper.step_sleep_micros;
+    stepper.next_step_time += stepper.step_sleep_micros;
 
-    digitalWrite(stepper.stp, stepper.toggle); // 100
+    digitalWrite(stepper.stp, stepper.toggle);
 
     stepper.toggle = !stepper.toggle;
 
@@ -176,7 +183,6 @@ void rotate_stepper(stepper &stepper)
       stepper.pending_steps -= 1;
       if (stepper.pending_steps == 0)
       {
-        stepper.next_step_time = 0;
         Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
       }
     }
@@ -195,7 +201,7 @@ void stop_stepper(stepper &stepper)
 {
   stepper.pending_steps = 0;
   stepper.free_rotate = 0;
-  stepper.next_step_time = 0;
+  // stepper.next_step_time = 0;
   Serial.println(String(FINISH_COMMAND) + ":" + String(stepper.command));
 }
 
@@ -229,7 +235,7 @@ void set_valve_syringe_2(int val)
   Serial.println(String(FINISH_COMMAND) + ":" + String(SET_VALVE_COMMMAND_2));
 }
 
-void set_stepper(stepper *stepper, int dir, int free_rotate, int steps, int step_sleep_micros, int disable, int count_steps)
+void set_stepper(stepper *stepper, int dir, int free_rotate, int steps, unsigned long step_sleep_micros, int disable, int count_steps)
 {
   digitalWrite(stepper->dir, dir);
   stepper->free_rotate = free_rotate;
@@ -248,7 +254,7 @@ void check_steppers()
   rotate_stepper(stepper_s);
 }
 
-int get_command_arg(String command, int argIndex)
+unsigned long get_command_arg(String command, int argIndex)
 {
   int separatorIndex = 0;
   for (int i = 0; i < argIndex; i++)
@@ -260,6 +266,7 @@ int get_command_arg(String command, int argIndex)
     }
   }
   String arg = command.substring(separatorIndex + 1, command.indexOf(':', separatorIndex + 1));
+
   return arg.toInt();
 }
 
@@ -311,10 +318,7 @@ void process_serial_input()
 void loop()
 {
   process_serial_input();
-
   check_limits();
-
   check_steppers();
-
   delay(1);
 }
