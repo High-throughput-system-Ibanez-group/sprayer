@@ -150,7 +150,7 @@ void disable_stepper(stepper &stepper)
 {
   stepper.disable = 0;
   stop_stepper(stepper);
-  digitalWrite(stepper.pow, LOW);
+  digitalWrite(stepper.pow, HIGH);
 }
 
 void rotate_stepper(stepper &stepper)

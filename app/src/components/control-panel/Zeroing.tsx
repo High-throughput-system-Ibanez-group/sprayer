@@ -1,9 +1,9 @@
 import { observer } from "mobx-react-lite";
-import { Step } from "~/lib/sequences";
+import { SATAND_BY_MOTORS_SEQUENCE, Step } from "~/lib/sequences";
 import { appStore } from "~/stores/app";
 
 export const Zeroing = observer(() => {
-  const { handleSequenceStep } = appStore();
+  const { handleSequenceStep, executeCommandSequence } = appStore();
 
   const handleZeroingClick = async (type: "start" | "end") => {
     switch (type) {
@@ -16,9 +16,9 @@ export const Zeroing = observer(() => {
     }
   };
 
-  // const standbyMotors = async () => {
-  //   await executeCommandSequence(SATAND_BY_MOTORS_SEQUENCE);
-  // };
+  const standbyMotors = async () => {
+    await executeCommandSequence(SATAND_BY_MOTORS_SEQUENCE);
+  };
 
   const onStopMotors = async () => {
     await handleSequenceStep(Step.STOP_MOTORS);
@@ -48,7 +48,7 @@ export const Zeroing = observer(() => {
         </button>
       </div>
       <div className="h-4" />
-      {/* <button
+      <button
         type="button"
         className={
           "rounded-md bg-red-500 px-4 py-2 font-medium text-white hover:bg-red-600"
@@ -59,7 +59,7 @@ export const Zeroing = observer(() => {
       >
         Stand-By Motors
       </button>
-      <div className="h-4" /> */}
+      <div className="h-4" />
       <button
         type="button"
         className={
