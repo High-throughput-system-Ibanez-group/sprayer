@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { Server as HTTPServer } from "http";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Socket as NetSocket } from "net";
@@ -9,6 +12,8 @@ import {
   formatSendDataUltrasonic,
   parseReceivedDataUltrasonic,
 } from "~/utils/ultrasonicSensor/functions";
+import * as fs from "fs";
+import { AvrgirlArduino } from "avrgirl-arduino";
 
 interface SocketServer extends HTTPServer {
   io?: IOServer | undefined;
@@ -45,6 +50,44 @@ const sendDataUltra = (data: Buffer) => {
 };
 
 const arduinoReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
+const ultraReadlineParser = new ReadlineParser();
+
+const arduinoParser = arduinoSerialPort.pipe(arduinoReadlineParser);
+const parserUltra = serialPortUltra.pipe(ultraReadlineParser);
+
+export const getArduinoSerialPortState = () => arduinoSerialPort.isOpen;
+export const openArduinoSerialPort = () => arduinoSerialPort.open();
+
+interface UploadResult {
+  success: boolean;
+  error?: string;
+}
+export const uploadBoard = (): Promise<UploadResult> => {
+  return new Promise((resolve) => {
+    console.log("Uploading firmware to board...");
+
+    // Read the firmware file into a buffer
+    const firmware = fs.readFileSync("../../../../mega/mega.ino");
+
+    // Create a new instance of AvrgirlArduino
+    const avrgirl = new AvrgirlArduino({
+      board: "mega",
+      debug: true,
+    });
+
+    // Upload the firmware to the board
+    avrgirl.flash(firmware, (error: { message: string }) => {
+      if (error) {
+        console.error("Error uploading firmware:", error);
+        resolve({ error: error.message, success: false });
+      } else {
+        console.log("Firmware uploaded successfully");
+        arduinoSerialPort.open();
+        resolve({ success: true });
+      }
+    });
+  });
+};
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {
@@ -53,9 +96,6 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     console.log("Socket is initializing");
     const io = new IOServer(res.socket.server);
     res.socket.server.io = io;
-
-    const arduinoParser = arduinoSerialPort.pipe(arduinoReadlineParser);
-    const parserUltra = serialPortUltra.pipe(new ReadlineParser());
 
     arduinoParser.on("open", function () {
       console.log("arduino connection is opened");
@@ -86,6 +126,12 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
 
     io.on("connection", (socket) => {
       console.log("Socket connected");
+
+      socket.on("checkArduinoSerialPortState", () => {
+        console.log("Checking Arduino serial port state...");
+        socket.emit("arduinoSerialPortState", arduinoSerialPort.isOpen);
+      });
+
       socket.on("sendCommand", (command: string) => {
         arduinoSerialPort.write(`${command}\n`, handlePortError);
         console.log("sendCommand: ", command);

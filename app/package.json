@@ -20,6 +20,7 @@
     "@trpc/next": "^10.18.0",
     "@trpc/react-query": "^10.18.0",
     "@trpc/server": "^10.18.0",
+    "avrgirl-arduino": "^5.0.1",
     "mobx": "^6.9.0",
     "mobx-react-lite": "^3.4.3",
     "next": "^13.2.4",

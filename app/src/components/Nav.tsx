@@ -1,11 +1,43 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect } from "react";
+import toast from "react-hot-toast";
+import {
+  getArduinoSerialPortState,
+  openArduinoSerialPort,
+  uploadBoard,
+} from "~/pages/api/socket";
 
 const Nav = () => {
   const router = useRouter();
 
-  const [arduinoStatus, setArduinoStatus] = React.useState(false);
+  const [arduinoIsConnected, setArduinoIsConnected] = React.useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      let isOpen = getArduinoSerialPortState();
+      if (!isOpen) {
+        openArduinoSerialPort();
+        isOpen = getArduinoSerialPortState();
+      }
+      setArduinoIsConnected(isOpen);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const onUploadBoard = async () => {
+    try {
+      const res = await uploadBoard();
+      if (!res.success) {
+        if (res.error) toast.error(res.error);
+        else toast.error("Error uploading board");
+      }
+      toast.success("Board uploaded successfully");
+      console.log(res);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <nav className="flex items-center bg-gray-800 p-4 text-white">
@@ -43,10 +75,20 @@ const Nav = () => {
         <div className="w-2" />
         <div
           className={`inline-block h-2 w-2 rounded-full ${
-            arduinoStatus ? "bg-green-500" : "bg-red-500"
+            arduinoIsConnected ? "bg-green-500" : "bg-red-500"
           }`}
         />
       </div>
+      {/* Button to upload the arduino code */}
+      <div className="w-4" />
+      <button
+        className="rounded-lg px-4 py-2 hover:bg-slate-500"
+        onClick={() => {
+          void onUploadBoard();
+        }}
+      >
+        Upload Arduino Code
+      </button>
     </nav>
   );
 };
