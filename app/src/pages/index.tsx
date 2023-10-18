@@ -2,6 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { Moves } from "~/components/control-panel/Moves";
 import { Settings } from "~/components/control-panel/Settings";
+import { Temperature } from "~/components/control-panel/Temperature";
 import { WorkingSpace } from "~/components/control-panel/WorkingSpace";
 import { Zeroing } from "~/components/control-panel/Zeroing";
 
@@ -22,6 +23,8 @@ const Home: NextPage = () => {
         <Moves />
         <div className="h-6" />
         <WorkingSpace />
+        <div className="h-6" />
+        <Temperature />
         <div className="h-4" />
       </main>
     </>

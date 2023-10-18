@@ -38,6 +38,8 @@ class AppStore {
   ultrasonicSensorRunningPower = 0;
   ultrasonicSensorStandByPower = 0;
   pressureInput = 0.005;
+  temperatureRead = 0;
+  temperatureInput = 0;
 
   constructor() {
     makeAutoObservable(this);
