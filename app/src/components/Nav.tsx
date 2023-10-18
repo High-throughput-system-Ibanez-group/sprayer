@@ -1,43 +1,37 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect } from "react";
-import toast from "react-hot-toast";
-import {
-  getArduinoSerialPortState,
-  openArduinoSerialPort,
-  uploadBoard,
-} from "~/pages/api/socket";
+import React from "react";
 
 const Nav = () => {
   const router = useRouter();
 
-  const [arduinoIsConnected, setArduinoIsConnected] = React.useState(false);
+  // const [arduinoIsConnected, setArduinoIsConnected] = React.useState(false);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      let isOpen = getArduinoSerialPortState();
-      if (!isOpen) {
-        openArduinoSerialPort();
-        isOpen = getArduinoSerialPortState();
-      }
-      setArduinoIsConnected(isOpen);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     let isOpen = getArduinoSerialPortState();
+  //     if (!isOpen) {
+  //       openArduinoSerialPort();
+  //       isOpen = getArduinoSerialPortState();
+  //     }
+  //     setArduinoIsConnected(isOpen);
+  //   }, 1000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
-  const onUploadBoard = async () => {
-    try {
-      const res = await uploadBoard();
-      if (!res.success) {
-        if (res.error) toast.error(res.error);
-        else toast.error("Error uploading board");
-      }
-      toast.success("Board uploaded successfully");
-      console.log(res);
-    } catch (e) {
-      console.log(e);
-    }
-  };
+  // const onUploadBoard = async () => {
+  //   try {
+  //     const res = await uploadBoard();
+  //     if (!res.success) {
+  //       if (res.error) toast.error(res.error);
+  //       else toast.error("Error uploading board");
+  //     }
+  //     toast.success("Board uploaded successfully");
+  //     console.log(res);
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // };
 
   return (
     <nav className="flex items-center bg-gray-800 p-4 text-white">
@@ -70,7 +64,7 @@ const Nav = () => {
           Experiment Configuration
         </div>
       </Link>
-      <div className="flex flex-row items-center">
+      {/* <div className="flex flex-row items-center">
         Arduino status
         <div className="w-2" />
         <div
@@ -78,17 +72,17 @@ const Nav = () => {
             arduinoIsConnected ? "bg-green-500" : "bg-red-500"
           }`}
         />
-      </div>
+      </div> */}
       {/* Button to upload the arduino code */}
       <div className="w-4" />
-      <button
+      {/* <button
         className="rounded-lg px-4 py-2 hover:bg-slate-500"
         onClick={() => {
-          void onUploadBoard();
+          // void onUploadBoard();
         }}
       >
         Upload Arduino Code
-      </button>
+      </button> */}
     </nav>
   );
 };

@@ -12,8 +12,8 @@ import {
   formatSendDataUltrasonic,
   parseReceivedDataUltrasonic,
 } from "~/utils/ultrasonicSensor/functions";
-import * as fs from "fs";
-import { AvrgirlArduino } from "avrgirl-arduino";
+// import * as fs from "fs";
+// import { AvrgirlArduino } from "avrgirl-arduino";
 
 interface SocketServer extends HTTPServer {
   io?: IOServer | undefined;
@@ -58,36 +58,36 @@ const parserUltra = serialPortUltra.pipe(ultraReadlineParser);
 export const getArduinoSerialPortState = () => arduinoSerialPort.isOpen;
 export const openArduinoSerialPort = () => arduinoSerialPort.open();
 
-interface UploadResult {
-  success: boolean;
-  error?: string;
-}
-export const uploadBoard = (): Promise<UploadResult> => {
-  return new Promise((resolve) => {
-    console.log("Uploading firmware to board...");
+// interface UploadResult {
+//   success: boolean;
+//   error?: string;
+// }
+// export const uploadBoard = (): Promise<UploadResult> => {
+//   return new Promise((resolve) => {
+//     console.log("Uploading firmware to board...");
 
-    // Read the firmware file into a buffer
-    const firmware = fs.readFileSync("../../../../mega/mega.ino");
+//     // Read the firmware file into a buffer
+//     const firmware = fs.readFileSync("../../../../mega/mega.ino");
 
-    // Create a new instance of AvrgirlArduino
-    const avrgirl = new AvrgirlArduino({
-      board: "mega",
-      debug: true,
-    });
+//     // Create a new instance of AvrgirlArduino
+//     const avrgirl = new AvrgirlArduino({
+//       board: "mega",
+//       debug: true,
+//     });
 
-    // Upload the firmware to the board
-    avrgirl.flash(firmware, (error: { message: string }) => {
-      if (error) {
-        console.error("Error uploading firmware:", error);
-        resolve({ error: error.message, success: false });
-      } else {
-        console.log("Firmware uploaded successfully");
-        arduinoSerialPort.open();
-        resolve({ success: true });
-      }
-    });
-  });
-};
+//     // Upload the firmware to the board
+//     avrgirl.flash(firmware, (error: { message: string }) => {
+//       if (error) {
+//         console.error("Error uploading firmware:", error);
+//         resolve({ error: error.message, success: false });
+//       } else {
+//         console.log("Firmware uploaded successfully");
+//         arduinoSerialPort.open();
+//         resolve({ success: true });
+//       }
+//     });
+//   });
+// };
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
   if (res.socket.server.io) {
