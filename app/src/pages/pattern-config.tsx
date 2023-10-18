@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite";
 import React, { useEffect } from "react";
+import { Temperature } from "~/components/control-panel/Temperature";
 import { Cleaning } from "~/components/pattern-config/Cleaning";
 import { ExperimentSettings } from "~/components/pattern-config/ExperimentSettings";
 import { Sidebar } from "~/components/pattern-config/Sidebar";
@@ -29,6 +30,8 @@ const PatternConfig = () => {
         <Settings />
         <div className="h-8" />
         <UltrasonicController />
+        <div className="h-8" />
+        <Temperature />
         <div className="h-8" />
         <Cleaning />
         <div className="h-8" />

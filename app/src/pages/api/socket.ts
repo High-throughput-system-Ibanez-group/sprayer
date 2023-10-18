@@ -12,6 +12,11 @@ import {
   formatSendDataUltrasonic,
   parseReceivedDataUltrasonic,
 } from "~/utils/ultrasonicSensor/functions";
+import {
+  parseReceivedDataTempCont,
+  readTempCont,
+  tempToBuffer,
+} from "~/utils/tempCont";
 // import * as fs from "fs";
 // import { AvrgirlArduino } from "avrgirl-arduino";
 
@@ -38,6 +43,11 @@ const serialPortUltra = new SerialPort({
   baudRate: 9600,
 });
 
+const serialPortTempCont = new SerialPort({
+  path: process.env.ULTRASONIC_PORT_PATH || "COM10",
+  baudRate: 9600,
+});
+
 // Function to send data through SerialPort
 const sendDataUltra = (data: Buffer) => {
   serialPortUltra.write(data, (err) => {
@@ -51,9 +61,11 @@ const sendDataUltra = (data: Buffer) => {
 
 const arduinoReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
 const ultraReadlineParser = new ReadlineParser();
+const readlineParserTempCont = new ReadlineParser();
 
 const arduinoParser = arduinoSerialPort.pipe(arduinoReadlineParser);
 const parserUltra = serialPortUltra.pipe(ultraReadlineParser);
+const parserTempCont = serialPortUltra.pipe(readlineParserTempCont);
 
 export const getArduinoSerialPortState = () => arduinoSerialPort.isOpen;
 export const openArduinoSerialPort = () => arduinoSerialPort.open();
@@ -113,6 +125,10 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       console.log("err with ultrasonic connection..", err)
     );
 
+    serialPortTempCont.on("error", (err) =>
+      console.log("err with temperature controller connection..", err)
+    );
+
     arduinoParser.on("data", function (receivedCommand: string) {
       io.emit("receivedCommand", receivedCommand);
       console.log("receivedCommand: ", receivedCommand);
@@ -122,6 +138,11 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       // Process the received data following the given instructions
       const parsedData = parseReceivedDataUltrasonic(data);
       console.log("Received Ultrasonic Data:", parsedData);
+    });
+
+    parserTempCont.on("data", (data: Buffer) => {
+      console.log("Received Temperature Controller Data:", data);
+      io.emit("receivedTempData", parseReceivedDataTempCont(data));
     });
 
     io.on("connection", (socket) => {
@@ -144,6 +165,30 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         const formattedData = formatSendDataUltrasonic(data);
         console.log("Formatted data -> ", formattedData);
         sendDataUltra(formattedData);
+      });
+
+      socket.on("readTemperature", () => {
+        const data = readTempCont();
+
+        serialPortTempCont.write(data, (err) => {
+          if (err) {
+            console.log("Error sending temp data:", err);
+          } else {
+            console.log("Data sent:", data);
+          }
+        });
+      });
+
+      socket.on("setTemperature", (temp: number) => {
+        const data = tempToBuffer(temp);
+
+        serialPortTempCont.write(data, (err) => {
+          if (err) {
+            console.log("Error sending temp data:", err);
+          } else {
+            console.log("Data sent:", data);
+          }
+        });
       });
     });
 
