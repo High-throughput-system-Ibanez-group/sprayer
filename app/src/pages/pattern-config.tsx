@@ -10,21 +10,21 @@ import { patternConfigStore } from "~/stores/patternConfig";
 import { api } from "~/utils/api";
 
 const PatternConfig = () => {
-  const { data: fetchedAreas, isLoading } = api.areas.getAll.useQuery();
-  const patternConfigState = patternConfigStore();
+  // const { data: fetchedAreas, isLoading } = api.areas.getAll.useQuery();
+  // const patternConfigState = patternConfigStore();
 
-  useEffect(() => {
-    if (fetchedAreas && fetchedAreas[0]) {
-      if (!patternConfigState.selectedAreaId)
-        patternConfigState.setSelectedAreaId(fetchedAreas[0].id);
-    }
-  }, [fetchedAreas, patternConfigState]);
+  // useEffect(() => {
+  //   if (fetchedAreas && fetchedAreas[0]) {
+  //     if (!patternConfigState.selectedAreaId)
+  //       patternConfigState.setSelectedAreaId(fetchedAreas[0].id);
+  //   }
+  // }, [fetchedAreas, patternConfigState]);
 
-  if (isLoading) return <div>Loading...</div>;
+  // if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-1 flex-row">
-      <Sidebar areas={fetchedAreas} />
+      {/* <Sidebar areas={fetchedAreas} /> */}
       <div className="h-8" />
       <div className="flex flex-1 flex-col items-center justify-start p-8">
         <Settings />

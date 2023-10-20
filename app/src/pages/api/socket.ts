@@ -20,6 +20,7 @@ import {
 // import * as fs from "fs";
 // import { AvrgirlArduino } from "avrgirl-arduino";
 
+
 interface SocketServer extends HTTPServer {
   io?: IOServer | undefined;
 }
@@ -44,8 +45,11 @@ const serialPortUltra = new SerialPort({
 });
 
 const serialPortTempCont = new SerialPort({
-  path: process.env.ULTRASONIC_PORT_PATH || "COM10",
+  path: process.env.TEMP_CONT_PORT_PATH || "COM10",
   baudRate: 9600,
+  dataBits: 8,    // 8 data bits
+  stopBits: 1,    // 1 stop bit
+  parity: 'even', // Set the parity to even
 });
 
 // Function to send data through SerialPort
@@ -60,12 +64,12 @@ const sendDataUltra = (data: Buffer) => {
 };
 
 const arduinoReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
-const ultraReadlineParser = new ReadlineParser();
-const readlineParserTempCont = new ReadlineParser();
+const ultraReadlineParser = new ReadlineParser({ delimiter: "\r\n" });
+// const readlineParserTempCont = new ReadlineParser();
 
 const arduinoParser = arduinoSerialPort.pipe(arduinoReadlineParser);
 const parserUltra = serialPortUltra.pipe(ultraReadlineParser);
-const parserTempCont = serialPortUltra.pipe(readlineParserTempCont);
+const parserTempCont = serialPortTempCont
 
 export const getArduinoSerialPortState = () => arduinoSerialPort.isOpen;
 export const openArduinoSerialPort = () => arduinoSerialPort.open();
@@ -141,7 +145,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     });
 
     parserTempCont.on("data", (data: Buffer) => {
-      console.log("Received Temperature Controller Data:", data);
+      console.log("TEMP: Received Temperature Controller Data:", data);
       io.emit("receivedTempData", parseReceivedDataTempCont(data));
     });
 
@@ -170,11 +174,11 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       socket.on("readTemperature", () => {
         const data = readTempCont();
 
-        serialPortTempCont.write(data, (err) => {
+        serialPortTempCont.write(`${data}\n`, (err) => {
           if (err) {
-            console.log("Error sending temp data:", err);
+            console.log("TEMP: Error sending temp data:", err);
           } else {
-            console.log("Data sent:", data);
+            console.log("TEMP: Data sent:", data);
           }
         });
       });
@@ -184,9 +188,9 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
 
         serialPortTempCont.write(data, (err) => {
           if (err) {
-            console.log("Error sending temp data:", err);
+            console.log("TEMP: Error sending temp data:", err);
           } else {
-            console.log("Data sent:", data);
+            console.log("TEMP: Data sent:", data);
           }
         });
       });

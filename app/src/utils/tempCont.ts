@@ -7,6 +7,8 @@ export const readTempCont = () => {
 export const parseReceivedDataTempCont = (data: Buffer) => {
   const binaryTemp = data[3]?.toString() || "";
   const temp = parseInt(binaryTemp, 16);
+
+  console.log("TEMP PARSED: ", temp)
   return temp;
 };
 

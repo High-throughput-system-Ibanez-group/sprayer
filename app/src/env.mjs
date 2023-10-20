@@ -11,6 +11,7 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
     ARDUINO_PORT_PATH: z.string().min(1),
     ULTRASONIC_PORT_PATH: z.string().min(1).optional(),
+    TEMP_CONT_PORT_PATH: z.string().min(1).optional(),
   },
 
   /**
@@ -31,6 +32,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     ARDUINO_PORT_PATH: process.env.ARDUINO_PORT_PATH,
     ULTRASONIC_PORT_PATH: process.env.ULTRASONIC_PORT_PATH,
+    TEMP_CONT_PORT_PATH: process.env.TEMP_CONT_PORT_PATH,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
 });
