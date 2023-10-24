@@ -16,6 +16,7 @@ export const Temperature = observer(() => {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      console.log("readTemperature")
       app.socket?.emit("readTemperature");
     }, 1000);
     return () => clearInterval(interval);
@@ -31,7 +32,7 @@ export const Temperature = observer(() => {
             type="number"
             readOnly
             className="rounded-md bg-gray-100 px-4 py-2 font-medium text-black hover:bg-gray-200"
-            value={app.temperatureRead.toFixed(2)}
+            value={app.temperatureRead}
           />
           <div className="w-4" />
           <div className="flex items-center">ºC</div>
