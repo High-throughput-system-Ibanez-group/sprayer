@@ -14,13 +14,11 @@ import {
 } from "~/utils/ultrasonicSensor/functions";
 import {
   parseReceivedDataTempCont,
-  readTempCont,
   sendCommandAndWait,
   tempToBuffer,
 } from "~/utils/tempCont";
 // import * as fs from "fs";
 // import { AvrgirlArduino } from "avrgirl-arduino";
-
 
 interface SocketServer extends HTTPServer {
   io?: IOServer | undefined;
@@ -49,7 +47,7 @@ const serialPortTempCont = new SerialPort({
   path: process.env.TEMP_CONT_PORT_PATH || "COM10",
   baudRate: 9600,
   autoOpen: false,
-  parity: 'even'
+  parity: "even",
 });
 
 // Function to send data through SerialPort
@@ -176,17 +174,20 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
 
       socket.on("readTemperature", async () => {
         const isOpen = serialPortTempCont.isOpen;
-        if(!isOpen) serialPortTempCont.open();
-        const response = await sendCommandAndWait(serialPortTempCont, [0x01, 0x04, 0x00, 0x00, 0x00, 0x01, 0x31, 0xCA]);
+        if (!isOpen) serialPortTempCont.open();
+        const response = await sendCommandAndWait(
+          serialPortTempCont,
+          [0x01, 0x04, 0x00, 0x00, 0x00, 0x01, 0x31, 0xca]
+        );
         const temp = parseReceivedDataTempCont(response);
         socket.emit("receivedTempData", temp);
       });
 
-      socket.on("setTemperature", async (temp: number) => {
+      socket.on("setTemperature", (temp: number) => {
         const isOpen = serialPortTempCont.isOpen;
-        if(!isOpen) serialPortTempCont.open();
-        const 
-        sendCommandAndWait(serialPortTempCont, [0x01, 0x06, 0x00, 0x00, 0x00, 0x1E, 0x09, 0xC2]);
+        if (!isOpen) serialPortTempCont.open();
+        const tempBuffer = tempToBuffer(temp);
+        void sendCommandAndWait(serialPortTempCont, tempBuffer);
       });
     });
 
