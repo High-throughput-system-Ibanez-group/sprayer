@@ -77,17 +77,23 @@ function drawSnakePattern(
 
 type Patterns = "serpentine";
 
+const SCALE = 32;
+// const HORITZONTAL_SCALE = 32 * 2;
 const DesignPattern = observer(() => {
   const [selectedPattern, setSelectedPattern] = useState<Patterns>();
-  const [xAxis, setXAxis] = useState<number>(1000);
-  const [yAxis, setYAxis] = useState<number>(1000);
-  const canvasWidth = xAxis / 2;
-  const canvasHeight = yAxis / 2;
+  const [xAxis, setXAxis] = useState<number>(10);
+  const [yAxis, setYAxis] = useState<number>(10);
+  const canvasWidth = xAxis * SCALE;
+  const canvasHeight = yAxis * SCALE;
 
-  const [horizontalDistance, setHorizontalDistance] = useState<number>(0);
+  const [horizontalDistance, setHorizontalDistance] = useState<number>(10);
   const [verticalDistance, setVerticalDistance] = useState<number>(0);
-  const canvasHorizontalDistance = horizontalDistance / 4;
-  const canvasVerticalDistance = verticalDistance / 2;
+  const canvasHorizontalDistance = (horizontalDistance * SCALE) / 2;
+  const canvasVerticalDistance = verticalDistance * SCALE;
+
+  useEffect(() => {
+    setHorizontalDistance(xAxis);
+  }, [xAxis]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -178,7 +184,7 @@ const DesignPattern = observer(() => {
   return (
     <div className="flex w-full flex-1 flex-row gap-4">
       <div className="flex h-full w-full flex-1 flex-col items-center">
-        <div>Area</div>
+        <div>Area (mm)</div>
         <div className="h-4" />
         <div className="flex flex-1 flex-row">
           <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -204,7 +210,7 @@ const DesignPattern = observer(() => {
           </div>
         </div>
         <div className="h-8" />
-        <div>Pattern</div>
+        <div>Pattern (mm)</div>
         <div className="h-4" />
         <Select
           value={selectedPattern}
@@ -229,6 +235,7 @@ const DesignPattern = observer(() => {
               <div className="grid w-full max-w-sm items-center gap-1.5">
                 <Label htmlFor="x">Horizontal distance</Label>
                 <Input
+                  disabled
                   type="number"
                   id="number-input"
                   value={horizontalDistance}
