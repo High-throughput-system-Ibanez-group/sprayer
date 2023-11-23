@@ -86,7 +86,7 @@ const DesignPattern = observer(() => {
 
   const [horizontalDistance, setHorizontalDistance] = useState<number>(0);
   const [verticalDistance, setVerticalDistance] = useState<number>(0);
-  const canvasHorizontalDistance = horizontalDistance / 2;
+  const canvasHorizontalDistance = horizontalDistance / 4;
   const canvasVerticalDistance = verticalDistance / 2;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
