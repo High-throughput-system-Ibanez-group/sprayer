@@ -24,9 +24,15 @@ export enum Step {
   ZEROING_START_X = 22,
   ZEROING_START_Y = 23,
   ZEROING_START_Z = 24,
+  MOVE_X_MM = 25,
+  MOVE_Y_MM = 26,
+  MOVE_Z_MM = 27,
+  SLEEP_MS = 28,
+  ULTRASONIC_ON = 29,
+  STOP_S = 30,
 }
 
-// type StepType = Step | [Step, number];
+export type StepType = Step | [Step, number] | StepType[];
 
 export const SATAND_BY_MOTORS_SEQUENCE: Step[] = [
   Step.ZEROING_START,
@@ -63,3 +69,47 @@ export const CLEAN_SEQUENCE: Step[] = [
   Step.SET_VALVE_1_OFF,
   Step.ZEROING_START_S,
 ];
+
+// export const serpentineSequence = (
+//   points: [],
+//   xAxis: number,
+//   yAxis: number,
+//   numberOfReps: number
+// ): StepType[] => {
+//   const INITIAL_STEPS = [
+//     Step.ZEROING_START,
+//     [
+//       [Step.MOVE_X_MM, 70],
+//       [Step.MOVE_Y_MM, 70],
+//     ],
+//     Step.ULTRASONIC_ON,
+//     [Step.SLEEP_MS, 500],
+//   ];
+
+//   const patternSteps = points.map((point: Point) => {
+//     return [
+//       [Step.MOVE_X_MM, point.x],
+//       [Step.MOVE_Y_MM, point.y],
+//     ];
+//   });
+
+//   const LOOP_STEPS = [
+//     Step.SET_VALVE_2_ON,
+//     Step.ZEROING_END_S,
+//     [
+//       [Step.MOVE_X_MM, 100],
+//       [Step.MOVE_Y_MM, 100],
+//     ],
+//     ...patternSteps,
+//     Step.SET_VALVE_2_OFF,
+//     Step.STOP_S,
+//     [
+//       [Step.MOVE_X_MM, -xAxis],
+//       [Step.MOVE_Y_MM, -yAxis],
+//     ],
+//   ];
+
+//   const finalSteps = [...INITIAL_STEPS, Array(numberOfReps).fill(LOOP_STEPS)];
+//   return INITIAL_STEPS;
+//   // return finalSteps
+// };

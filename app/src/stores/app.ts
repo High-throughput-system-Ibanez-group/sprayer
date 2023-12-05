@@ -14,6 +14,7 @@ import {
   stepperZeroingStart,
   setValve1Command,
   getDelayMicros,
+  stepperMoveMMWithoutDir,
 } from "~/lib/setupCommands";
 import {
   defStepperX,
@@ -21,8 +22,13 @@ import {
   defStepperZ,
   defStepperS,
 } from "~/lib/defaults";
-import { VALVE_STATE, type Stepper, COUNT_STEPS } from "~/lib/types";
-import { Step } from "~/lib/sequences";
+import {
+  VALVE_STATE,
+  type Stepper,
+  COUNT_STEPS,
+  type Point,
+} from "~/lib/types";
+import { Step, type StepType } from "~/lib/sequences";
 import { Steppers } from "~/utils/types";
 import { Mode } from "~/utils/ultrasonicSensor/functions";
 
@@ -151,7 +157,7 @@ class AppStore {
     return pressure.toFixed(3).toString();
   };
 
-  handleSequenceStep = (step: Step) => {
+  handleSequenceStep = (step: StepType) => {
     switch (step) {
       case Step.ZEROING_START:
         return this.zeroingStart();
@@ -203,8 +209,47 @@ class AppStore {
         return this.stepperEndS();
       case Step.ZEROING_START_S:
         return this.stepperStartS();
+      case Step.SLEEP_MS:
+        return new Promise((resolve) => setTimeout(resolve, step));
+      case Step.STOP_S:
+        return this.stepperStopS();
       default:
         return;
+    }
+  };
+
+  moveMM = (stepper: Stepper, mm: number) => {
+    return this.executeCommand(stepperMoveMMWithoutDir(stepper, mm));
+  };
+
+  patternSequece = async (
+    points: Point[],
+    reps: number,
+    xAxis: number,
+    yAxis: number
+  ) => {
+    await this.zeroingStart();
+    await Promise.all([
+      this.moveMM(this.stepperX, 70),
+      this.moveMM(this.stepperY, 70),
+    ]);
+    // TODO: ultrasonic on
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    for (let i = 0; i < reps; i++) {
+      await this.handleSequenceStep(Step.SET_VALVE_2_ON);
+      await this.stepperEndS();
+      for (const point of points) {
+        await Promise.all([
+          this.moveMM(this.stepperX, point.x),
+          this.moveMM(this.stepperY, point.y),
+        ]);
+      }
+      await this.handleSequenceStep(Step.SET_VALVE_2_OFF);
+      await this.stepperStopS();
+      await Promise.all([
+        this.moveMM(this.stepperX, -xAxis),
+        this.moveMM(this.stepperY, -yAxis),
+      ]);
     }
   };
 

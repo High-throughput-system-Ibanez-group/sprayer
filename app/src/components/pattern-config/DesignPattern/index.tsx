@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Point {
-  x: number;
-  y: number;
-}
+import { type Point } from "@/lib/types";
+import { appStore } from "@/stores/app";
 
 function drawSnakePattern(
   context: CanvasRenderingContext2D,
@@ -65,14 +62,22 @@ function drawSnakePattern(
           context.moveTo(x - horizontalDistance, y);
           points.push({ x: x - horizontalDistance, y });
           context.lineTo(x - horizontalDistance, y + verticalDistance);
+          points.push({ x: x - horizontalDistance, y: y + verticalDistance });
         }
         context.stroke();
         isMovingRight = !isMovingRight;
       }
+      if (row === numRows - 1) {
+        points.push({ x: x + horizontalDistance, y });
+      }
     }
   }
 
-  return points;
+  // return potins without duplicaties
+  return points.filter(
+    (point, index, self) =>
+      index === self.findIndex((p) => p.x === point.x && p.y === point.y)
+  );
 }
 
 type Patterns = "serpentine";
@@ -80,14 +85,19 @@ type Patterns = "serpentine";
 const SCALE = 32;
 // const HORITZONTAL_SCALE = 32 * 2;
 const DesignPattern = observer(() => {
+  const app = appStore();
   const [selectedPattern, setSelectedPattern] = useState<Patterns>();
-  const [xAxis, setXAxis] = useState<number>(10);
-  const [yAxis, setYAxis] = useState<number>(10);
+  const [xAxis, setXAxis] = useState(10);
+  const [yAxis, setYAxis] = useState(10);
+  const [running, setRunning] = useState(false);
   const canvasWidth = xAxis * SCALE;
   const canvasHeight = yAxis * SCALE;
 
-  const [horizontalDistance, setHorizontalDistance] = useState<number>(10);
-  const [verticalDistance, setVerticalDistance] = useState<number>(0);
+  const [points, setPoints] = useState<Point[]>([]);
+
+  const [horizontalDistance, setHorizontalDistance] = useState(10);
+  const [verticalDistance, setVerticalDistance] = useState(0);
+  const [numberOfLoops, setNumberOfLoops] = useState(1);
   const canvasHorizontalDistance = (horizontalDistance * SCALE) / 2;
   const canvasVerticalDistance = verticalDistance * SCALE;
 
@@ -99,39 +109,27 @@ const DesignPattern = observer(() => {
 
   // const numberOfLoopsRef = useRef<HTMLInputElement>(null);
 
-  const drawPattern = useCallback(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    // conver joint(-) separated string to array of points
-    const points = [] as Point[];
-    if (!points || !ctx) return;
-    const firstPoint = points[0];
-    if (!firstPoint) return;
-    // // Connect the points with lines
-    // ctx.beginPath();
-    // ctx.moveTo(firstPoint.x, firstPoint.y);
+  // const drawPattern = useCallback(() => {
+  //   const canvas = canvasRef.current;
+  //   const ctx = canvas?.getContext("2d");
+  //   const points = [] as Point[];
+  //   if (!points || !ctx) return;
+  //   const firstPoint = points[0];
+  //   if (!firstPoint) return;
 
-    // for (let i = 1; i < points.length; i++) {
-    //   const point = points[i];
-    //   if (!point) return;
-    //   ctx.lineTo(point.x, point.y);
-    // }
-
-    // ctx.stroke();
-
-    // draw lines between points
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "black";
-    for (let i = 0; i < points.length - 1; i++) {
-      const point = points[i];
-      const nextPoint = points[i + 1];
-      if (!point || !nextPoint) return;
-      ctx.beginPath();
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(nextPoint.x, nextPoint.y);
-      ctx.stroke();
-    }
-  }, []);
+  //   // draw lines between points
+  //   ctx.lineWidth = 2;
+  //   ctx.strokeStyle = "black";
+  //   for (let i = 0; i < points.length - 1; i++) {
+  //     const point = points[i];
+  //     const nextPoint = points[i + 1];
+  //     if (!point || !nextPoint) return;
+  //     ctx.beginPath();
+  //     ctx.moveTo(point.x, point.y);
+  //     ctx.lineTo(nextPoint.x, nextPoint.y);
+  //     ctx.stroke();
+  //   }
+  // }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -150,7 +148,6 @@ const DesignPattern = observer(() => {
     canvasHorizontalDistance,
     canvasVerticalDistance,
     // areaPattern,
-    drawPattern,
   ]);
 
   const onGenerate = () => {
@@ -177,8 +174,25 @@ const DesignPattern = observer(() => {
       canvasWidth,
       canvasHeight
     );
-    const numbersArray = points.map((point) => [point.x, point.y]);
+    // const numbersArray = points.map((point) => [point.x, point.y]);
+    // convert to mm
+    const numbersArray = points.map((point) => ({
+      x: point.x / SCALE,
+      y: point.y / SCALE,
+    }));
+    setPoints(numbersArray);
     // savePattern({ areaId, points: numbersArray, patternId: areaPattern?.id });
+  };
+
+  const onRunPattern = async () => {
+    try {
+      setRunning(true);
+      await app.patternSequece(points, numberOfLoops, xAxis, yAxis);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setRunning(false);
+    }
   };
 
   return (
@@ -258,9 +272,30 @@ const DesignPattern = observer(() => {
               </div>
             </div>
             <div className="h-4" />
+            <div className="grid w-full max-w-xs items-center gap-1.5">
+              <Label htmlFor="x">Number of loops</Label>
+              <Input
+                type="number"
+                id="number-input"
+                value={numberOfLoops}
+                onChange={(e) => setNumberOfLoops(Number(e.target.value))}
+                placeholder="Number of loops"
+              />
+            </div>
+            <div className="h-4" />
             <Button variant="default" onClick={onGenerate}>
               Generate spray pattern
             </Button>
+            <div className="h-4" />
+            {!!points.length && (
+              <Button
+                variant="secondary"
+                onClick={void onRunPattern}
+                disabled={running || !points}
+              >
+                Execute pattern {running && "(Running)"}
+              </Button>
+            )}
           </>
         )}
       </div>

@@ -43,6 +43,20 @@ export const stepperMoveMM = (stepper: Stepper, mm: number, dir: DIR) => {
     stepper.count_steps
   );
 };
+export const stepperMoveMMWithoutDir = (stepper: Stepper, mm: number) => {
+  const steps = Math.round(
+    (2 * stepper.microstepping * mm) / stepper.full_rev_mm
+  );
+  return setupStepperCommand(
+    stepper.command,
+    mm > 0 ? DIR.FORWARD : DIR.BACKWARD,
+    FREE_ROTATE.OFF,
+    steps,
+    stepper.step_sleep_micros,
+    DISABLE.OFF,
+    stepper.count_steps
+  );
+};
 
 export const stepperZeroingStart = (stepper: Stepper) => {
   return setupStepperCommand(

@@ -37,3 +37,8 @@ export enum VALVE_STATE {
   CLOSED = 0,
   OPEN = 1,
 }
+
+export type Point = {
+  x: number;
+  y: number;
+};
