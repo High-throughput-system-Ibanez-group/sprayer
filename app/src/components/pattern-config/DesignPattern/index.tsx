@@ -187,7 +187,7 @@ const DesignPattern = observer(() => {
   const onRunPattern = async () => {
     try {
       setRunning(true);
-      await app.patternSequece(points, numberOfLoops, xAxis, yAxis);
+      await app.patternSequence(points, numberOfLoops, xAxis, yAxis);
     } catch (e) {
       console.log(e);
     } finally {
@@ -290,12 +290,16 @@ const DesignPattern = observer(() => {
             {!!points.length && (
               <Button
                 variant="secondary"
-                onClick={void onRunPattern}
-                disabled={running || !points}
+                onClick={() => {
+                  void onRunPattern();
+                }}
+                disabled={running}
               >
                 Execute pattern {running && "(Running)"}
               </Button>
             )}
+            <div className="h-4" />
+            <Logs />
           </>
         )}
       </div>
@@ -311,4 +315,31 @@ const DesignPattern = observer(() => {
     </div>
   );
 });
+
 export { DesignPattern };
+
+const Logs = observer(() => {
+  const app = appStore();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.scrollIntoView({ behavior: "smooth" });
+  }, [app.logs]);
+
+  if (!app.logs.length) return null;
+
+  return (
+    <div
+      className="coding inverse-toggle max-h-24 w-96 overflow-scroll rounded-lg bg-gray-800 px-5 pb-6 pt-4 
+              font-mono  text-sm leading-normal text-gray-100 subpixel-antialiased shadow-lg"
+      ref={ref}
+    >
+      <div className="mt-4 flex flex-col">
+        {app.logs.map((log, index) => (
+          <p key={index}>{log}</p>
+        ))}
+      </div>
+    </div>
+  );
+});

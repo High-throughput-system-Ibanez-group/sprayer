@@ -46,6 +46,7 @@ class AppStore {
   pressureInput = 0.005;
   temperatureRead = 0;
   temperatureInput = 0;
+  logs: string[] = [];
 
   constructor() {
     makeAutoObservable(this);
@@ -222,34 +223,77 @@ class AppStore {
     return this.executeCommand(stepperMoveMMWithoutDir(stepper, mm));
   };
 
-  patternSequece = async (
+  addLog = (message: string) => {
+    this.logs.push(message);
+  };
+
+  patternSequence = async (
     points: Point[],
     reps: number,
     xAxis: number,
     yAxis: number
   ) => {
-    await this.zeroingStart();
-    await Promise.all([
-      this.moveMM(this.stepperX, 70),
-      this.moveMM(this.stepperY, 70),
-    ]);
-    // TODO: ultrasonic on
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    for (let i = 0; i < reps; i++) {
-      await this.handleSequenceStep(Step.SET_VALVE_2_ON);
-      await this.stepperEndS();
-      for (const point of points) {
-        await Promise.all([
-          this.moveMM(this.stepperX, point.x),
-          this.moveMM(this.stepperY, point.y),
-        ]);
-      }
-      await this.handleSequenceStep(Step.SET_VALVE_2_OFF);
-      await this.stepperStopS();
+    try {
+      this.addLog("Starting pattern sequence...");
+
+      this.addLog("Zeroing started...");
+      await this.zeroingStart();
+      this.addLog("Zeroing completed.");
+
       await Promise.all([
-        this.moveMM(this.stepperX, -xAxis),
-        this.moveMM(this.stepperY, -yAxis),
+        this.moveMM(this.stepperX, 70),
+        this.moveMM(this.stepperY, 70),
       ]);
+      this.addLog("Initial movement completed.");
+
+      // TODO: ultrasonic on
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      this.addLog("Ultrasonic turned on.");
+
+      for (let i = 0; i < reps; i++) {
+        this.addLog(`Starting repetition ${i + 1}...`);
+
+        await this.handleSequenceStep(Step.SET_VALVE_2_ON);
+        this.addLog("Valve 2 turned on.");
+
+        await this.stepperEndS();
+        this.addLog("Stepper end reached.");
+
+        for (const point of points) {
+          this.addLog(`Moving to point (${point.x}, ${point.y})...`);
+
+          await Promise.all([
+            this.moveMM(this.stepperX, point.x),
+            this.moveMM(this.stepperY, point.y),
+          ]);
+
+          this.addLog(`Arrived at point (${point.x}, ${point.y}).`);
+        }
+
+        await this.handleSequenceStep(Step.SET_VALVE_2_OFF);
+
+        this.addLog(`Valve 2 turned off.`);
+
+        await this.stepperStopS();
+
+        this.addLog("Stepper Syringe stopped.");
+
+        this.addLog("Moving to start position...");
+
+        await Promise.all([
+          this.moveMM(this.stepperX, -xAxis),
+          this.moveMM(this.stepperY, -yAxis),
+        ]);
+
+        this.addLog("Initial position reached.");
+
+        this.addLog(`Finished repetition ${i + 1}.`);
+      }
+
+      this.addLog("Pattern sequence completed.");
+    } catch (e) {
+      console.log("Pattern error => ", e);
+      this.addLog("Error in pattern sequence...");
     }
   };
 
