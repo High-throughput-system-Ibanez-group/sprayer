@@ -41,10 +41,10 @@ const PatternConfig = () => {
               <UltrasonicController />
               <div className="h-8" />
               <Temperature />
-              <div className="h-8" />
-              <Cleaning />
-              <div className="h-8" />
-              <ExperimentSettings />
+              {/* <div className="h-8" />
+              <Cleaning /> */}
+              {/* <div className="h-8" />
+              <ExperimentSettings /> */}
               {/* {areaId && <PatternArea areaId={areaId} />} */}
             </div>
           </TabsContent>

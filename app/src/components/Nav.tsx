@@ -46,7 +46,7 @@ const Nav = () => {
           Control Panel
         </div>
       </Link>
-      <Link href="/area-config">
+      {/* <Link href="/area-config">
         <div
           className={`mx-4 cursor-pointer rounded-lg px-4 py-2 hover:bg-slate-500 ${
             router.pathname === "/area-config" ? "underline" : ""
@@ -54,7 +54,7 @@ const Nav = () => {
         >
           Area Configuration
         </div>
-      </Link>
+      </Link> */}
       <Link href="/pattern-config">
         <div
           className={`mx-4 cursor-pointer rounded-lg px-4 py-2 hover:bg-slate-500 ${
