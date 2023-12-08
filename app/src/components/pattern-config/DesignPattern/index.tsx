@@ -73,12 +73,28 @@ function drawSnakePattern(
     }
   }
 
+  // drawPointsInCanvas(context, centerX, centerY, canvasHeight, canvasWidth);
+
   // return potins without duplicaties
   return points.filter(
     (point, index, self) =>
       index === self.findIndex((p) => p.x === point.x && p.y === point.y)
   );
 }
+
+const drawPointsInCanvas = (
+  ctx: CanvasRenderingContext2D,
+  xAxis: number,
+  yAxis: number,
+  canvasHeight: number,
+  canvasWidth: number
+) => {
+  // draw the point (0,0) at the top left corner and the xAxis and yAxis at the bottom right corner
+  ctx.fillStyle = "#000000";
+  ctx.font = "10px Arial";
+  ctx.fillText("(0,0)", 0, 10);
+  ctx.fillText(`(${xAxis},${yAxis})`, canvasWidth - 32, canvasHeight - 5);
+};
 
 type Patterns = "serpentine";
 
@@ -106,6 +122,11 @@ const DesignPattern = observer(() => {
   }, [xAxis]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    // every time a variable changes i reset the points
+    setPoints([]);
+  }, [horizontalDistance, verticalDistance, numberOfLoops, selectedPattern]);
 
   // const numberOfLoopsRef = useRef<HTMLInputElement>(null);
 
@@ -143,10 +164,16 @@ const DesignPattern = observer(() => {
     // if (areaPattern?.points) {
     //   drawPattern();
     // }
+    drawPointsInCanvas(ctx, xAxis, yAxis, canvasHeight, canvasWidth);
+
     if (!canvasHorizontalDistance || !canvasVerticalDistance) return;
   }, [
     canvasHorizontalDistance,
     canvasVerticalDistance,
+    canvasWidth,
+    canvasHeight,
+    xAxis,
+    yAxis,
     // areaPattern,
   ]);
 
@@ -295,7 +322,7 @@ const DesignPattern = observer(() => {
                 }}
                 disabled={running}
               >
-                Execute pattern {running && "(Running)"}
+                Execute experiment {running && "(Running)"}
               </Button>
             )}
             <div className="h-4" />
@@ -304,13 +331,20 @@ const DesignPattern = observer(() => {
         )}
       </div>
       <div className="w-[1px] bg-slate-300" />
-      <div className="flex h-full w-full flex-1 justify-center overflow-scroll">
+      <div className="relative flex h-full w-full flex-1 flex-col items-center overflow-scroll">
         <canvas
           ref={canvasRef}
           width={canvasWidth}
           height={canvasHeight}
           style={{ border: "1px solid black" }}
         />
+        <div>
+          {points.map((point, index) => (
+            <li key={index}>
+              Point {index + 1}: ({point.x}, {point.y})
+            </li>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -327,8 +361,6 @@ const Logs = observer(() => {
     ref.current.scrollIntoView({ behavior: "smooth" });
   }, [app.logs]);
 
-  if (!app.logs.length) return null;
-
   return (
     <div
       className="coding inverse-toggle max-h-24 w-96 overflow-scroll rounded-lg bg-gray-800 px-5 pb-6 pt-4 
@@ -339,6 +371,12 @@ const Logs = observer(() => {
         {app.logs.map((log, index) => (
           <p key={index}>{log}</p>
         ))}
+        {/* empty state */}
+        {!app.logs.length && (
+          <div className="flex h-full flex-col items-center justify-center">
+            <div className="text-sm text-gray-400">No logs</div>
+          </div>
+        )}
       </div>
     </div>
   );
