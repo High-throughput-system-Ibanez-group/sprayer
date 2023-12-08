@@ -241,14 +241,14 @@ class AppStore {
       this.addLog("Zeroing completed.");
 
       await Promise.all([
-        this.moveMM(this.stepperX, 70),
-        this.moveMM(this.stepperY, 70),
+        this.moveMM(this.stepperX, 5),
+        this.moveMM(this.stepperY, 5),
       ]);
       this.addLog("Initial movement completed.");
 
       // TODO: ultrasonic on
+
       await new Promise((resolve) => setTimeout(resolve, 500));
-      this.addLog("Ultrasonic turned on.");
 
       for (let i = 0; i < reps; i++) {
         this.addLog(`Starting repetition ${i + 1}...`);
